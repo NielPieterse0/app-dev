@@ -1,0 +1,3 @@
+display_name: Cross-Platform App Workflow
+short_description: Build modular desktop, Android, and iOS apps from the app-dev workspace.
+default_prompt: Use the cross-platform app workflow to plan, scaffold, implement, and verify this modular app.

@@ -1,0 +1,36 @@
+$ErrorActionPreference = "Stop"
+$root = Split-Path -Parent $PSScriptRoot
+
+$required = @(
+  "AGENTS.md",
+  ".codex\config.toml",
+  "standards\stack.md",
+  "standards\workspace.md",
+  "standards\codex-capabilities.md",
+  "standards\adaptive-layouts.md",
+  "standards\testing.md",
+  "standards\security.md",
+  ".agents\skills\cross-platform-app-workflow\SKILL.md",
+  "scripts\create-app.ps1",
+  "scripts\verify-app.ps1",
+  "scripts\test-hooks.ps1",
+  "scripts\test-workspace.ps1",
+  "templates\react-vite-capacitor\package.json",
+  "templates\next-web-app\package.json",
+  "templates\expo-native-app\package.json",
+  "projects"
+)
+
+$missing = @()
+foreach ($item in $required) {
+  $path = Join-Path $root $item
+  if (-not (Test-Path $path)) {
+    $missing += $item
+  }
+}
+
+if ($missing.Count -gt 0) {
+  Write-Error ("Missing required workspace files: " + ($missing -join ", "))
+}
+
+Write-Host "app-dev workspace check passed: $root"

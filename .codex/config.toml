@@ -1,0 +1,22 @@
+# Project-level Codex configuration for app-dev.
+# Keep this conservative. AGENTS.md carries durable development rules; this file is reserved
+# for Codex project settings and hook wiring supported by the installed Codex version.
+
+# Suggested policy for this control workspace:
+# - Allow Codex to read standards/templates/skills/scripts/projects.
+# - Require explicit user approval before destructive git operations or dependency installs.
+# - Keep network-dependent installs and deployments as deliberate user-approved steps.
+
+# Hook scripts live in .codex/hooks. They are tested as standalone scripts, but are not
+# enforced unless you wire them into the current Codex hook schema for your installed
+# version.
+
+# Example intent, left inactive until you decide to enforce hooks in this trusted project:
+# [[hooks.PreToolUse]]
+# matcher = "^Shell$|^Bash$|^local_shell$"
+#
+# [[hooks.PreToolUse.hooks]]
+# type = "command"
+# command = "pwsh -NoProfile -ExecutionPolicy Bypass -File .codex/hooks/pre-command.ps1"
+# timeout = 30
+# statusMessage = "Checking shell command policy"
