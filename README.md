@@ -29,6 +29,8 @@ From this folder:
 
 ```powershell
 .\scripts\check-workspace.ps1
+.\scripts\validate-codex-assets.ps1
+.\scripts\test-hooks.ps1
 ```
 
 To create a project folder from the React/Vite/Capacitor template:
@@ -50,3 +52,7 @@ To run control-workspace checks:
 ```powershell
 .\scripts\test-workspace.ps1
 ```
+
+## Local Tools
+
+Required: PowerShell 7+, Git, Node.js LTS with npm, Python 3.11+ for strict TOML validation, and Codex CLI/app when using local `.codex` hooks and rules. Optional: Playwright browsers for app e2e checks.

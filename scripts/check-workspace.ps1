@@ -4,6 +4,10 @@ $root = Split-Path -Parent $PSScriptRoot
 $required = @(
   "AGENTS.md",
   ".codex\config.toml",
+  ".codex\rules\default.rules",
+  ".codex\hooks\pre-command.ps1",
+  ".codex\hooks\post-edit.ps1",
+  ".codex\hooks\verify-before-finish.ps1",
   "standards\stack.md",
   "standards\workspace.md",
   "standards\codex-capabilities.md",
@@ -15,6 +19,7 @@ $required = @(
   "scripts\verify-app.ps1",
   "scripts\test-hooks.ps1",
   "scripts\test-workspace.ps1",
+  "scripts\validate-codex-assets.ps1",
   "templates\react-vite-capacitor\package.json",
   "templates\next-web-app\package.json",
   "templates\expo-native-app\package.json",

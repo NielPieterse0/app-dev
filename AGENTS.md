@@ -109,6 +109,18 @@ For UI work, rendered verification is required: first meaningful screen, core in
 - Do not add a new state manager, router, form library, table library, or UI kit without documenting the reason in the project `AGENTS.md`.
 - Avoid global root installs for app dependencies. App dependencies belong in the app package.
 
+## Codex Governance Checks
+
+When changing `.codex/`, `.agents/skills/`, root `AGENTS.md`, or workspace scripts, run:
+
+```text
+.\scripts\check-workspace.ps1
+.\scripts\validate-codex-assets.ps1
+.\scripts\test-hooks.ps1
+```
+
+Project-local Codex hooks and rules are active only after the repository `.codex/` layer is trusted in Codex. Do not add `.codex/hooks.json` while inline hooks remain configured in `.codex/config.toml`.
+
 ## Verification Notes
 
 When a check cannot be run because dependencies are not installed, scripts are absent, or external services are unavailable, state the exact blocker and the next command the user should run.

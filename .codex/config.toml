@@ -1,22 +1,88 @@
-# Project-level Codex configuration for app-dev.
-# Keep this conservative. AGENTS.md carries durable development rules; this file is reserved
-# for Codex project settings and hook wiring supported by the installed Codex version.
-
-# Suggested policy for this control workspace:
-# - Allow Codex to read standards/templates/skills/scripts/projects.
-# - Require explicit user approval before destructive git operations or dependency installs.
-# - Keep network-dependent installs and deployments as deliberate user-approved steps.
-
-# Hook scripts live in .codex/hooks. They are tested as standalone scripts, but are not
-# enforced unless you wire them into the current Codex hook schema for your installed
-# version.
-
-# Example intent, left inactive until you decide to enforce hooks in this trusted project:
-# [[hooks.PreToolUse]]
-# matcher = "^Shell$|^Bash$|^local_shell$"
+# Project-level Codex configuration for the app-dev control workspace.
 #
-# [[hooks.PreToolUse.hooks]]
-# type = "command"
-# command = "pwsh -NoProfile -ExecutionPolicy Bypass -File .codex/hooks/pre-command.ps1"
-# timeout = 30
-# statusMessage = "Checking shell command policy"
+# This file is intentionally active. It uses the current Codex configuration model:
+# - permission profiles for local least-privilege boundaries
+# - inline lifecycle hooks for deterministic repository policy checks
+# - project-local rules under .codex/rules/
+#
+# Project .codex layers only load after the project is trusted in Codex.
+
+# Keep the root AGENTS.md below the Codex default instruction discovery cap unless this
+# value is intentionally raised.
+project_doc_max_bytes = 32768
+
+# Use beta permission profiles instead of legacy sandbox settings. Do not add
+# legacy sandbox keys to this file unless permission profiles are deliberately removed.
+default_permissions = "app-dev-workspace"
+
+[features]
+hooks = true
+
+[permissions.app-dev-workspace]
+description = "Least-privilege app-dev editing profile. Allows workspace edits, protects secrets and Codex policy files, and disables outbound network access by default."
+extends = ":workspace"
+
+[permissions.app-dev-workspace.filesystem.":workspace_roots"]
+# The active workspace remains writable for normal app/template/script work.
+"." = "write"
+
+# Keep policy/configuration areas readable unless a human deliberately changes the
+# permission profile for governance maintenance.
+".codex" = "read"
+".git" = "read"
+
+# Deny common secret-bearing files and key material. .env.example remains readable.
+".env" = "deny"
+".env.local" = "deny"
+".env.development" = "deny"
+".env.production" = "deny"
+".env.test" = "deny"
+"**/.env" = "deny"
+"**/.env.local" = "deny"
+"**/.env.development" = "deny"
+"**/.env.production" = "deny"
+"**/.env.test" = "deny"
+"**/*.pem" = "deny"
+"**/*.key" = "deny"
+"**/*id_rsa*" = "deny"
+"**/*id_ed25519*" = "deny"
+"**/secrets.*" = "deny"
+"**/*secret*.json" = "deny"
+
+[permissions.app-dev-workspace.network]
+# Keep network-dependent installs, deployments, and cloud calls as explicit user-approved
+# steps outside the default project profile.
+enabled = false
+
+# Hooks use one inline representation in this layer. Do not add .codex/hooks.json unless
+# these inline hook tables are removed; Codex merges both forms and warns at startup.
+
+[[hooks.PreToolUse]]
+matcher = "^Bash$|^apply_patch$|^Edit$|^Write$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'pwsh -NoProfile -ExecutionPolicy Bypass -File "$(git rev-parse --show-toplevel)/.codex/hooks/pre-command.ps1"'
+command_windows = "pwsh -NoProfile -ExecutionPolicy Bypass -Command \"$repo = git rev-parse --show-toplevel; & (Join-Path $repo '.codex/hooks/pre-command.ps1')\""
+timeout = 30
+statusMessage = "Checking app-dev command policy"
+
+[[hooks.PermissionRequest]]
+matcher = "^Bash$|^apply_patch$|^Edit$|^Write$"
+
+[[hooks.PermissionRequest.hooks]]
+type = "command"
+command = 'pwsh -NoProfile -ExecutionPolicy Bypass -File "$(git rev-parse --show-toplevel)/.codex/hooks/pre-command.ps1"'
+command_windows = "pwsh -NoProfile -ExecutionPolicy Bypass -Command \"$repo = git rev-parse --show-toplevel; & (Join-Path $repo '.codex/hooks/pre-command.ps1')\""
+timeout = 30
+statusMessage = "Checking app-dev approval request"
+
+[[hooks.PostToolUse]]
+matcher = "^Bash$|^apply_patch$|^Edit$|^Write$"
+
+[[hooks.PostToolUse.hooks]]
+type = "command"
+command = 'pwsh -NoProfile -ExecutionPolicy Bypass -File "$(git rev-parse --show-toplevel)/.codex/hooks/post-edit.ps1"'
+command_windows = "pwsh -NoProfile -ExecutionPolicy Bypass -Command \"$repo = git rev-parse --show-toplevel; & (Join-Path $repo '.codex/hooks/post-edit.ps1')\""
+timeout = 30
+statusMessage = "Reviewing app-dev verification hints"

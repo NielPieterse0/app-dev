@@ -31,6 +31,7 @@ function Remove-DisposableProject {
 
 try {
   & (Join-Path $root "scripts\check-workspace.ps1")
+  & (Join-Path $root "scripts\validate-codex-assets.ps1")
   & (Join-Path $root "scripts\test-hooks.ps1")
 
   Remove-DisposableProject

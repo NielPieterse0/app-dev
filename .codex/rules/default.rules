@@ -1,0 +1,181 @@
+# app-dev Codex execution policy rules.
+#
+# These rules control commands Codex may run outside the sandbox. They are a second
+# layer next to the PreToolUse hook. Keep destructive operations forbidden and make
+# network/deployment/publishing operations explicit human decisions.
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Hard reset can discard user work. Use git status/diff first and ask the user for an explicit rollback target.",
+    match = ["git reset --hard", "git reset --hard HEAD"],
+    not_match = ["git reset --soft HEAD~1"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "prompt",
+    justification = "git clean may delete untracked files. Approval is required with the exact path/flags.",
+    match = ["git clean -fd", "git clean -fdx"],
+)
+
+prefix_rule(
+    pattern = ["git", "checkout", "--"],
+    decision = "forbidden",
+    justification = "Path checkout can silently discard local edits. Use git diff and ask before restoring files.",
+    match = ["git checkout -- AGENTS.md"],
+)
+
+prefix_rule(
+    pattern = ["git", "restore"],
+    decision = "prompt",
+    justification = "git restore can discard local edits. Approval is required with the exact files.",
+    match = ["git restore AGENTS.md", "git restore --source HEAD AGENTS.md"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force"],
+    decision = "forbidden",
+    justification = "Force push can rewrite shared history. Ask the user to perform it manually if required.",
+    match = ["git push --force", "git push --force origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force-with-lease"],
+    decision = "prompt",
+    justification = "Force-with-lease still rewrites remote history. Approval is required.",
+    match = ["git push --force-with-lease"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "forbidden",
+    justification = "Recursive forced deletion is blocked. Use targeted file edits or a reviewed cleanup script.",
+    match = ["rm -rf dist", "rm -rf /tmp/app-dev"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-fr"],
+    decision = "forbidden",
+    justification = "Recursive forced deletion is blocked. Use targeted file edits or a reviewed cleanup script.",
+    match = ["rm -fr dist"],
+)
+
+prefix_rule(
+    pattern = ["Remove-Item"],
+    decision = "prompt",
+    justification = "PowerShell deletion requires approval so recursive/forced removals are reviewed.",
+    match = ["Remove-Item -LiteralPath projects/demo -Recurse -Force"],
+)
+
+prefix_rule(
+    pattern = ["npm", "publish"],
+    decision = "forbidden",
+    justification = "Package publishing must be performed manually by the user after release review.",
+    match = ["npm publish", "npm publish --access public"],
+)
+
+prefix_rule(
+    pattern = ["pnpm", "publish"],
+    decision = "forbidden",
+    justification = "Package publishing must be performed manually by the user after release review.",
+    match = ["pnpm publish"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "publish"],
+    decision = "forbidden",
+    justification = "Package publishing must be performed manually by the user after release review.",
+    match = ["yarn publish"],
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "deploy"],
+    decision = "prompt",
+    justification = "Deployment commands require explicit target/environment approval.",
+    match = ["npm run deploy", "npm run deploy -- --prod"],
+)
+
+prefix_rule(
+    pattern = ["pnpm", "run", "deploy"],
+    decision = "prompt",
+    justification = "Deployment commands require explicit target/environment approval.",
+    match = ["pnpm run deploy"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "deploy"],
+    decision = "prompt",
+    justification = "Deployment commands require explicit target/environment approval.",
+    match = ["yarn deploy"],
+)
+
+prefix_rule(
+    pattern = ["vercel", "deploy", "--prod"],
+    decision = "prompt",
+    justification = "Production Vercel deployment requires explicit approval.",
+    match = ["vercel deploy --prod"],
+)
+
+prefix_rule(
+    pattern = ["firebase", "deploy"],
+    decision = "prompt",
+    justification = "Firebase deployment requires explicit project/environment approval.",
+    match = ["firebase deploy"],
+)
+
+prefix_rule(
+    pattern = ["netlify", "deploy", "--prod"],
+    decision = "prompt",
+    justification = "Production Netlify deployment requires explicit approval.",
+    match = ["netlify deploy --prod"],
+)
+
+prefix_rule(
+    pattern = ["wrangler", "deploy"],
+    decision = "prompt",
+    justification = "Cloudflare deployment requires explicit target/environment approval.",
+    match = ["wrangler deploy"],
+)
+
+prefix_rule(
+    pattern = ["supabase", "db", "push"],
+    decision = "prompt",
+    justification = "Database pushes require explicit linked project and environment approval.",
+    match = ["supabase db push", "supabase db push --linked"],
+)
+
+prefix_rule(
+    pattern = ["supabase", "db", "reset"],
+    decision = "forbidden",
+    justification = "Database reset can destroy data. Use a local disposable database or ask the user to run it manually.",
+    match = ["supabase db reset", "supabase db reset --linked"],
+)
+
+prefix_rule(
+    pattern = ["npx", "prisma", "migrate", "deploy"],
+    decision = "prompt",
+    justification = "Prisma production migrations require explicit database/environment approval.",
+    match = ["npx prisma migrate deploy"],
+)
+
+prefix_rule(
+    pattern = ["prisma", "migrate", "deploy"],
+    decision = "prompt",
+    justification = "Prisma production migrations require explicit database/environment approval.",
+    match = ["prisma migrate deploy"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", "apply"],
+    decision = "prompt",
+    justification = "Kubernetes mutations require explicit cluster/namespace approval.",
+    match = ["kubectl apply -f deployment.yaml"],
+)
+
+prefix_rule(
+    pattern = ["kubectl", "delete"],
+    decision = "prompt",
+    justification = "Kubernetes deletion requires explicit cluster/namespace approval.",
+    match = ["kubectl delete -f deployment.yaml"],
+)
