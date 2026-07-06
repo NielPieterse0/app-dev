@@ -1,6 +1,7 @@
 # Expo Native App Instructions
 
 Follow the root `app-dev/AGENTS.md` standards. Use this template only when native mobile behavior is central enough that a web-first Capacitor app would fight the product.
+Use this project's `PLAN.md` for architecture, module, risk, and verification decisions.
 
 ## Product Decision Record
 
@@ -11,6 +12,12 @@ Follow the root `app-dev/AGENTS.md` standards. Use this template only when nativ
 - Permissions: Replace with roles and device permission needs before feature work.
 - Platforms: iOS and Android unless revised.
 - Native requirements: replace with the native APIs that justify Expo.
+
+## Capability Routing
+
+- Use `cross-platform-app-workflow` as the required local app-dev skill.
+- Treat native emulator/debugger, frontend, security, GitHub, and deployment skills/plugins as optional external capabilities.
+- Continue with local standards and report the gap if optional capabilities are unavailable.
 
 ## Verification
 

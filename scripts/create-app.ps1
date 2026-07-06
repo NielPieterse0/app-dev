@@ -13,25 +13,25 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$source = Join-Path $root "templates\$Template"
-$target = Join-Path $root "projects\$Name"
+$source = Join-Path $root "templates/$Template"
+$target = Join-Path $root "projects/$Name"
 
-if (-not (Test-Path $source)) {
+if (-not (Test-Path -LiteralPath $source)) {
   Write-Error "Template not found: $source"
 }
 
-if (Test-Path $target) {
+if (Test-Path -LiteralPath $target) {
   Write-Error "Project already exists: $target"
 }
 
 New-Item -ItemType Directory -Force -Path $target | Out-Null
 Get-ChildItem -LiteralPath $source -Force | ForEach-Object {
-  Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse
+  Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force
 }
 
 $agentPath = Join-Path $target "AGENTS.md"
-if (-not (Test-Path $agentPath)) {
-  Set-Content -Path $agentPath -Encoding UTF8 -Value @"
+if (-not (Test-Path -LiteralPath $agentPath)) {
+  Set-Content -LiteralPath $agentPath -Encoding UTF8 -Value @"
 # $Name Codex Instructions
 
 This project inherits the app-dev workspace standards.
@@ -56,14 +56,28 @@ Use the scripts in package.json. Before completion, run available checks through
 "@
 }
 
-$required = @("package.json", "AGENTS.md")
+$planPath = Join-Path $target "PLAN.md"
+$templatePlanPath = Join-Path $root "templates/PLAN.template.md"
+if (-not (Test-Path -LiteralPath $planPath)) {
+  if (-not (Test-Path -LiteralPath $templatePlanPath)) {
+    Write-Error "Plan template not found: $templatePlanPath"
+  }
+
+  $planText = Get-Content -LiteralPath $templatePlanPath -Raw
+  $planText = $planText.Replace("{{APP_NAME}}", $Name)
+  $planText = $planText.Replace("{{TEMPLATE}}", $Template)
+  $planText = $planText.Replace("{{DATE}}", (Get-Date -Format "yyyy-MM-dd"))
+  Set-Content -LiteralPath $planPath -Encoding UTF8 -Value $planText
+}
+
+$required = @("package.json", "AGENTS.md", "PLAN.md")
 if ($Template -eq "react-vite-capacitor") {
-  $required += @(".env.example", "index.html", "src\main.tsx")
+  $required += @(".env.example", "index.html", "src/main.tsx")
 }
 
 foreach ($item in $required) {
   $path = Join-Path $target $item
-  if (-not (Test-Path $path)) {
+  if (-not (Test-Path -LiteralPath $path)) {
     Write-Error "Generated project is missing required file: $item"
   }
 }
@@ -85,4 +99,4 @@ if ($InitializeGit) {
 }
 
 Write-Host "Created $Name from $Template at $target"
-Write-Host "Next: review $agentPath, install dependencies inside the project, then run ..\..\scripts\verify-app.ps1 -ProjectPath ."
+Write-Host "Next: review $agentPath and $planPath, install dependencies inside the project, then run ../../scripts/verify-app.ps1 -ProjectPath ."

@@ -1,12 +1,18 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
-  [bool]$RequirePythonToml = $false,
+  [object]$RequirePythonToml = $false,
   [bool]$JsonSummary = $false
 )
 
 $ErrorActionPreference = "Stop"
 $failures = New-Object System.Collections.Generic.List[string]
 $warnings = New-Object System.Collections.Generic.List[string]
+
+if ($RequirePythonToml -is [string]) {
+  $RequirePythonToml = $RequirePythonToml -match "^(?i:true|1)$"
+} else {
+  $RequirePythonToml = [bool]$RequirePythonToml
+}
 
 function Add-Failure {
   param([Parameter(Mandatory=$true)][string]$Message)
@@ -18,9 +24,14 @@ function Add-Warning {
   $warnings.Add($Message) | Out-Null
 }
 
+function Resolve-WorkspacePath {
+  param([Parameter(Mandatory=$true)][string]$RelativePath)
+  return Join-Path $Root $RelativePath
+}
+
 function Assert-PathExists {
   param([Parameter(Mandatory=$true)][string]$RelativePath)
-  $path = Join-Path $Root $RelativePath
+  $path = Resolve-WorkspacePath $RelativePath
   if (-not (Test-Path -LiteralPath $path)) {
     Add-Failure "Missing required path: $RelativePath"
   }
@@ -135,15 +146,23 @@ function Test-SkillFrontmatter {
   }
 
   $frontmatter = ($lines[1..($endIndex - 1)] -join "`n")
-  $nameMatch = [regex]::Match($frontmatter, "(?m)^name:\s*([A-Za-z0-9_-]+)\s*$")
+  $nameMatch = [regex]::Match($frontmatter, "(?m)^name:\s*([a-z0-9-]+)\s*$")
   $descriptionMatch = [regex]::Match($frontmatter, "(?m)^description:\s*(.+)\s*$")
 
   if (-not $nameMatch.Success) {
-    Add-Failure "SKILL.md frontmatter must contain a simple name field."
+    Add-Failure "SKILL.md frontmatter must contain a lowercase hyphenated name field."
   }
 
   if (-not $descriptionMatch.Success -or [string]::IsNullOrWhiteSpace($descriptionMatch.Groups[1].Value)) {
     Add-Failure "SKILL.md frontmatter must contain a non-empty description field."
+  } else {
+    $description = $descriptionMatch.Groups[1].Value.Trim()
+    if ($description.Length -gt 1024) {
+      Add-Failure "SKILL.md description is $($description.Length) characters, above the 1024 character skill specification limit."
+    }
+    if ($description -notmatch "(?i)Scaffold|React|Vite|Capacitor|Next|Expo") {
+      Add-Warning "SKILL.md description may not be front-loaded with app-dev trigger terms."
+    }
   }
 
   if ($nameMatch.Success) {
@@ -151,6 +170,9 @@ function Test-SkillFrontmatter {
     $skillName = $nameMatch.Groups[1].Value.Trim()
     if ($skillName -ne $folderName) {
       Add-Failure "SKILL.md name '$skillName' must match parent folder '$folderName'."
+    }
+    if ($skillName.StartsWith("-") -or $skillName.EndsWith("-") -or $skillName.Contains("--")) {
+      Add-Failure "SKILL.md name violates hyphen placement rules."
     }
   }
 }
@@ -212,7 +234,7 @@ function Test-HookReferences {
     }
   }
 
-  if (Test-Path -LiteralPath (Join-Path $Root ".codex/hooks.json")) {
+  if (Test-Path -LiteralPath (Resolve-WorkspacePath ".codex/hooks.json")) {
     Add-Failure "Do not use .codex/hooks.json while inline hooks are configured in .codex/config.toml. Use one hook representation per config layer."
   }
 }
@@ -265,7 +287,7 @@ function Test-RulesFile {
 }
 
 function Test-NoDisposableVerificationFolders {
-  $projectsPath = Join-Path $Root "projects"
+  $projectsPath = Resolve-WorkspacePath "projects"
   if (-not (Test-Path -LiteralPath $projectsPath)) { return }
   $badFolders = Get-ChildItem -LiteralPath $projectsPath -Directory -Force | Where-Object { $_.Name -like "__verify-*" -or $_.Name -eq "__verify-template" }
   foreach ($folder in $badFolders) {
@@ -273,19 +295,116 @@ function Test-NoDisposableVerificationFolders {
   }
 }
 
-$Root = (Resolve-Path -LiteralPath $Root).Path
-$configPath = Join-Path $Root ".codex/config.toml"
-$skillPath = Join-Path $Root ".agents/skills/cross-platform-app-workflow/SKILL.md"
-$rulesPath = Join-Path $Root ".codex/rules/default.rules"
+function Test-CapabilityRouting {
+  param([Parameter(Mandatory=$true)][string]$CapabilityPath)
 
-Assert-PathExists "AGENTS.md"
-Assert-PathExists ".codex/config.toml"
-Assert-PathExists ".codex/rules/default.rules"
-Assert-PathExists ".codex/hooks/pre-command.ps1"
-Assert-PathExists ".codex/hooks/post-edit.ps1"
-Assert-PathExists ".codex/hooks/verify-before-finish.ps1"
-Assert-PathExists ".agents/skills/cross-platform-app-workflow/SKILL.md"
-Assert-PathExists "scripts/validate-codex-assets.ps1"
+  if (-not (Test-Path -LiteralPath $CapabilityPath)) {
+    Add-Failure "Missing capability routing standard: $CapabilityPath"
+    return
+  }
+
+  $content = Get-Content -LiteralPath $CapabilityPath -Raw
+  foreach ($required in @("Required Local Capability", "Optional External Capabilities", "cross-platform-app-workflow", "not repository dependencies")) {
+    if ($content -notmatch [regex]::Escape($required)) {
+      Add-Failure "standards/codex-capabilities.md is missing P1 capability-separation wording: $required"
+    }
+  }
+}
+
+function Test-PlanAssets {
+  param(
+    [Parameter(Mandatory=$true)][string]$PlansPath,
+    [Parameter(Mandatory=$true)][string]$PlanTemplatePath
+  )
+
+  if (-not (Test-Path -LiteralPath $PlansPath)) {
+    Add-Failure "Missing root PLANS.md."
+  } else {
+    $plans = Get-Content -LiteralPath $PlansPath -Raw
+    foreach ($required in @("Planning Standard", "projects/<app>/PLAN.md", "templates/PLAN.template.md", "Completion Rule")) {
+      if ($plans -notmatch [regex]::Escape($required)) {
+        Add-Failure "PLANS.md is missing required planning protocol content: $required"
+      }
+    }
+  }
+
+  if (-not (Test-Path -LiteralPath $PlanTemplatePath)) {
+    Add-Failure "Missing templates/PLAN.template.md."
+  } else {
+    $template = Get-Content -LiteralPath $PlanTemplatePath -Raw
+    foreach ($required in @("{{APP_NAME}}", "{{TEMPLATE}}", "{{DATE}}", "Verification", "Risks and Assumptions")) {
+      if ($template -notmatch [regex]::Escape($required)) {
+        Add-Failure "templates/PLAN.template.md is missing required content: $required"
+      }
+    }
+  }
+}
+
+function Test-CiWorkflow {
+  param([Parameter(Mandatory=$true)][string]$WorkflowPath)
+
+  if (-not (Test-Path -LiteralPath $WorkflowPath)) {
+    Add-Failure "Missing CI workflow: .github/workflows/app-dev-validation.yml"
+    return
+  }
+
+  $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
+  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/test-workspace.ps1")) {
+    if ($workflow -notmatch [regex]::Escape($required)) {
+      Add-Failure ".github/workflows/app-dev-validation.yml is missing required CI content: $required"
+    }
+  }
+}
+
+function Test-OpenAiAgentMetadata {
+  param([Parameter(Mandatory=$true)][string]$MetadataPath)
+
+  if (-not (Test-Path -LiteralPath $MetadataPath)) {
+    Add-Failure "Missing OpenAI agent metadata: $MetadataPath"
+    return
+  }
+
+  $content = Get-Content -LiteralPath $MetadataPath -Raw
+  foreach ($required in @("display_name:", "short_description:", "default_prompt:", "external skills/plugins as optional")) {
+    if ($content -notmatch [regex]::Escape($required)) {
+      Add-Failure "OpenAI agent metadata is missing required P1 wording: $required"
+    }
+  }
+}
+
+$Root = (Resolve-Path -LiteralPath $Root).Path
+$configPath = Resolve-WorkspacePath ".codex/config.toml"
+$skillPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/SKILL.md"
+$rulesPath = Resolve-WorkspacePath ".codex/rules/default.rules"
+$capabilityPath = Resolve-WorkspacePath "standards/codex-capabilities.md"
+$plansPath = Resolve-WorkspacePath "PLANS.md"
+$planTemplatePath = Resolve-WorkspacePath "templates/PLAN.template.md"
+$workflowPath = Resolve-WorkspacePath ".github/workflows/app-dev-validation.yml"
+$openAiAgentMetadataPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/agents/openai.yaml"
+
+foreach ($path in @(
+  "AGENTS.md",
+  "PLANS.md",
+  ".github/workflows/app-dev-validation.yml",
+  ".codex/config.toml",
+  ".codex/rules/default.rules",
+  ".codex/hooks/pre-command.ps1",
+  ".codex/hooks/post-edit.ps1",
+  ".codex/hooks/verify-before-finish.ps1",
+  ".agents/README.md",
+  ".agents/skills/README.md",
+  ".agents/skills/cross-platform-app-workflow/SKILL.md",
+  ".agents/skills/cross-platform-app-workflow/agents/openai.yaml",
+  ".agents/skills/cross-platform-app-workflow/references/stack.md",
+  ".agents/skills/cross-platform-app-workflow/references/module-contract.md",
+  ".agents/skills/cross-platform-app-workflow/references/adaptive-layouts.md",
+  ".agents/skills/cross-platform-app-workflow/references/qa-gates.md",
+  "standards/codex-capabilities.md",
+  "templates/PLAN.template.md",
+  "scripts/validate-codex-assets.ps1"
+)) {
+  Assert-PathExists $path
+}
 
 if (Test-Path -LiteralPath $configPath) {
   Test-ConfigTextChecks -ConfigPath $configPath
@@ -301,6 +420,10 @@ Test-SkillFrontmatter -SkillPath $skillPath
 Test-MarkdownReferences -MarkdownPath $skillPath
 Test-AgentsSize -AgentsPath (Join-Path $Root "AGENTS.md")
 Test-NoDisposableVerificationFolders
+Test-CapabilityRouting -CapabilityPath $capabilityPath
+Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath
+Test-CiWorkflow -WorkflowPath $workflowPath
+Test-OpenAiAgentMetadata -MetadataPath $openAiAgentMetadataPath
 
 $summary = [ordered]@{
   root = $Root
