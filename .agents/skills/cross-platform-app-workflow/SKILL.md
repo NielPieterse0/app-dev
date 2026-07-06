@@ -1,6 +1,10 @@
 ---
 name: cross-platform-app-workflow
-description: Scaffold, build, review, and verify cross-platform app-dev apps: React/Vite/Capacitor, Next.js, Expo, adaptive desktop/mobile layouts, vertical modules, templates, and Codex app workflow.
+description: app-dev scaffold, verify, and review React/Vite/Capacitor, Next.js, and Expo apps with vertical modules and adaptive desktop/mobile layouts.
+metadata:
+  owner: app-dev
+  version: 1.0.0
+  maturity: stable
 ---
 
 # Cross-Platform App Workflow

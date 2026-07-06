@@ -1,8 +1,9 @@
 import { LayoutDashboard, Settings } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, current: true },
-  { label: "Settings", icon: Settings, current: false },
+  { label: "Dashboard", icon: LayoutDashboard, to: "/" },
+  { label: "Settings", icon: Settings, to: "/settings" },
 ];
 
 export function NavigationShell() {
@@ -13,16 +14,18 @@ export function NavigationShell() {
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
-            <a
-              aria-current={item.current ? "page" : undefined}
-              className="navigation-shell__item"
-              href="/"
+            <NavLink
+              className={({ isActive }) =>
+                isActive ? "navigation-shell__item navigation-shell__item--active" : "navigation-shell__item"
+              }
+              end={item.to === "/"}
               key={item.label}
               title={item.label}
+              to={item.to}
             >
               <Icon aria-hidden="true" size={18} />
               <span>{item.label}</span>
-            </a>
+            </NavLink>
           );
         })}
       </div>

@@ -6,35 +6,35 @@
 
 ## Goal
 
-Define the outcome this app or task must deliver.
+Replace this line with the outcome this app or task must deliver.
 
 ## Non-Goals
 
-List explicit exclusions to prevent scope drift.
+Replace this line with explicit exclusions that prevent scope drift.
 
 ## Product Decision Record
 
-- Users:
-- Core jobs:
-- Modules:
-- Data model:
-- Permissions:
-- Target platforms:
-- Native requirements:
+- Users: Replace with the target audience and primary operators.
+- Core jobs: Replace with the main jobs the app must support.
+- Modules: Replace with the vertical modules that own routes, UI, data, and tests.
+- Data model: Replace with the primary entities, relationships, and persistence needs.
+- Permissions: Replace with roles, access rules, and sensitive operations.
+- Target platforms: Replace with desktop web, mobile web, Android, iOS, or another explicit set.
+- Native requirements: Replace with the native APIs or device capabilities required, or state none.
 
 ## Architecture Decision
 
-- App type:
-- Routing model:
-- State/data strategy:
-- Backend/auth/storage:
-- UI system:
+- App type: Replace with React/Vite/Capacitor, Next.js, Expo, or the documented project-specific choice.
+- Routing model: Replace with the route structure and navigation model.
+- State/data strategy: Replace with client state, server state, validation, and cache decisions.
+- Backend/auth/storage: Replace with backend, auth, storage, and migration choices.
+- UI system: Replace with design system, component library, and token decisions.
 
 ## Module Plan
 
 | Module | Responsibility | Main files | Verification |
 | --- | --- | --- | --- |
-| TBD | TBD | TBD | TBD |
+| Replace with module name | Replace with owned user workflow and data boundary | Replace with main route/component/service files | Replace with focused checks |
 
 ## Implementation Steps
 
@@ -48,7 +48,7 @@ List explicit exclusions to prevent scope drift.
 
 | Item | Type | Impact | Mitigation |
 | --- | --- | --- | --- |
-| TBD | assumption | TBD | TBD |
+| Replace with risk or assumption | assumption | Replace with impact | Replace with mitigation or owner |
 
 ## Verification
 
@@ -80,7 +80,7 @@ Rendered UI checks:
 
 | Decision | Options | Owner | Status |
 | --- | --- | --- | --- |
-| TBD | TBD | TBD | open |
+| Replace with decision | Replace with concrete options | Replace with owner | open |
 
 ## Handoff Notes
 

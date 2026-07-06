@@ -1,0 +1,45 @@
+.state-block {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #d7dce3;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  min-height: 180px;
+  padding: 24px;
+  text-align: center;
+}
+
+.state-block h2,
+.state-block p {
+  margin: 0;
+}
+
+.state-block p {
+  color: #5b6472;
+  max-width: 52ch;
+}
+
+.state-block--error {
+  border-color: #d55f5f;
+}
+
+.state-block__action {
+  margin-top: 4px;
+}
+
+.state-block__spinner {
+  animation: state-block-spin 0.9s linear infinite;
+  border: 3px solid #d7dce3;
+  border-radius: 999px;
+  border-top-color: #2e7d6f;
+  height: 28px;
+  width: 28px;
+}
+
+@keyframes state-block-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

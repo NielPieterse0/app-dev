@@ -163,6 +163,15 @@ function Test-SkillFrontmatter {
     if ($description -notmatch "(?i)Scaffold|React|Vite|Capacitor|Next|Expo") {
       Add-Warning "SKILL.md description may not be front-loaded with app-dev trigger terms."
     }
+    if ($description -notmatch "(?i)^app-dev\s+scaffold") {
+      Add-Failure "SKILL.md description must be front-loaded with app-dev scaffold trigger terms."
+    }
+  }
+
+  foreach ($required in @("metadata:", "owner: app-dev", "version:", "maturity:")) {
+    if ($frontmatter -notmatch [regex]::Escape($required)) {
+      Add-Failure "SKILL.md frontmatter is missing required metadata content: $required"
+    }
   }
 
   if ($nameMatch.Success) {
@@ -265,7 +274,7 @@ function Test-RulesFile {
   }
 
   $rules = Get-Content -LiteralPath $RulesPath -Raw
-  foreach ($required in @('prefix_rule(', 'decision = "forbidden"', 'decision = "prompt"', 'git reset', 'npm', 'supabase', 'prisma')) {
+  foreach ($required in @('prefix_rule(', 'decision = "forbidden"', 'decision = "prompt"', 'git reset', 'npm', 'npm version', 'gh release', 'docker system prune', 'supabase', 'supabase", "db", "remote', 'supabase", "db", "deploy', 'prisma')) {
     if ($rules -notmatch [regex]::Escape($required)) {
       Add-Failure ".codex/rules/default.rules is missing expected rule coverage: $required"
     }
@@ -337,6 +346,82 @@ function Test-PlanAssets {
         Add-Failure "templates/PLAN.template.md is missing required content: $required"
       }
     }
+    if ($template -match "\bTBD\b") {
+      Add-Failure "templates/PLAN.template.md must not contain unresolved TBD placeholders."
+    }
+  }
+}
+
+function Test-PackageJson {
+  param([Parameter(Mandatory=$true)][string]$RelativePath)
+
+  $path = Resolve-WorkspacePath $RelativePath
+  if (-not (Test-Path -LiteralPath $path)) {
+    Add-Failure "Missing package.json: $RelativePath"
+    return
+  }
+
+  try {
+    $null = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -ErrorAction Stop
+  } catch {
+    Add-Failure "Invalid package.json JSON: $RelativePath. $($_.Exception.Message)"
+  }
+}
+
+function Test-TemplateAgents {
+  param([Parameter(Mandatory=$true)][string[]]$AgentPaths)
+
+  foreach ($relativePath in $AgentPaths) {
+    $path = Resolve-WorkspacePath $relativePath
+    if (-not (Test-Path -LiteralPath $path)) {
+      Add-Failure "Missing template AGENTS.md: $relativePath"
+      continue
+    }
+
+    $content = Get-Content -LiteralPath $path -Raw
+    foreach ($required in @("Product Decision Record", "Done When", "verify-app.ps1 -ProjectPath .", "Missing scripts are reported instead of invented")) {
+      if ($content -notmatch [regex]::Escape($required)) {
+        Add-Failure "$relativePath is missing generated app reliability wording: $required"
+      }
+    }
+  }
+}
+
+function Test-TemplateReadiness {
+  $requiredPaths = @(
+    "templates/common/.github/workflows/verify.yml",
+    "templates/react-vite-capacitor/capacitor.config.ts",
+    "templates/react-vite-capacitor/tailwind.config.ts",
+    "templates/react-vite-capacitor/postcss.config.js",
+    "templates/react-vite-capacitor/components.json",
+    "templates/react-vite-capacitor/src/app/routes.tsx",
+    "templates/react-vite-capacitor/src/vite-env.d.ts",
+    "templates/react-vite-capacitor/src/modules/settings/routes/SettingsRoute.tsx",
+    "templates/react-vite-capacitor/src/components/state/EmptyState.tsx",
+    "templates/react-vite-capacitor/src/components/state/LoadingState.tsx",
+    "templates/react-vite-capacitor/src/components/state/ErrorState.tsx",
+    "templates/react-vite-capacitor/src/components/state/StatePrimitives.test.tsx",
+    "templates/next-web-app/app/layout.tsx",
+    "templates/next-web-app/app/page.tsx",
+    "templates/next-web-app/tsconfig.json",
+    "templates/next-web-app/eslint.config.js",
+    "templates/next-web-app/tests/smoke.test.ts",
+    "templates/expo-native-app/app.json",
+    "templates/expo-native-app/App.tsx",
+    "templates/expo-native-app/tsconfig.json",
+    "templates/expo-native-app/jest.config.js",
+    "templates/expo-native-app/tests/App.test.tsx"
+  )
+
+  foreach ($relativePath in $requiredPaths) {
+    Assert-PathExists $relativePath
+  }
+
+  $reactNav = Get-Content -LiteralPath (Resolve-WorkspacePath "templates/react-vite-capacitor/src/app/NavigationShell.tsx") -Raw
+  foreach ($required in @("NavLink", "/settings")) {
+    if ($reactNav -notmatch [regex]::Escape($required)) {
+      Add-Failure "React navigation template is missing route readiness content: $required"
+    }
   }
 }
 
@@ -349,9 +434,45 @@ function Test-CiWorkflow {
   }
 
   $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
-  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/test-workspace.ps1")) {
+  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1")) {
     if ($workflow -notmatch [regex]::Escape($required)) {
       Add-Failure ".github/workflows/app-dev-validation.yml is missing required CI content: $required"
+    }
+  }
+}
+
+function Test-AuditCloseoutLedger {
+  param([Parameter(Mandatory=$true)][string]$LedgerPath)
+
+  if (-not (Test-Path -LiteralPath $LedgerPath)) {
+    Add-Failure "Missing audit closeout ledger: $LedgerPath"
+    return
+  }
+
+  $ledger = Get-Content -LiteralPath $LedgerPath -Raw
+  foreach ($required in @("P0 Findings", "P1 Findings", "P2 Findings", "Other Findings", "accepted-decision", "open-fixed-by-this-plan", "MCP", "export-workspace.ps1", "scan-secrets.ps1")) {
+    if ($ledger -notmatch [regex]::Escape($required)) {
+      Add-Failure "Audit closeout ledger is missing required content: $required"
+    }
+  }
+}
+
+function Test-ScriptAssets {
+  foreach ($relativePath in @("scripts/scan-secrets.ps1", "scripts/export-workspace.ps1")) {
+    Assert-PathExists $relativePath
+  }
+
+  $verify = Get-Content -LiteralPath (Resolve-WorkspacePath "scripts/verify-app.ps1") -Raw
+  foreach ($required in @("bun.lockb", "missing-dependencies", "missing-script", "command-failure", "no-checks-ran")) {
+    if ($verify -notmatch [regex]::Escape($required)) {
+      Add-Failure "scripts/verify-app.ps1 is missing verification classification content: $required"
+    }
+  }
+
+  $export = Get-Content -LiteralPath (Resolve-WorkspacePath "scripts/export-workspace.ps1") -Raw
+  foreach ($required in @(".git", "projects/", "node_modules", "Compress-Archive")) {
+    if ($export -notmatch [regex]::Escape($required)) {
+      Add-Failure "scripts/export-workspace.ps1 is missing export exclusion content: $required"
     }
   }
 }
@@ -381,10 +502,12 @@ $plansPath = Resolve-WorkspacePath "PLANS.md"
 $planTemplatePath = Resolve-WorkspacePath "templates/PLAN.template.md"
 $workflowPath = Resolve-WorkspacePath ".github/workflows/app-dev-validation.yml"
 $openAiAgentMetadataPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/agents/openai.yaml"
+$auditLedgerPath = Resolve-WorkspacePath "docs/audit/app-dev-audit-closeout.md"
 
 foreach ($path in @(
   "AGENTS.md",
   "PLANS.md",
+  "docs/audit/app-dev-audit-closeout.md",
   ".github/workflows/app-dev-validation.yml",
   ".codex/config.toml",
   ".codex/rules/default.rules",
@@ -401,7 +524,10 @@ foreach ($path in @(
   ".agents/skills/cross-platform-app-workflow/references/qa-gates.md",
   "standards/codex-capabilities.md",
   "templates/PLAN.template.md",
-  "scripts/validate-codex-assets.ps1"
+  "templates/common/.github/workflows/verify.yml",
+  "scripts/validate-codex-assets.ps1",
+  "scripts/scan-secrets.ps1",
+  "scripts/export-workspace.ps1"
 )) {
   Assert-PathExists $path
 }
@@ -422,8 +548,23 @@ Test-AgentsSize -AgentsPath (Join-Path $Root "AGENTS.md")
 Test-NoDisposableVerificationFolders
 Test-CapabilityRouting -CapabilityPath $capabilityPath
 Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath
+Test-TemplateAgents -AgentPaths @(
+  "templates/react-vite-capacitor/AGENTS.md",
+  "templates/next-web-app/AGENTS.md",
+  "templates/expo-native-app/AGENTS.md"
+)
+Test-TemplateReadiness
+foreach ($packagePath in @(
+  "templates/react-vite-capacitor/package.json",
+  "templates/next-web-app/package.json",
+  "templates/expo-native-app/package.json"
+)) {
+  Test-PackageJson -RelativePath $packagePath
+}
 Test-CiWorkflow -WorkflowPath $workflowPath
 Test-OpenAiAgentMetadata -MetadataPath $openAiAgentMetadataPath
+Test-AuditCloseoutLedger -LedgerPath $auditLedgerPath
+Test-ScriptAssets
 
 $summary = [ordered]@{
   root = $Root

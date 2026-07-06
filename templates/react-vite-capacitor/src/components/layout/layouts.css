@@ -20,8 +20,12 @@
 }
 
 .form-layout__fields {
+  border: 0;
   display: grid;
   gap: 14px;
+  margin: 0;
+  min-inline-size: 0;
+  padding: 0;
 }
 
 .form-layout__actions,

@@ -35,6 +35,7 @@ These names are routing hints, not repository dependencies. Use them only when p
 - Load `cross-platform-app-workflow` first for app-dev work.
 - Prefer Browser/IAB for rendered UI checks when available. Use Playwright as the fallback and record why.
 - Keep deployment capabilities conditional until the app chooses a hosting target.
+- Keep MCP servers user-level by default. Add project-level MCP only for repo-specific tooling, never for personal credentials or secret-bearing env blocks.
 - Do not copy global plugin skills into this repository unless the workflow must be project-specific.
 - Do not let plugin routing replace app-specific `AGENTS.md` or `PLAN.md` decisions. Product requirements still decide stack, modules, data model, permissions, and target platforms.
 

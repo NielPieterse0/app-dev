@@ -12,7 +12,13 @@ npm run test
 npm run build
 ```
 
-Initialize Tailwind, shadcn/ui, and Capacitor when the app is ready for styled UI components and native wrappers. Keep dependencies inside the generated project package.
+Tailwind, shadcn/ui configuration, and a minimal Capacitor config are included so the first real UI surface can add shadcn components without reworking project structure. Keep dependencies inside the generated project package.
+
+To add shadcn components after install:
+
+```powershell
+npx shadcn@latest add button
+```
 
 Required app layout primitives:
 
@@ -22,3 +28,6 @@ Required app layout primitives:
 - `src/components/layout/ListDetailLayout.tsx`
 - `src/components/layout/FormLayout.tsx`
 - `src/components/layout/DataTableLayout.tsx`
+- `src/components/state/EmptyState.tsx`
+- `src/components/state/LoadingState.tsx`
+- `src/components/state/ErrorState.tsx`

@@ -50,6 +50,10 @@ jobs:
         shell: pwsh
         run: ./scripts/test-hooks.ps1
 
+      - name: Scan for secrets
+        shell: pwsh
+        run: ./scripts/scan-secrets.ps1
+
       - name: Test project generation
         shell: pwsh
         run: ./scripts/test-workspace.ps1

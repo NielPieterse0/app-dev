@@ -25,7 +25,7 @@ Required for local workspace validation:
 
 - Git
 - PowerShell 7+ (`pwsh`)
-- Node.js LTS and npm
+- Node.js LTS and npm. Node 22 LTS is recommended for new generated apps; Node 20.19.4+ is the minimum practical floor for current Expo/React Native tooling.
 - Python 3.11+ for TOML validation via `tomllib`
 - Codex CLI/app when using `.codex/` project config, hooks, rules, and skills
 
@@ -74,6 +74,18 @@ Run hook policy tests separately:
 .\scripts\test-hooks.ps1
 ```
 
+Run the local secret scan before distributing or pushing workspace changes:
+
+```powershell
+.\scripts\scan-secrets.ps1
+```
+
+Create a distributable workspace archive without `.git/`, generated projects, dependencies, logs, or reports:
+
+```powershell
+.\scripts\export-workspace.ps1
+```
+
 ## First Commands
 
 From this folder:
@@ -82,6 +94,7 @@ From this folder:
 .\scripts\check-workspace.ps1
 .\scripts\validate-codex-assets.ps1
 .\scripts\test-hooks.ps1
+.\scripts\scan-secrets.ps1
 ```
 
 To create a project folder from the React/Vite/Capacitor template:

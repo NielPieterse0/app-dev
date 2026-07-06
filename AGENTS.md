@@ -98,6 +98,8 @@ npm run e2e
 
 Use the package manager already present in the project. If a command is missing, report that instead of inventing it.
 
+`npm run e2e` is mandatory when the project defines it or when UI/browser behavior changed enough to require rendered flow coverage. If an app template or project does not define `e2e`, report the missing script and run the strongest available checks instead.
+
 For UI work, rendered verification is required: first meaningful screen, core interaction, desktop viewport, and mobile viewport.
 
 ## Design Rules
