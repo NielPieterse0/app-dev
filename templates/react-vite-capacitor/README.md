@@ -51,3 +51,11 @@ Required app layout primitives:
 - [ ] Playwright covers the required responsive projects and widths.
 - [ ] A CI workflow template runs install, typecheck, lint, test, build, and e2e.
 - [ ] A disposable generated app passes the workspace verification flow.
+
+## Supabase reference notes
+
+- Browser-facing Vite apps use `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
+- Do not expose `service_role`, secret, or backend-only Supabase keys in browser env.
+- Use `/settings/protected` as the loader-guarded route example after wiring a real auth flow.
+- Enable Row Level Security on exposed schemas such as `public` before shipping app data access.
+- Keep product-specific auth flows, roles, and RLS policies in generated app migrations after the data model is defined.

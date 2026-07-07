@@ -25,6 +25,7 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Review the starter `AppShell`, `NavigationShell`, and base route structure.
 - Initialize Tailwind and shadcn/ui when the first real UI surface needs component styling; use optional shadcn capability only if available.
 - Add `.env.example` for required public environment variables.
+- Use publishable Supabase browser keys only; never add service-role or secret keys to Vite env.
 - Treat the template README checklist as the completion baseline for later tasks in this plan.
 
 ## Capability Routing
@@ -33,6 +34,7 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Optional external capabilities may help with frontend UI, rendered QA, Supabase, shadcn/ui, security, mobile emulator checks, and deployment.
 - Do not assume optional global skills/plugins are installed. Continue with local standards when they are unavailable.
 - Prefer Browser/IAB for rendered UI checks when available; use Playwright as fallback and record why.
+- Product-specific auth policies and RLS rules belong in generated app migrations after the app data model is defined.
 
 ## Verification
 
