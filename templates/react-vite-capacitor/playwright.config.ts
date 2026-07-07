@@ -16,7 +16,33 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile", use: { ...devices["Pixel 5"] } },
+    {
+      name: "desktop-1440",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+    {
+      name: "laptop-1280",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1280, height: 800 },
+      },
+    },
+    {
+      name: "tablet-768",
+      use: {
+        ...devices["iPad (gen 7)"],
+        viewport: { width: 768, height: 1024 },
+      },
+    },
+    {
+      name: "mobile-390",
+      use: {
+        ...devices["iPhone 12"],
+        viewport: { width: 390, height: 844 },
+      },
+    },
   ],
 });
