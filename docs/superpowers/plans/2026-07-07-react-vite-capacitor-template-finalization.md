@@ -30,7 +30,7 @@
 
 ## Verified Current State
 
-The attached recommendations are partly stale against the current checkout.
+The attached recommendations were partly stale against the checkout used to create this plan.
 
 Already present:
 - `components.json`, `tailwind.config.ts`, `postcss.config.js`, Tailwind import in `src/styles.css`.
@@ -39,7 +39,7 @@ Already present:
 - `src/components/state/{EmptyState,LoadingState,ErrorState}.tsx` and tests.
 - A seeded `settings` route.
 
-Still open:
+Open at plan start, resolved by Tasks 2-12:
 - No `@supabase/supabase-js`, no Supabase client, and `.env.example` still uses legacy `VITE_SUPABASE_ANON_KEY` naming.
 - `QueryClient` is inline in `src/main.tsx`, not in `src/lib/query-client.ts`.
 - No `src/lib/env.ts` or runtime env validation.

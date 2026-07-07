@@ -9,7 +9,7 @@ Use this template for default cross-platform business apps. It is a minimal runn
 - `@/*` import alias in Vite and TypeScript.
 - Capacitor config for web-first native packaging.
 - State primitives for empty, loading, and error surfaces.
-- Verification scripts for `typecheck`, `lint`, `test`, and `build`.
+- Verification scripts for `typecheck`, `lint`, `test`, `build`, and `e2e`.
 
 After creating a project, install dependencies inside the generated project:
 
