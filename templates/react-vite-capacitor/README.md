@@ -56,7 +56,7 @@ Reference surfaces included in the template:
 - [x] `SettingsLayout` exists and is used by a route.
 - [x] Playwright covers the required responsive projects and widths.
 - [x] A CI workflow template runs install, typecheck, lint, test, build, and e2e.
-- [ ] A disposable generated app passes the workspace verification flow.
+- [x] A disposable generated app passes the workspace verification flow.
 
 ## Supabase reference notes
 

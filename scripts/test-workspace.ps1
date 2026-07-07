@@ -3,24 +3,41 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $projectMatrix = @(
   @{
-    Name = "__verify-react"
+    Name = "__verify-react-vite-capacitor"
     Template = "react-vite-capacitor"
     Required = @(
       "package.json",
       "AGENTS.md",
       "PLAN.md",
       ".env.example",
+      ".github/workflows/verify.yml",
       "index.html",
+      "playwright.config.ts",
+      "scripts/add-native-platforms.ps1",
       "src/main.tsx",
       "src/app/AppShell.tsx",
       "src/app/NavigationShell.tsx",
       "src/app/routes.tsx",
+      "src/lib/env.ts",
+      "src/lib/supabase.ts",
+      "src/lib/query-client.ts",
+      "src/components/ui/form.tsx",
       "src/modules/dashboard/routes/DashboardRoute.tsx",
+      "src/modules/dashboard/index.ts",
+      "src/modules/dashboard/components/DashboardModulesTable.tsx",
+      "src/modules/dashboard/components/DashboardSummary.tsx",
+      "src/modules/dashboard/components/DashboardActivityChart.tsx",
+      "src/modules/dashboard/hooks/useDashboardModules.ts",
+      "src/modules/dashboard/schemas/dashboard-module.schema.ts",
+      "src/modules/dashboard/services/dashboard-service.ts",
+      "src/modules/dashboard/state/dashboard-view-store.ts",
+      "src/modules/dashboard/tests/DashboardRoute.test.tsx",
       "src/modules/settings/routes/SettingsRoute.tsx",
       "src/components/state/EmptyState.tsx",
       "src/components/state/LoadingState.tsx",
       "src/components/state/ErrorState.tsx",
       "src/components/layout/FormLayout.tsx",
+      "src/components/layout/SettingsLayout.tsx",
       "tailwind.config.ts",
       "postcss.config.js",
       "components.json",
@@ -124,6 +141,41 @@ function Assert-GeneratedProject {
   }
 }
 
+function Install-And-VerifyGeneratedProject {
+  param(
+    [Parameter(Mandatory=$true)][string]$ProjectPath
+  )
+
+  Push-Location $ProjectPath
+  try {
+    & npm install
+    if ($LASTEXITCODE -ne 0) {
+      Write-Error "npm install failed with exit code $LASTEXITCODE for $ProjectPath"
+    }
+
+    & (Join-Path $root "scripts/verify-app.ps1") -ProjectPath "."
+    if ($LASTEXITCODE -ne 0) {
+      Write-Error "verify-app.ps1 failed with exit code $LASTEXITCODE for $ProjectPath"
+    }
+  } finally {
+    Pop-Location
+  }
+}
+
+function Assert-IgnoredByRootGitignore {
+  param([Parameter(Mandatory=$true)][string]$RelativePath)
+
+  Push-Location $root
+  try {
+    & git check-ignore -v $RelativePath | Out-Host
+    if ($LASTEXITCODE -ne 0) {
+      Write-Error "Expected $RelativePath to be ignored by the root .gitignore projects/* rule."
+    }
+  } finally {
+    Pop-Location
+  }
+}
+
 try {
   & (Join-Path $root "scripts/check-workspace.ps1")
   & (Join-Path $root "scripts/validate-codex-assets.ps1")
@@ -135,6 +187,10 @@ try {
     & (Join-Path $root "scripts/create-app.ps1") -Name $project.Name -Template $project.Template
     Assert-GeneratedProject -Project $project
   }
+
+  $reactProjectPath = Join-Path $root "projects/__verify-react-vite-capacitor"
+  Install-And-VerifyGeneratedProject -ProjectPath $reactProjectPath
+  Assert-IgnoredByRootGitignore -RelativePath "projects/__verify-react-vite-capacitor/package.json"
 
   Write-Host "Workspace tests passed."
 } finally {

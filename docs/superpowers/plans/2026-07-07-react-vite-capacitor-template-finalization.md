@@ -8,6 +8,11 @@
 
 **Tech Stack:** TypeScript, React, Vite, React Router, Capacitor, Tailwind CSS v4, shadcn/ui with Radix-compatible configuration, lucide-react, Zod, React Hook Form, TanStack Query, TanStack Table, Zustand, Recharts, Supabase, Vitest, Testing Library, Playwright.
 
+## Execution Status
+
+- 2026-07-07: Tasks 1-12 completed in the local workspace.
+- Task 2 manual closeout note: the independent re-review subagent was unavailable because of a usage-limit failure, so closeout used fresh local verification of the shadcn source, theme-token fix, build/test checks, and rendered browser evidence at 1440, 1280, 768, and 390 px.
+
 ## Global Constraints
 
 - Keep app dependencies inside `templates/react-vite-capacitor/package.json` and generated apps under `projects/<app>`; do not install app dependencies at the workspace root.
@@ -42,7 +47,7 @@ Still open:
 - No `src/components/ui/` shadcn component source files.
 - `FormLayout` and `DataTableLayout` are plain wrappers, not RHF/Zod or TanStack Table teaching examples.
 - `dashboard` module does not demonstrate the full module contract: missing `components/`, `hooks/`, `schemas/`, `services/`, `state/`, `tests/`.
-- `SettingsLayout` is missing from code and template README checklist.
+- Seeded settings routing already exists in `src/app/routes.tsx`, but it does not yet demonstrate a reusable `SettingsLayout` shell with nested settings sections.
 - `playwright.config.ts` has only desktop/mobile projects and desktop is not pinned to the app-dev required widths.
 - No CI workflow template.
 - No Recharts/shadcn chart reference surface.
@@ -52,17 +57,19 @@ Still open:
 
 - shadcn CLI `init` installs dependencies, adds the `cn` util, and configures CSS variables; it supports `--template vite` and `--base base|radix`. Use this only in scratch or with diffs because the template is already partially initialized.
 - shadcn Data Table documentation builds with TanStack Table plus the shadcn `Table` component; use that as the reference for the template's table teaching example.
+- shadcn Form documentation provides the canonical React Hook Form + Zod wrapper pattern; use that as the reference for the template's form teaching example instead of hand-assembling only from lower-level field primitives.
 - shadcn Chart is built on Recharts and installed with `shadcn add chart`; use its generated component source instead of a custom chart wrapper.
 - Supabase React docs now prefer `VITE_SUPABASE_PUBLISHABLE_KEY`; legacy `anon` keys are deprecated by the end of 2026. Update the template env contract to accept publishable key naming while optionally supporting legacy anon naming only as a migration fallback if explicitly documented.
 - Supabase API-key docs state publishable keys are safe for browser/mobile apps, while secret keys are backend-only and bypass RLS. Template code must never mention `service_role` as a frontend env var.
 - Supabase RLS docs require RLS on tables in exposed schemas such as `public`; include a migration example that enables RLS and uses ownership predicates, but keep it example-only until a real app defines its data model.
+- React Router data loaders are the right minimal reference surface for a protected-route example; include one loader-based auth boundary example without turning the whole template into an authenticated app by default.
 - Capacitor docs add native projects with `@capacitor/android`, `@capacitor/ios`, `npx cap add android`, `npx cap add ios`, and `npx cap sync`. Keep native platforms out of the root template unless the repo chooses to store generated native project files; document and optionally script this as a per-generated-app follow-up.
 
 ## Dependency Plan
 
 Add or verify these template package dependencies:
-- Runtime: `@supabase/supabase-js`, `@hookform/resolvers`, `recharts`.
-- shadcn-generated dependencies: whatever `npx shadcn@latest add button card table field input label select badge dropdown-menu skeleton empty separator chart` adds, reviewed file-by-file.
+- Runtime: `@supabase/supabase-js`, `@hookform/resolvers`, `@t3-oss/env-core`, `recharts`.
+- shadcn-generated dependencies: whatever `npx shadcn@latest add button card table form field input label select badge dropdown-menu skeleton empty separator chart` adds, reviewed file-by-file.
 - Native optional runtime for generated apps only: `@capacitor/android`, `@capacitor/ios` when a project opts into native platform folders.
 
 Do not install anything at `C:\Users\piete\Documents\app-dev`.
@@ -70,9 +77,12 @@ Do not install anything at `C:\Users\piete\Documents\app-dev`.
 ## Candidate Reuse Sources
 
 - Current template files under `templates/react-vite-capacitor`.
-- shadcn CLI generated source for `button`, `card`, `table`, `field`, `input`, `label`, `select`, `badge`, `dropdown-menu`, `skeleton`, `empty`, `separator`, and `chart`.
+- shadcn CLI generated source for `button`, `card`, `table`, `form`, `field`, `input`, `label`, `select`, `badge`, `dropdown-menu`, `skeleton`, `empty`, `separator`, and `chart`.
+- shadcn Form documentation/source for the RHF + Zod example shape.
 - Supabase official React quickstart for `createClient` and auth event shape, adapted to Vite TypeScript and app-dev env validation.
+- React Router data-loader/protected-route reference pattern for a minimal auth boundary example.
 - Capacitor official docs for per-app native platform commands.
+- CI security checks aligned with `standards/security.md`.
 - `C:\Projects\supervox\.agents\skills\shadcn-best-practices`, `react-best-practices`, `frontend-testing-debugging`, `test-driven-development`, `verification-before-completion`, and `supabase-best-practices` as execution-time workflow references.
 
 ---
@@ -193,7 +203,7 @@ git add templates/react-vite-capacitor
 git commit -m "feat: add shadcn ui source to react vite template"
 ```
 
-### Task 3: Add Env Validation, Supabase Client, And Query Client Modules
+### Task 3: Add `env-core` Env Validation, Supabase Client, And Query Client Modules
 
 **Files:**
 - Create: `templates/react-vite-capacitor/src/lib/env.ts`
@@ -208,7 +218,7 @@ git commit -m "feat: add shadcn ui source to react vite template"
 - Produces: `env`, `supabase`, and `queryClient`.
 - Consumes: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, optional documented legacy `VITE_SUPABASE_ANON_KEY`.
 
-- [ ] **Step 1: Write failing env tests**
+- [x] **Step 1: Write failing env tests**
 
 Create `templates/react-vite-capacitor/src/lib/env.test.ts` with tests that verify:
 - valid URL + publishable key returns parsed env
@@ -224,16 +234,16 @@ npm run test -- src/lib/env.test.ts
 
 Expected: fails because `src/lib/env.ts` does not exist.
 
-- [ ] **Step 2: Implement `src/lib/env.ts`**
+- [x] **Step 2: Implement `src/lib/env.ts`**
 
-Use Zod to parse `import.meta.env` and export:
+Use `createEnv` from `@t3-oss/env-core` with Zod validators over `import.meta.env` and export:
 - `env.VITE_SUPABASE_URL`
 - `env.VITE_SUPABASE_PUBLISHABLE_KEY`
 - `isSupabaseConfigured(): boolean`
 
-Do not throw during import for placeholder `.env.example` values. Throw only when code asks for a configured Supabase client without valid values.
+Separate "parse available env" from "require configured Supabase env" so placeholder `.env.example` values do not break import-time behavior. Throw only when code asks for a configured Supabase client without valid values.
 
-- [ ] **Step 3: Implement `src/lib/supabase.ts`**
+- [x] **Step 3: Implement `src/lib/supabase.ts`**
 
 Use Supabase's Vite React quickstart pattern:
 
@@ -249,7 +259,7 @@ export const supabase = createClient(
 
 Adapt this with the lazy validation behavior from Step 2 so tests and static template rendering work without real credentials.
 
-- [ ] **Step 4: Extract `src/lib/query-client.ts`**
+- [x] **Step 4: Extract `src/lib/query-client.ts`**
 
 Move the inline `new QueryClient()` from `src/main.tsx` to a shared module:
 
@@ -261,7 +271,7 @@ export const queryClient = new QueryClient();
 
 Update `src/main.tsx` to import it.
 
-- [ ] **Step 5: Update `.env.example`**
+- [x] **Step 5: Update `.env.example`**
 
 Use:
 
@@ -272,7 +282,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_publishable_key
 
 Add comments in README, not `.env.example`, explaining legacy anon key migration if retained.
 
-- [ ] **Step 6: Run checks**
+- [x] **Step 6: Run checks**
 
 ```powershell
 npm run typecheck
@@ -282,7 +292,7 @@ npm run test
 
 Expected: all exit 0.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add templates/react-vite-capacitor
@@ -294,28 +304,34 @@ git commit -m "feat: add env and supabase clients to react vite template"
 **Files:**
 - Create: `templates/react-vite-capacitor/src/modules/auth/index.ts`
 - Create: `templates/react-vite-capacitor/src/modules/auth/hooks/useAuthSession.ts`
+- Create: `templates/react-vite-capacitor/src/modules/auth/loaders/requireAuthSession.ts`
 - Create: `templates/react-vite-capacitor/src/modules/auth/services/auth-service.ts`
 - Create: `templates/react-vite-capacitor/src/modules/auth/tests/auth-service.test.ts`
+- Modify: `templates/react-vite-capacitor/src/app/routes.tsx`
 - Modify: `templates/react-vite-capacitor/README.md`
 - Modify: `templates/react-vite-capacitor/AGENTS.md`
 
 **Interfaces:**
-- Produces: `useAuthSession`, `signInWithEmailOtp(email: string)`, `signOut()`.
+- Produces: `useAuthSession`, `signInWithEmailOtp(email: string)`, `signOut()`, `requireAuthSession`.
 - Consumes: `supabase` from `src/lib/supabase.ts`.
 
-- [ ] **Step 1: Write failing auth service tests**
+- [x] **Step 1: Write failing auth service tests**
 
 Test that `signInWithEmailOtp` calls `supabase.auth.signInWithOtp` with `emailRedirectTo: window.location.origin`, and `signOut` calls `supabase.auth.signOut`.
 
-- [ ] **Step 2: Implement service wrapper**
+- [x] **Step 2: Implement service wrapper**
 
 Create a thin wrapper around the Supabase auth calls. Keep it product-neutral: no roles, no routes, no hardcoded permissions.
 
-- [ ] **Step 3: Implement session hook**
+- [x] **Step 3: Implement session hook**
 
 Create `useAuthSession` using `supabase.auth.getSession()` and `supabase.auth.onAuthStateChange()`. Return `{ session, isLoading, error }`.
 
-- [ ] **Step 4: Add security documentation**
+- [x] **Step 4: Add loader-based auth guard example**
+
+Create `requireAuthSession` as a minimal React Router loader helper and wire one example protected settings child route through `templates/react-vite-capacitor/src/app/routes.tsx`. Keep the example intentionally narrow: it proves the protected-route pattern exists without making the whole template authenticated by default.
+
+- [x] **Step 5: Add security documentation**
 
 Document:
 - browser apps use publishable keys only
@@ -323,7 +339,7 @@ Document:
 - RLS must be enabled for exposed schemas
 - product-specific policies belong in app migrations after the data model is defined
 
-- [ ] **Step 5: Run checks**
+- [x] **Step 6: Run checks**
 
 ```powershell
 npm run typecheck
@@ -331,7 +347,7 @@ npm run lint
 npm run test
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add templates/react-vite-capacitor
@@ -348,20 +364,22 @@ git commit -m "feat: add supabase auth boundary to react vite template"
 - Create: `templates/react-vite-capacitor/src/components/layout/DataTableLayout.test.tsx`
 - Create: `templates/react-vite-capacitor/src/components/layout/SettingsLayout.test.tsx`
 - Modify: `templates/react-vite-capacitor/src/components/layout/layouts.css`
+- Modify: `templates/react-vite-capacitor/src/app/routes.tsx`
+- Modify: `templates/react-vite-capacitor/src/modules/settings/routes/SettingsRoute.tsx`
 - Modify: `templates/react-vite-capacitor/README.md`
 
 **Interfaces:**
 - Produces: `FormLayout`, `DataTableLayout<TData, TValue>`, `SettingsLayout`.
 - Consumes: shadcn UI components, React Hook Form/Zod, TanStack Table.
 
-- [ ] **Step 1: Write failing layout tests**
+- [x] **Step 1: Write failing layout tests**
 
 Tests must verify:
 - `FormLayout` disables fields when pending and surfaces validation content.
 - `DataTableLayout` renders columns and rows from TanStack Table definitions and shows empty state for no rows.
 - `SettingsLayout` renders a side navigation and active settings panel.
 
-- [ ] **Step 2: Update `DataTableLayout`**
+- [x] **Step 2: Update `DataTableLayout`**
 
 Adapt the shadcn Data Table pattern to this template:
 - accept `columns: ColumnDef<TData, TValue>[]`
@@ -371,16 +389,16 @@ Adapt the shadcn Data Table pattern to this template:
 - render `EmptyState` when no rows exist
 - keep horizontal overflow strategy for mobile
 
-- [ ] **Step 3: Update `FormLayout`**
+- [x] **Step 3: Update `FormLayout`**
 
 Keep `FormLayout` as a layout primitive, but add a companion example pattern that uses:
 - React Hook Form
 - Zod resolver from `@hookform/resolvers/zod`
-- shadcn `Field`, `Input`, and `Button`
+- shadcn `Form` with `Field`, `Input`, and `Button`
 
 Avoid making `FormLayout` own business validation; modules own schemas.
 
-- [ ] **Step 4: Create `SettingsLayout`**
+- [x] **Step 4: Create `SettingsLayout`**
 
 Implement a reusable settings shell using a side navigation on desktop and stacked/tabs-like navigation on mobile. Keep prop surface minimal:
 
@@ -391,7 +409,9 @@ type SettingsLayoutProps = {
 };
 ```
 
-- [ ] **Step 5: Run checks**
+Use it from `templates/react-vite-capacitor/src/modules/settings/routes/SettingsRoute.tsx` and `templates/react-vite-capacitor/src/app/routes.tsx` with at least two example settings sections or child routes so the plan explicitly proves routed usage, not just component creation.
+
+- [x] **Step 5: Run checks**
 
 ```powershell
 npm run typecheck
@@ -399,7 +419,7 @@ npm run lint
 npm run test
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add templates/react-vite-capacitor
@@ -424,11 +444,11 @@ git commit -m "feat: complete layout primitives with form table settings pattern
 - Produces: `dashboardModuleSchema`, `getDashboardModules`, `useDashboardModules`, `useDashboardViewStore`.
 - Consumes: TanStack Query, Zustand, Zod, `DataTableLayout`, state primitives.
 
-- [ ] **Step 1: Write failing schema tests**
+- [x] **Step 1: Write failing schema tests**
 
 Verify valid module rows parse, invalid status fails, and inferred TypeScript type supports `"ready" | "draft" | "blocked"`.
 
-- [ ] **Step 2: Implement schema**
+- [x] **Step 2: Implement schema**
 
 Create a Zod schema close to the module:
 
@@ -440,15 +460,15 @@ export const dashboardModuleSchema = z.object({
 });
 ```
 
-- [ ] **Step 3: Write failing service/hook tests**
+- [x] **Step 3: Write failing service/hook tests**
 
 Verify service returns parsed rows and hook exposes loading/error/empty/success states.
 
-- [ ] **Step 4: Implement service and hook**
+- [x] **Step 4: Implement service and hook**
 
 Use static seed data for the template, parsed through Zod, and expose it through TanStack Query. This teaches the pattern without requiring a real Supabase project.
 
-- [ ] **Step 5: Write failing route test**
+- [x] **Step 5: Write failing route test**
 
 Verify the route renders:
 - page header
@@ -456,15 +476,15 @@ Verify the route renders:
 - empty state when data is empty
 - table rows when data exists
 
-- [ ] **Step 6: Refactor route into components**
+- [x] **Step 6: Refactor route into components**
 
 Move table rendering into `DashboardModulesTable` and summary content into `DashboardSummary`. Keep `DashboardRoute.tsx` as orchestration.
 
-- [ ] **Step 7: Export public module API**
+- [x] **Step 7: Export public module API**
 
 Update `index.ts` to export only public route/component/schema/service/hook APIs needed outside the module.
 
-- [ ] **Step 8: Run checks**
+- [x] **Step 8: Run checks**
 
 ```powershell
 npm run typecheck
@@ -472,7 +492,7 @@ npm run lint
 npm run test
 ```
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add templates/react-vite-capacitor
@@ -491,7 +511,7 @@ git commit -m "feat: complete dashboard module contract in react vite template"
 - Produces: a shadcn/Recharts example component.
 - Consumes: `ChartContainer`, `ChartTooltip`, `ChartTooltipContent`, Recharts.
 
-- [ ] **Step 1: Confirm chart dependency**
+- [x] **Step 1: Confirm chart dependency**
 
 Run:
 
@@ -501,11 +521,11 @@ npm ls recharts
 
 Expected: installed after shadcn `chart`; if missing, run `npm install recharts` inside `templates/react-vite-capacitor`.
 
-- [ ] **Step 2: Write failing chart render test**
+- [x] **Step 2: Write failing chart render test**
 
 Test that the chart component renders its accessible title/label and does not crash in jsdom.
 
-- [ ] **Step 3: Implement chart component**
+- [x] **Step 3: Implement chart component**
 
 Use shadcn Chart docs pattern:
 - stable height class, e.g. `h-[220px]`
@@ -513,11 +533,11 @@ Use shadcn Chart docs pattern:
 - semantic chart config
 - no custom chart abstraction beyond the reference component
 
-- [ ] **Step 4: Add chart to dashboard**
+- [x] **Step 4: Add chart to dashboard**
 
 Place it in the dashboard route as a reference chart surface without overwhelming the first screen.
 
-- [ ] **Step 5: Run checks**
+- [x] **Step 5: Run checks**
 
 ```powershell
 npm run typecheck
@@ -525,7 +545,7 @@ npm run lint
 npm run test
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add templates/react-vite-capacitor
@@ -542,7 +562,7 @@ git commit -m "feat: add chart reference to react vite template"
 **Interfaces:**
 - Produces: Playwright projects `desktop-1440`, `laptop-1280`, `tablet-768`, `mobile-390`.
 
-- [ ] **Step 1: Update Playwright projects**
+- [x] **Step 1: Update Playwright projects**
 
 Define explicit viewport projects:
 - `{ width: 1440, height: 900 }`
@@ -550,7 +570,7 @@ Define explicit viewport projects:
 - `{ width: 768, height: 1024 }`
 - `{ width: 390, height: 844 }`
 
-- [ ] **Step 2: Expand e2e assertions**
+- [x] **Step 2: Expand e2e assertions**
 
 Test:
 - first meaningful screen renders
@@ -559,7 +579,7 @@ Test:
 - primary action is reachable
 - no horizontal overflow at each project width
 
-- [ ] **Step 3: Run e2e**
+- [x] **Step 3: Run e2e**
 
 ```powershell
 npm run e2e
@@ -567,7 +587,7 @@ npm run e2e
 
 Expected: all configured projects pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add templates/react-vite-capacitor/playwright.config.ts templates/react-vite-capacitor/tests/e2e/app.spec.ts
@@ -584,11 +604,13 @@ git commit -m "test: add responsive playwright coverage to react vite template"
 **Interfaces:**
 - Produces: generated apps inherit CI that runs install, typecheck, lint, test, build, and e2e.
 
-- [ ] **Step 1: Add workflow**
+- [x] **Step 1: Add workflow**
 
 Create a GitHub Actions workflow with:
 - `actions/checkout`
 - `actions/setup-node`
+- PR-only `actions/dependency-review-action`
+- secret scanning via a standard action such as `gitleaks/gitleaks-action`
 - `npm ci`
 - `npx playwright install --with-deps chromium`
 - `npm run typecheck`
@@ -597,11 +619,11 @@ Create a GitHub Actions workflow with:
 - `npm run build`
 - `npm run e2e`
 
-- [ ] **Step 2: Update validation script**
+- [x] **Step 2: Update validation script**
 
 Add checks that the React/Vite/Capacitor template contains `.github/workflows/verify.yml` and required package scripts.
 
-- [ ] **Step 3: Run root governance checks**
+- [x] **Step 3: Run root governance checks**
 
 ```powershell
 scripts/check-workspace.ps1
@@ -611,7 +633,7 @@ scripts/test-hooks.ps1
 
 Expected: all exit 0.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add templates/react-vite-capacitor/.github/workflows/verify.yml templates/react-vite-capacitor/README.md scripts/validate-codex-assets.ps1
@@ -630,13 +652,13 @@ git commit -m "ci: add generated app verification workflow template"
 - Produces: documented per-generated-app native setup path.
 - Consumes: Capacitor `webDir: "dist"` in `capacitor.config.ts`.
 
-- [ ] **Step 1: Decide native platform storage policy**
+- [x] **Step 1: Decide native platform storage policy**
 
 Choose one:
 - Recommended: do not store `android/` and `ios/` folders in the template; generate them per app after product/native requirements are known.
 - Alternative: store platform folders in template only if the repo accepts much larger generated artifacts and platform-specific churn.
 
-- [ ] **Step 2: Document native commands**
+- [x] **Step 2: Document native commands**
 
 In template README:
 
@@ -651,11 +673,11 @@ npx cap sync
 
 State that iOS requires macOS/Xcode and Android requires Android Studio/JDK setup.
 
-- [ ] **Step 3: Optional script**
+- [x] **Step 3: Optional script**
 
 If scripting is chosen, create `scripts/add-native-platforms.ps1` inside the template that refuses to run unless `package.json` and `capacitor.config.ts` are present in the current generated app.
 
-- [ ] **Step 4: Run checks**
+- [x] **Step 4: Run checks**
 
 ```powershell
 npm run typecheck
@@ -664,7 +686,7 @@ npm run test
 npm run build
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add templates/react-vite-capacitor scripts/create-app.ps1
@@ -680,7 +702,7 @@ git commit -m "docs: define capacitor native finalization workflow"
 **Interfaces:**
 - Produces: root-level workspace test coverage that creates and verifies a disposable React/Vite/Capacitor app.
 
-- [ ] **Step 1: Update workspace test expectations**
+- [x] **Step 1: Update workspace test expectations**
 
 Ensure `scripts/test-workspace.ps1` creates a disposable generated app under `projects/__verify-react-vite-capacitor`, then checks for:
 - `AGENTS.md`
@@ -695,7 +717,7 @@ Ensure `scripts/test-workspace.ps1` creates a disposable generated app under `pr
 - `playwright.config.ts`
 - `.github/workflows/verify.yml`
 
-- [ ] **Step 2: Run generated app install and verification**
+- [x] **Step 2: Run generated app install and verification**
 
 From the disposable generated app:
 
@@ -706,7 +728,7 @@ npm install
 
 Expected: typecheck, lint, test, build, and e2e pass.
 
-- [ ] **Step 3: Confirm root ignore boundary**
+- [x] **Step 3: Confirm root ignore boundary**
 
 Run:
 
@@ -716,11 +738,11 @@ git check-ignore -v projects/__verify-react-vite-capacitor/package.json
 
 Expected: ignored by `.gitignore` `projects/*` rule.
 
-- [ ] **Step 4: Clean disposable app**
+- [x] **Step 4: Clean disposable app**
 
 Remove only `projects/__verify-react-vite-capacitor` after confirming the resolved path is under `C:\Users\piete\Documents\app-dev\projects`.
 
-- [ ] **Step 5: Run full root governance gate**
+- [x] **Step 5: Run full root governance gate**
 
 ```powershell
 scripts/check-workspace.ps1
@@ -732,7 +754,7 @@ git diff --check
 
 Expected: all exit 0.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/test-workspace.ps1 scripts/verify-app.ps1
@@ -747,7 +769,7 @@ git commit -m "test: verify finalized react vite capacitor template"
 **Interfaces:**
 - Produces: final template readiness note with verified commands and known limits.
 
-- [ ] **Step 1: Inspect git diff**
+- [x] **Step 1: Inspect git diff**
 
 ```powershell
 git status --short
@@ -757,7 +779,7 @@ git diff -- templates/react-vite-capacitor scripts standards docs
 
 Expected: only intended files changed.
 
-- [ ] **Step 2: Run final verification**
+- [x] **Step 2: Run final verification**
 
 ```powershell
 scripts/check-workspace.ps1
@@ -769,7 +791,7 @@ git diff --check
 
 Expected: all exit 0.
 
-- [ ] **Step 3: Write handoff note**
+- [x] **Step 3: Write handoff note**
 
 Record:
 - dependencies added
@@ -778,7 +800,7 @@ Record:
 - whether native platform folders remain per-app generation only
 - any skipped checks and exact blockers
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/audit templates scripts standards
@@ -790,5 +812,8 @@ git commit -m "docs: close react vite capacitor template finalization"
 - Spec coverage: Covers the current template gaps from the attachments after correcting stale items already present in the checkout.
 - Placeholder scan: No unresolved placeholder markers are intentionally left in this plan.
 - Type consistency: Shared names are consistent across tasks: `env`, `supabase`, `queryClient`, `SettingsLayout`, `DataTableLayout`, `dashboardModuleSchema`, `useDashboardModules`, and `useDashboardViewStore`.
-- Reuse check: The plan explicitly uses shadcn CLI/component source, Supabase React docs, Capacitor CLI flow, current template files, and execution-time SuperVOX skills before custom code.
+- Reuse check: Env validation now follows the official-tool reuse rule with `@t3-oss/env-core`, the form example uses the canonical shadcn `form` pattern, and the plan explicitly uses shadcn CLI/component source, Supabase React docs, React Router loader patterns, Capacitor CLI flow, current template files, and execution-time SuperVOX skills before custom code.
+- Auth coverage check: The auth boundary now includes a minimal loader-based protected-route example without making product-wide auth mandatory.
+- Settings routing check: `SettingsLayout` is explicitly routed through the settings surface, not just created as an orphaned component.
+- CI security check: CI now includes dependency review and secret scanning alongside install, typecheck, lint, test, build, and e2e.
 - Dependency boundary: All app dependencies are scoped to the template/generated app, not the `app-dev` root.

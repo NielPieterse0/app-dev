@@ -59,3 +59,11 @@ This ledger is complete only when these commands pass from the workspace root:
 .\scripts\scan-secrets.ps1
 .\scripts\test-workspace.ps1
 ```
+
+## React Vite Capacitor Template Finalization 2026-07-07
+
+- Dependencies finalized in `templates/react-vite-capacitor`: `@supabase/supabase-js`, `@t3-oss/env-core`, `@hookform/resolvers`, shadcn/ui source dependencies, Recharts. `@capacitor/android` and `@capacitor/ios` were removed from always-on template dependencies and moved to the per-app native setup flow.
+- Commands verified from the template directory: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`, `npm run e2e`.
+- Disposable generated-app verification passed through `scripts/test-workspace.ps1`, including `npm install` and `..\..\scripts\verify-app.ps1 -ProjectPath .` inside `projects/__verify-react-vite-capacitor`.
+- Native platform policy: `android/` and `ios/` stay per generated app only. The shared template now excludes those folders from `create-app.ps1` copies and provides `templates/react-vite-capacitor/scripts/add-native-platforms.ps1` for opt-in setup.
+- Task 2 closeout note: the independent re-review subagent was unavailable because of a usage-limit failure, so closeout was performed with fresh local verification of the shadcn source, theme-token fix, build/test checks, and 1440/1280/768/390 rendered browser evidence.
