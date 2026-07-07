@@ -21,20 +21,23 @@ Use this skill for modular app planning, scaffolding, implementation review, and
    - `references/module-contract.md` for module structure.
    - `references/adaptive-layouts.md` for responsive UI work.
    - `references/qa-gates.md` for verification and handoff.
+   - `references/spec-driven-workflow.md` for numbered specs, tasks, and gated-path rules.
 5. Reuse `templates/` before inventing structure.
 
 ## Workflow
 
-1. Capture the product decision record: users, core jobs, modules, data model, permissions, platforms, and native requirements.
-2. Select the simplest app type:
+1. Capture or confirm durable app identity in app `AGENTS.md`.
+2. Select or create the active numbered spec under `specs/NNN-<slug>/`.
+3. Select the simplest app type:
    - React + Vite + React Router + Capacitor for default cross-platform apps.
    - Next.js only for SSR, SEO, server routes, or content-heavy public pages.
    - Expo only for native-first mobile behavior.
-3. Update app `AGENTS.md` and `PLAN.md` before material implementation.
-4. Build the base shell before feature modules: providers, routing, navigation, theme tokens, empty/loading/error states.
-5. Implement vertical modules with schemas, services/hooks, UI, routes, tests, and exports.
-6. Prefer standard libraries and local templates over custom framework code.
-7. Verify with available scripts and rendered desktop/mobile checks before handoff.
+4. Update app `AGENTS.md`, the active `spec.md`, and `PLAN.md` before material implementation.
+5. Generate or update `tasks.md` before implementation. Add `checklist.md` for auth, payments, secrets, public APIs, data access, file uploads, RLS, AI tool actions, deployment, or live migrations.
+6. Build the base shell before feature modules: providers, routing, navigation, theme tokens, empty/loading/error states.
+7. Implement vertical modules with schemas, services/hooks, UI, routes, tests, and exports.
+8. Prefer standard libraries and local templates over custom framework code.
+9. Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` before implementation handoff, then verify with available scripts and rendered desktop/mobile checks before completion.
 
 ## Optional External Capabilities
 
@@ -47,5 +50,6 @@ Consult `standards/codex-capabilities.md` for routing guidance before using opti
 - Do not add a second UI kit, form library, state library, router, or table library without documenting the reason.
 - Do not create a monorepo until shared packages justify it.
 - Do not install app dependencies at the `app-dev` root unless they are workspace tooling.
+- Do not start material implementation without an active numbered spec and current tasks file.
 - Do not claim UI work is complete without rendered desktop and mobile checks.
 - Do not commit secrets or production environment files.

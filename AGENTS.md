@@ -37,6 +37,7 @@ Promote to a pnpm/Turborepo monorepo only after at least two apps share real cod
 
 - Put durable workspace rules in this file.
 - Put app-specific rules in `projects/<app>/AGENTS.md`.
+- Put feature specifications in `projects/<app>/specs/NNN-<slug>/`.
 - Put task planning protocol in `PLANS.md` and per-app plans in `projects/<app>/PLAN.md`.
 - Put repeatable task workflows in `.agents/skills/`.
 - Put project settings, rules, and hooks in `.codex/`.
@@ -47,17 +48,19 @@ Promote to a pnpm/Turborepo monorepo only after at least two apps share real cod
 
 ## Development Workflow
 
-1. Start every material app task with a short product decision record: users, core jobs, modules, data model, permissions, target platforms, and native requirements.
-2. Create or update `projects/<app>/PLAN.md` for architectural, data model, auth, routing, deployment, migration, or multi-module work. Use `templates/PLAN.template.md` when creating a new app plan.
-3. Choose the simplest app type that satisfies requirements:
+1. Start every material app task by selecting or creating a numbered feature spec under `projects/<app>/specs/NNN-<slug>/`.
+2. Keep app identity and durable rules in `projects/<app>/AGENTS.md`, and keep feature intent, acceptance criteria, and risk in the active `spec.md`.
+3. Create or update `projects/<app>/PLAN.md` for architectural, data model, auth, routing, deployment, migration, or multi-module work. Use `templates/PLAN.template.md` when creating a new app plan.
+4. Choose the simplest app type that satisfies requirements:
    - React + Vite + Capacitor for most cross-platform business apps.
    - Next.js for SSR/SEO/server-rendered public apps.
    - Expo for native-first mobile apps.
-4. Build vertical modules, not page dumps. Each module owns schema, API/data hooks, UI components, routes, tests, and empty/loading/error states.
-5. Reuse existing components and templates before creating new abstractions.
-6. Install dependencies where they are used. Keep root dependencies minimal.
-7. Keep adaptive layout explicit: desktop, tablet, and mobile view states must be designed and checked.
-8. Before completion, run the app's verification commands and check rendered UI at desktop and mobile sizes.
+5. Create or update `specs/NNN-<slug>/tasks.md` before material implementation, and add `checklist.md` for auth, payments, secrets, public APIs, data access, file uploads, RLS, AI tool actions, deployment, or live migrations.
+6. Build vertical modules, not page dumps. Each module owns schema, API/data hooks, UI components, routes, tests, and empty/loading/error states.
+7. Reuse existing components and templates before creating new abstractions.
+8. Install dependencies where they are used. Keep root dependencies minimal.
+9. Keep adaptive layout explicit: desktop, tablet, and mobile view states must be designed and checked.
+10. Before completion, run the app's verification commands and check rendered UI at desktop and mobile sizes.
 
 ## Module Contract
 
@@ -80,6 +83,7 @@ Avoid cross-module deep relative imports. Use public `index.ts` exports or share
 ## Planning Rules
 
 - Keep plans short, decision-oriented, and current.
+- Keep specs numbered, current, and tied to one feature or workflow slice.
 - A plan is required before multi-module or architecture-sensitive work.
 - Do not let stale plans override current user instructions or app `AGENTS.md`.
 - In the final handoff, report deviations from the plan and skipped verification.

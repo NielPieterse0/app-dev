@@ -15,9 +15,14 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $source = Join-Path $root "templates/$Template"
 $target = Join-Path $root "projects/$Name"
+$specTemplateDir = Join-Path $root "templates/spec-workflow"
 
 if (-not (Test-Path -LiteralPath $source)) {
   Write-Error "Template not found: $source"
+}
+
+if (-not (Test-Path -LiteralPath $specTemplateDir)) {
+  Write-Error "Spec workflow templates not found: $specTemplateDir"
 }
 
 if (Test-Path -LiteralPath $target) {
@@ -51,15 +56,11 @@ if (-not (Test-Path -LiteralPath $agentPath)) {
 This project inherits the app-dev workspace standards.
 Use this project's `PLAN.md` for architecture, module, risk, and verification decisions.
 
-## Product Decision Record
+## Active Specification
 
-- Users: Replace with the target audience before feature work.
-- Core jobs: Replace with the primary user jobs before feature work.
-- Modules: Replace with vertical modules before feature work.
-- Data model: Replace with primary entities before feature work.
-- Permissions: Replace with roles and access rules before feature work.
-- Platforms: desktop web, Android, iOS unless revised
-- Native requirements: Replace with native APIs or state none.
+- Start with `specs/001-initial/spec.md`.
+- Create later feature specs under `specs/NNN-<slug>/`.
+- Keep `PLAN.md` and `tasks.md` aligned to the active spec before implementation starts.
 
 ## Verification
 
@@ -71,8 +72,9 @@ Use the scripts in package.json. Before completion, run available checks through
 
 ## Done When
 
-- Product decision record is complete for the current app.
+- Active specification and task artifacts are current for the feature being built.
 - `PLAN.md` is current for architecture, data model, auth, routing, deployment, migration, or multi-module work.
+- `..\..\scripts\check-spec-artifacts.ps1 -ProjectPath .` passes before completion.
 - Available checks pass through `..\..\scripts\verify-app.ps1 -ProjectPath .`.
 - Missing scripts are reported instead of invented.
 - UI changes include rendered desktop and mobile checks.
@@ -94,7 +96,58 @@ if (-not (Test-Path -LiteralPath $planPath)) {
   Set-Content -LiteralPath $planPath -Encoding UTF8 -Value $planText
 }
 
-$required = @("package.json", "AGENTS.md", "PLAN.md")
+$initialSpecDir = Join-Path $target "specs/001-initial"
+New-Item -ItemType Directory -Force -Path $initialSpecDir | Out-Null
+
+$specReplacements = @{
+  "{{SPEC_NUMBER}}" = "001"
+  "{{SPEC_TITLE}}" = "Initial App Foundation"
+  "{{SPEC_DIR}}" = "001-initial"
+  "{{RISK_LEVEL}}" = "standard"
+  "{{APP_NAME}}" = $Name
+  "{{DATE}}" = (Get-Date -Format "yyyy-MM-dd")
+}
+
+foreach ($templateName in @("spec.template.md", "tasks.template.md", "checklist.template.md")) {
+  $sourcePath = Join-Path $specTemplateDir $templateName
+  if (-not (Test-Path -LiteralPath $sourcePath)) {
+    Write-Error "Spec workflow template not found: $sourcePath"
+  }
+
+  $targetName = $templateName.Replace(".template", "")
+  $targetPath = Join-Path $initialSpecDir $targetName
+  if (-not (Test-Path -LiteralPath $targetPath)) {
+    $text = Get-Content -LiteralPath $sourcePath -Raw
+    foreach ($entry in $specReplacements.GetEnumerator()) {
+      $text = $text.Replace($entry.Key, $entry.Value)
+    }
+    if ($targetName -eq "spec.md") {
+      $text = $text.Replace("Replace this line with the user-visible outcome this feature must deliver.", "Establish the initial app foundation, base shell, and delivery constraints for $Name.")
+      $text = $text.Replace("Replace this line with the user problem or workflow gap this feature addresses.", "Provide a concrete starting specification for the first generated version of $Name so implementation can proceed from a numbered spec instead of an empty placeholder.")
+      $text = $text.Replace("Replace with the operators or audiences for this feature.", "Developers and operators building the first production-ready workflows in $Name.")
+      $text = $text.Replace("Replace with the main workflow this feature unlocks.", "Set up the first runnable app shell, base routes, and delivery guardrails so later features can build on a stable foundation.")
+      $text = $text.Replace("Replace with explicit exclusions that keep this feature narrow.", "Shipping product-specific business workflows beyond the initial shell and template foundation.")
+      $text = $text.Replace("Replace with the first concrete requirement.", "The generated app must include a runnable base shell and the durable instructions required to continue work from numbered specs.")
+      $text = $text.Replace("Replace with the second concrete requirement.", "The generated app must define verification and planning hooks before feature-specific implementation begins.")
+      $text = $text.Replace("Replace with the first observable success condition.", "The app contains AGENTS, PLAN, and specs/001-initial artifacts that all point to the same initial feature context.")
+      $text = $text.Replace("Replace with the second observable success condition.", "The initial scaffold can pass spec artifact validation once dependencies and checks are available.")
+      $text = $text.Replace("Replace with affected entities, fields, or state changes.", "No product entities yet; this feature establishes the shell, route structure, and workflow metadata.")
+      $text = $text.Replace("Replace with roles, access rules, or state none.", "No app-specific roles yet; later feature specs must define access rules before sensitive workflows are added.")
+      $text = $text.Replace("Replace with risky actions or state none.", "None in the initial scaffold.")
+      $text = $text.Replace("Replace with desktop web, mobile web, Android, iOS, or another explicit set.", "Use the default platform set for $Template unless the app narrows scope later.")
+      $text = $text.Replace("Replace with empty, loading, error, and success expectations.", "The app shell must preserve the template empty, loading, and error state patterns.")
+      $text = $text.Replace("Replace with required device APIs or state none.", "None yet beyond the baseline template capabilities.")
+      $text = $text.Replace("Replace with the main delivery or correctness risks.", "The main risk is drifting away from the scaffolded workflow before the first real feature spec is created.")
+      $text = $text.Replace("Replace with unresolved decisions or state none.", "None for scaffold generation; product-specific decisions belong in later specs.")
+    }
+    if ($targetName -eq "tasks.md") {
+      $text = $text.Replace("Replace this section with dependency ordering, deferred items, or release notes specific to this feature.", "Use this initial task list to confirm the scaffold, review the active spec, and prepare the first product-specific feature spec.")
+    }
+    Set-Content -LiteralPath $targetPath -Encoding UTF8 -Value $text
+  }
+}
+
+$required = @("package.json", "AGENTS.md", "PLAN.md", "specs/001-initial/spec.md", "specs/001-initial/tasks.md", "specs/001-initial/checklist.md")
 if ($Template -eq "react-vite-capacitor") {
   $required += @(".env.example", "index.html", "src/main.tsx")
 }
@@ -123,4 +176,4 @@ if ($InitializeGit) {
 }
 
 Write-Host "Created $Name from $Template at $target"
-Write-Host "Next: review $agentPath and $planPath, install dependencies inside the project, then run ../../scripts/verify-app.ps1 -ProjectPath ."
+Write-Host "Next: review $agentPath, $planPath, and specs/001-initial/, install dependencies inside the project, then run ../../scripts/check-spec-artifacts.ps1 -ProjectPath . followed by ../../scripts/verify-app.ps1 -ProjectPath ."

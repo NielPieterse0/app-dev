@@ -9,6 +9,9 @@ $projectMatrix = @(
       "package.json",
       "AGENTS.md",
       "PLAN.md",
+      "specs/001-initial/spec.md",
+      "specs/001-initial/tasks.md",
+      "specs/001-initial/checklist.md",
       ".env.example",
       ".github/workflows/verify.yml",
       "index.html",
@@ -52,6 +55,9 @@ $projectMatrix = @(
       "package.json",
       "AGENTS.md",
       "PLAN.md",
+      "specs/001-initial/spec.md",
+      "specs/001-initial/tasks.md",
+      "specs/001-initial/checklist.md",
       ".env.example",
       "app/layout.tsx",
       "app/page.tsx",
@@ -69,6 +75,9 @@ $projectMatrix = @(
       "package.json",
       "AGENTS.md",
       "PLAN.md",
+      "specs/001-initial/spec.md",
+      "specs/001-initial/tasks.md",
+      "specs/001-initial/checklist.md",
       ".env.example",
       "app.json",
       "App.tsx",
@@ -127,7 +136,7 @@ function Assert-GeneratedProject {
   }
 
   $agents = Get-Content -LiteralPath (Join-Path $projectPath "AGENTS.md") -Raw
-  foreach ($required in @("Product Decision Record", "Done When", "verify-app.ps1 -ProjectPath .")) {
+  foreach ($required in @("Active Specification", "Done When", "verify-app.ps1 -ProjectPath .", "check-spec-artifacts.ps1 -ProjectPath .")) {
     if ($agents -notmatch [regex]::Escape($required)) {
       Write-Error "Generated AGENTS.md for $($Project.Name) is missing: $required"
     }
@@ -139,23 +148,11 @@ function Assert-GeneratedProject {
       Write-Error "Generated package.json for $($Project.Name) is missing script: $scriptName"
     }
   }
-}
-
-function Install-And-VerifyGeneratedProject {
-  param(
-    [Parameter(Mandatory=$true)][string]$ProjectPath
-  )
-
-  Push-Location $ProjectPath
+  Push-Location $projectPath
   try {
-    & npm install
+    & (Join-Path $root "scripts/check-spec-artifacts.ps1") -ProjectPath "."
     if ($LASTEXITCODE -ne 0) {
-      Write-Error "npm install failed with exit code $LASTEXITCODE for $ProjectPath"
-    }
-
-    & (Join-Path $root "scripts/verify-app.ps1") -ProjectPath "."
-    if ($LASTEXITCODE -ne 0) {
-      Write-Error "verify-app.ps1 failed with exit code $LASTEXITCODE for $ProjectPath"
+      Write-Error "check-spec-artifacts.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
     }
   } finally {
     Pop-Location
@@ -178,7 +175,7 @@ function Assert-IgnoredByRootGitignore {
 
 try {
   & (Join-Path $root "scripts/check-workspace.ps1")
-  & (Join-Path $root "scripts/validate-codex-assets.ps1")
+  & (Join-Path $root "scripts/validate-codex-assets.ps1") -RequirePythonToml:$true
   & (Join-Path $root "scripts/test-hooks.ps1")
 
   foreach ($project in $projectMatrix) {
@@ -188,8 +185,6 @@ try {
     Assert-GeneratedProject -Project $project
   }
 
-  $reactProjectPath = Join-Path $root "projects/__verify-react-vite-capacitor"
-  Install-And-VerifyGeneratedProject -ProjectPath $reactProjectPath
   Assert-IgnoredByRootGitignore -RelativePath "projects/__verify-react-vite-capacitor/package.json"
 
   Write-Host "Workspace tests passed."

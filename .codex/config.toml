@@ -1,61 +1,19 @@
-# Project-level Codex configuration for the app-dev control workspace.
-#
-# This file is intentionally active. It uses the current Codex configuration model:
-# - permission profiles for local least-privilege boundaries
-# - inline lifecycle hooks for deterministic repository policy checks
-# - project-local rules under .codex/rules/
-#
-# Project .codex layers only load after the project is trusted in Codex.
+# Project-level Codex configuration for app-dev.
+# User/global settings belong in C:\Users\piete\.codex\config.toml.
+# Windows sandbox mode belongs in global config, not here.
 
-# Keep the root AGENTS.md below the Codex default instruction discovery cap unless this
-# value is intentionally raised.
-project_doc_max_bytes = 32768
-
-# Use beta permission profiles instead of legacy sandbox settings. Do not add
-# legacy sandbox keys to this file unless permission profiles are deliberately removed.
-default_permissions = "app-dev-workspace"
+project_doc_max_bytes = 65536
 
 [features]
 hooks = true
 
-[permissions.app-dev-workspace]
-description = "Least-privilege app-dev editing profile. Allows workspace edits, protects secrets and Codex policy files, and disables outbound network access by default."
-extends = ":workspace"
+# Leave default_permissions disabled until the Windows runner is stable.
+# If you re-enable it later, include the parent [permissions.app-dev-workspace]
+# table and set default_permissions = "app-dev-workspace".
+#
+# default_permissions = "app-dev-workspace"
 
-[permissions.app-dev-workspace.filesystem.":workspace_roots"]
-# The active workspace remains writable for normal app/template/script work.
-"." = "write"
-
-# Keep policy/configuration areas readable unless a human deliberately changes the
-# permission profile for governance maintenance.
-".codex" = "read"
-".git" = "read"
-
-# Deny common secret-bearing files and key material. .env.example remains readable.
-".env" = "deny"
-".env.local" = "deny"
-".env.development" = "deny"
-".env.production" = "deny"
-".env.test" = "deny"
-"**/.env" = "deny"
-"**/.env.local" = "deny"
-"**/.env.development" = "deny"
-"**/.env.production" = "deny"
-"**/.env.test" = "deny"
-"**/*.pem" = "deny"
-"**/*.key" = "deny"
-"**/*id_rsa*" = "deny"
-"**/*id_ed25519*" = "deny"
-"**/secrets.*" = "deny"
-"**/*secret*.json" = "deny"
-
-[permissions.app-dev-workspace.network]
-# Keep network-dependent installs, deployments, and cloud calls as explicit user-approved
-# steps outside the default project profile.
-enabled = false
-
-# Hooks use one inline representation in this layer. Do not add .codex/hooks.json unless
-# these inline hook tables are removed; Codex merges both forms and warns at startup.
+# Hooks: keep inline here. Do not also use .codex/hooks.json in this layer.
 
 [[hooks.PreToolUse]]
 matcher = "^Bash$|^apply_patch$|^Edit$|^Write$"

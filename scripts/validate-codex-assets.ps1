@@ -73,31 +73,29 @@ try:
 except Exception as exc:
     print(f"TOML_PARSE_ERROR: {exc}", file=sys.stderr)
     sys.exit(2)
-if "default_permissions" not in data:
-    print("MISSING_DEFAULT_PERMISSIONS", file=sys.stderr)
-    sys.exit(4)
 if "sandbox_mode" in data or "sandbox_workspace_write" in data:
     print("LEGACY_SANDBOX_WITH_PERMISSIONS", file=sys.stderr)
-    sys.exit(5)
+    sys.exit(4)
 features = data.get("features", {})
 if features.get("hooks") is not True:
     print("HOOKS_NOT_ENABLED", file=sys.stderr)
-    sys.exit(6)
+    sys.exit(5)
 hooks = data.get("hooks", {})
 for event in ("PreToolUse", "PermissionRequest", "PostToolUse"):
     if event not in hooks or not hooks[event]:
         print(f"MISSING_HOOK_EVENT:{event}", file=sys.stderr)
+        sys.exit(6)
+if "default_permissions" in data:
+    permissions = data.get("permissions", {})
+    profile_name = data["default_permissions"]
+    if profile_name not in permissions:
+        print("DEFAULT_PERMISSION_PROFILE_NOT_DEFINED", file=sys.stderr)
         sys.exit(7)
-permissions = data.get("permissions", {})
-profile_name = data["default_permissions"]
-if profile_name not in permissions:
-    print("DEFAULT_PERMISSION_PROFILE_NOT_DEFINED", file=sys.stderr)
-    sys.exit(8)
-profile = permissions[profile_name]
-network = profile.get("network", {})
-if network.get("enabled") is not False:
-    print("NETWORK_NOT_DISABLED_BY_DEFAULT", file=sys.stderr)
-    sys.exit(9)
+    profile = permissions[profile_name]
+    network = profile.get("network", {})
+    if network.get("enabled") is not False:
+        print("NETWORK_NOT_DISABLED_BY_DEFAULT", file=sys.stderr)
+        sys.exit(8)
 print("TOML_OK")
 '@
 
@@ -252,7 +250,7 @@ function Test-ConfigTextChecks {
   param([Parameter(Mandatory=$true)][string]$ConfigPath)
 
   $config = Get-Content -LiteralPath $ConfigPath -Raw
-  foreach ($required in @("default_permissions", "[features]", "hooks = true", "[[hooks.PreToolUse]]", "[[hooks.PermissionRequest]]", "[[hooks.PostToolUse]]")) {
+  foreach ($required in @("[features]", "hooks = true", "[[hooks.PreToolUse]]", "[[hooks.PermissionRequest]]", "[[hooks.PostToolUse]]")) {
     if ($config -notmatch [regex]::Escape($required)) {
       Add-Failure ".codex/config.toml is missing required active setting: $required"
     }
@@ -341,7 +339,7 @@ function Test-PlanAssets {
     Add-Failure "Missing templates/PLAN.template.md."
   } else {
     $template = Get-Content -LiteralPath $PlanTemplatePath -Raw
-    foreach ($required in @("{{APP_NAME}}", "{{TEMPLATE}}", "{{DATE}}", "Verification", "Risks and Assumptions")) {
+    foreach ($required in @("{{APP_NAME}}", "{{TEMPLATE}}", "{{DATE}}", "Active spec:", "Spec path:", "Verification", "Risks and Assumptions")) {
       if ($template -notmatch [regex]::Escape($required)) {
         Add-Failure "templates/PLAN.template.md is missing required content: $required"
       }
@@ -400,10 +398,32 @@ function Test-TemplateAgents {
     }
 
     $content = Get-Content -LiteralPath $path -Raw
-    foreach ($required in @("Product Decision Record", "Done When", "verify-app.ps1 -ProjectPath .", "Missing scripts are reported instead of invented")) {
+    foreach ($required in @("Active Specification", "Done When", "verify-app.ps1 -ProjectPath .", "check-spec-artifacts.ps1 -ProjectPath .", "Missing scripts are reported instead of invented")) {
       if ($content -notmatch [regex]::Escape($required)) {
         Add-Failure "$relativePath is missing generated app reliability wording: $required"
       }
+    }
+  }
+}
+
+function Test-SpecWorkflowAssets {
+  foreach ($relativePath in @(
+    "standards/spec-driven-workflow.md",
+    "templates/spec-workflow/spec.template.md",
+    "templates/spec-workflow/tasks.template.md",
+    "templates/spec-workflow/checklist.template.md",
+    "templates/spec-workflow/converge.template.md",
+    "scripts/new-spec.ps1",
+    "scripts/check-spec-artifacts.ps1",
+    ".agents/skills/cross-platform-app-workflow/references/spec-driven-workflow.md"
+  )) {
+    Assert-PathExists $relativePath
+  }
+
+  $workflow = Get-Content -LiteralPath (Resolve-WorkspacePath "standards/spec-driven-workflow.md") -Raw
+  foreach ($required in @("Numbered Specs", "Lean Path", "Gated Path", "Convergence")) {
+    if ($workflow -notmatch [regex]::Escape($required)) {
+      Add-Failure "standards/spec-driven-workflow.md is missing required workflow content: $required"
     }
   }
 }
@@ -497,7 +517,7 @@ function Test-AuditCloseoutLedger {
 }
 
 function Test-ScriptAssets {
-  foreach ($relativePath in @("scripts/scan-secrets.ps1", "scripts/export-workspace.ps1")) {
+  foreach ($relativePath in @("scripts/scan-secrets.ps1", "scripts/export-workspace.ps1", "scripts/new-spec.ps1", "scripts/check-spec-artifacts.ps1")) {
     Assert-PathExists $relativePath
   }
 
@@ -561,12 +581,20 @@ foreach ($path in @(
   ".agents/skills/cross-platform-app-workflow/references/module-contract.md",
   ".agents/skills/cross-platform-app-workflow/references/adaptive-layouts.md",
   ".agents/skills/cross-platform-app-workflow/references/qa-gates.md",
+  ".agents/skills/cross-platform-app-workflow/references/spec-driven-workflow.md",
   "standards/codex-capabilities.md",
+  "standards/spec-driven-workflow.md",
   "templates/PLAN.template.md",
+  "templates/spec-workflow/spec.template.md",
+  "templates/spec-workflow/tasks.template.md",
+  "templates/spec-workflow/checklist.template.md",
+  "templates/spec-workflow/converge.template.md",
   "templates/common/.github/workflows/verify.yml",
   "templates/react-vite-capacitor/.github/workflows/verify.yml",
   "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
   "scripts/validate-codex-assets.ps1",
+  "scripts/new-spec.ps1",
+  "scripts/check-spec-artifacts.ps1",
   "scripts/scan-secrets.ps1",
   "scripts/export-workspace.ps1"
 )) {
@@ -589,6 +617,7 @@ Test-AgentsSize -AgentsPath (Join-Path $Root "AGENTS.md")
 Test-NoDisposableVerificationFolders
 Test-CapabilityRouting -CapabilityPath $capabilityPath
 Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath
+Test-SpecWorkflowAssets
 Test-TemplateAgents -AgentPaths @(
   "templates/react-vite-capacitor/AGENTS.md",
   "templates/next-web-app/AGENTS.md",

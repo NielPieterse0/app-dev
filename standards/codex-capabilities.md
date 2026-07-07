@@ -7,6 +7,7 @@ Use local app-dev assets first. Treat all global skills and plugins as optional 
 | Task | Local capability |
 | --- | --- |
 | App planning, scaffolding, module contracts, adaptive layout, and verification | `.agents/skills/cross-platform-app-workflow` |
+| Numbered feature specs, tasks, gated-path reviews, and spec-to-plan handoff | `templates/spec-workflow/`, `scripts/new-spec.ps1`, `scripts/check-spec-artifacts.ps1`, `standards/spec-driven-workflow.md` |
 
 ## Optional External Capabilities
 
@@ -14,6 +15,7 @@ These names are routing hints, not repository dependencies. Use them only when p
 
 | Task | Optional external capability |
 | --- | --- |
+| Multi-feature app iteration, ambiguous requirements, or spec-heavy decomposition | `spec-kit` methodology translated into local app-dev assets; use lean path by default and gated path for work flagged by `standards/security.md` |
 | New app screens, dashboards, redesigns, visually driven UI | `frontend-app-builder` |
 | Rendered UI QA, dev server issues, responsive bugs, console errors | `frontend-testing-debugging` |
 | shadcn/ui setup, components, registry, `components.json` | `shadcn-best-practices` |
@@ -33,6 +35,7 @@ These names are routing hints, not repository dependencies. Use them only when p
 ## Routing Rules
 
 - Load `cross-platform-app-workflow` first for app-dev work.
+- Prefer local translated spec-driven assets over vendoring or depending on upstream `spec-kit` runtime files.
 - Prefer Browser/IAB for rendered UI checks when available. Use Playwright as the fallback and record why.
 - Keep deployment capabilities conditional until the app chooses a hosting target.
 - Keep MCP servers user-level by default. Add project-level MCP only for repo-specific tooling, never for personal credentials or secret-bearing env blocks.
