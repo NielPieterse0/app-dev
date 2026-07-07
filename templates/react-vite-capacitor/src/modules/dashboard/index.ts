@@ -1,3 +1,4 @@
+export { DashboardActivityChart } from "./components/DashboardActivityChart";
 export { DashboardModulesTable } from "./components/DashboardModulesTable";
 export { DashboardSummary } from "./components/DashboardSummary";
 export { useDashboardModules } from "./hooks/useDashboardModules";

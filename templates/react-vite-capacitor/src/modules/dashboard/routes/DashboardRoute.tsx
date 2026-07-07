@@ -1,5 +1,6 @@
 import { PageHeader } from "../../../app/PageHeader";
 import { EmptyState, ErrorState, LoadingState } from "../../../components/state";
+import { DashboardActivityChart } from "../components/DashboardActivityChart";
 import { DashboardModulesTable } from "../components/DashboardModulesTable";
 import { DashboardSummary } from "../components/DashboardSummary";
 import { useDashboardModules } from "../hooks/useDashboardModules";
@@ -50,6 +51,7 @@ export function DashboardRoute() {
       {!isLoading && !error && modules.length ? (
         <>
           <DashboardSummary modules={modules} />
+          <DashboardActivityChart />
           <DashboardModulesTable modules={modules} />
         </>
       ) : null}
