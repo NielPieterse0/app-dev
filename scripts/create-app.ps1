@@ -25,7 +25,21 @@ if (Test-Path -LiteralPath $target) {
 }
 
 New-Item -ItemType Directory -Force -Path $target | Out-Null
-Get-ChildItem -LiteralPath $source -Force | ForEach-Object {
+$excludedTemplateEntries = @(
+  "node_modules",
+  "dist",
+  "coverage",
+  "playwright-report",
+  "test-results"
+)
+
+if ($Template -eq "react-vite-capacitor") {
+  $excludedTemplateEntries += @("android", "ios")
+}
+
+Get-ChildItem -LiteralPath $source -Force | Where-Object {
+  $excludedTemplateEntries -notcontains $_.Name
+} | ForEach-Object {
   Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force
 }
 

@@ -368,6 +368,27 @@ function Test-PackageJson {
   }
 }
 
+function Test-ReactTemplatePackageJson {
+  $path = Resolve-WorkspacePath "templates/react-vite-capacitor/package.json"
+  if (-not (Test-Path -LiteralPath $path)) {
+    Add-Failure "Missing package.json: templates/react-vite-capacitor/package.json"
+    return
+  }
+
+  try {
+    $package = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -ErrorAction Stop
+  } catch {
+    Add-Failure "Invalid package.json JSON: templates/react-vite-capacitor/package.json. $($_.Exception.Message)"
+    return
+  }
+
+  foreach ($scriptName in @("typecheck", "lint", "test", "build", "e2e")) {
+    if ($null -eq $package.scripts -or -not ($package.scripts.PSObject.Properties.Name -contains $scriptName)) {
+      Add-Failure "templates/react-vite-capacitor/package.json is missing required script: $scriptName"
+    }
+  }
+}
+
 function Test-TemplateAgents {
   param([Parameter(Mandatory=$true)][string[]]$AgentPaths)
 
@@ -390,17 +411,35 @@ function Test-TemplateAgents {
 function Test-TemplateReadiness {
   $requiredPaths = @(
     "templates/common/.github/workflows/verify.yml",
+    "templates/react-vite-capacitor/.github/workflows/verify.yml",
     "templates/react-vite-capacitor/capacitor.config.ts",
     "templates/react-vite-capacitor/tailwind.config.ts",
     "templates/react-vite-capacitor/postcss.config.js",
     "templates/react-vite-capacitor/components.json",
+    "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
     "templates/react-vite-capacitor/src/app/routes.tsx",
     "templates/react-vite-capacitor/src/vite-env.d.ts",
+    "templates/react-vite-capacitor/src/lib/env.ts",
+    "templates/react-vite-capacitor/src/lib/supabase.ts",
+    "templates/react-vite-capacitor/src/lib/query-client.ts",
+    "templates/react-vite-capacitor/src/components/layout/SettingsLayout.tsx",
+    "templates/react-vite-capacitor/src/components/ui/form.tsx",
     "templates/react-vite-capacitor/src/modules/settings/routes/SettingsRoute.tsx",
     "templates/react-vite-capacitor/src/components/state/EmptyState.tsx",
     "templates/react-vite-capacitor/src/components/state/LoadingState.tsx",
     "templates/react-vite-capacitor/src/components/state/ErrorState.tsx",
     "templates/react-vite-capacitor/src/components/state/StatePrimitives.test.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/components/DashboardModulesTable.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/components/DashboardSummary.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/components/DashboardActivityChart.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/hooks/useDashboardModules.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/routes/DashboardRoute.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/schemas/dashboard-module.schema.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/services/dashboard-service.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/state/dashboard-view-store.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/tests/DashboardRoute.test.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/tests/dashboard-module.schema.test.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/tests/DashboardActivityChart.test.tsx",
     "templates/next-web-app/app/layout.tsx",
     "templates/next-web-app/app/page.tsx",
     "templates/next-web-app/tsconfig.json",
@@ -525,6 +564,8 @@ foreach ($path in @(
   "standards/codex-capabilities.md",
   "templates/PLAN.template.md",
   "templates/common/.github/workflows/verify.yml",
+  "templates/react-vite-capacitor/.github/workflows/verify.yml",
+  "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
   "scripts/validate-codex-assets.ps1",
   "scripts/scan-secrets.ps1",
   "scripts/export-workspace.ps1"
@@ -561,6 +602,7 @@ foreach ($packagePath in @(
 )) {
   Test-PackageJson -RelativePath $packagePath
 }
+Test-ReactTemplatePackageJson
 Test-CiWorkflow -WorkflowPath $workflowPath
 Test-OpenAiAgentMetadata -MetadataPath $openAiAgentMetadataPath
 Test-AuditCloseoutLedger -LedgerPath $auditLedgerPath

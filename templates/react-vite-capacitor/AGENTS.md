@@ -16,7 +16,7 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Data model: None in the template itself; generated apps define their own entities and schemas.
 - Permissions: None in the template itself; generated apps define their own roles and access rules.
 - Platforms: desktop web, mobile web, Android, and iOS unless a generated app narrows the target set.
-- Native requirements: Capacitor shell only; generated apps add platform folders and native APIs when the product requires them.
+- Native requirements: Capacitor shell only; generated apps add platform folders and native APIs when the product requires them. Do not keep `android/` or `ios/` under this shared template.
 
 ## Required Before Feature Work
 
@@ -26,6 +26,7 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Initialize Tailwind and shadcn/ui when the first real UI surface needs component styling; use optional shadcn capability only if available.
 - Add `.env.example` for required public environment variables.
 - Use publishable Supabase browser keys only; never add service-role or secret keys to Vite env.
+- Add native platform folders only inside a generated app after the product decision record confirms the need.
 - Treat the template README checklist as the completion baseline for later tasks in this plan.
 
 ## Capability Routing

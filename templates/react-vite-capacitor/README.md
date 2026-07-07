@@ -49,13 +49,13 @@ Reference surfaces included in the template:
 
 ## Reference template complete when
 
-- [ ] `Supabase` env handling is present with a documented public key contract.
-- [ ] shadcn/ui source lives in `src/components/ui/` instead of relying on registry install steps.
-- [ ] The module contract is demonstrated by a full `src/modules/<module>/` structure.
-- [ ] Form, table, and chart examples show the supported library patterns.
-- [ ] `SettingsLayout` exists and is used by a route.
-- [ ] Playwright covers the required responsive projects and widths.
-- [ ] A CI workflow template runs install, typecheck, lint, test, build, and e2e.
+- [x] `Supabase` env handling is present with a documented public key contract.
+- [x] shadcn/ui source lives in `src/components/ui/` instead of relying on registry install steps.
+- [x] The module contract is demonstrated by a full `src/modules/<module>/` structure.
+- [x] Form, table, and chart examples show the supported library patterns.
+- [x] `SettingsLayout` exists and is used by a route.
+- [x] Playwright covers the required responsive projects and widths.
+- [x] A CI workflow template runs install, typecheck, lint, test, build, and e2e.
 - [ ] A disposable generated app passes the workspace verification flow.
 
 ## Supabase reference notes
@@ -65,3 +65,24 @@ Reference surfaces included in the template:
 - Use `/settings/protected` as the loader-guarded route example after wiring a real auth flow.
 - Enable Row Level Security on exposed schemas such as `public` before shipping app data access.
 - Keep product-specific auth flows, roles, and RLS policies in generated app migrations after the data model is defined.
+
+## CI workflow
+
+Generated apps inherit `.github/workflows/verify.yml`, which runs install, dependency review on pull requests, secret scanning, Playwright browser setup, and the full `typecheck`, `lint`, `test`, `build`, and `e2e` script set.
+
+## Native platforms
+
+This template does not store `android/` or `ios/` projects in source control. Add native platform folders per generated app after the product decision record confirms native delivery requirements.
+
+Typical per-app native setup:
+
+```powershell
+npm install
+npm install @capacitor/android @capacitor/ios
+npm run build
+npx cap add android
+npx cap add ios
+npx cap sync
+```
+
+Android builds require Android Studio and a working JDK. iOS native projects require macOS and Xcode. The generated helper script `scripts/add-native-platforms.ps1` automates the same flow from inside a generated app.
