@@ -10,13 +10,13 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 
 ## Product Decision Record
 
-- Users: Replace with the target audience before feature work.
-- Core jobs: Replace with the primary user jobs before feature work.
-- Modules: Replace with vertical modules before feature work.
-- Data model: Replace with primary entities before feature work.
-- Permissions: Replace with roles and access rules before feature work.
-- Platforms: desktop web, mobile web, Android, and iOS unless revised.
-- Native requirements: replace with the native APIs that justify Capacitor, or state none.
+- Users: Developers creating generated cross-platform business apps from this template.
+- Core jobs: Start a runnable React/Vite/Capacitor app, add vertical modules, and verify the app with local scripts.
+- Modules: App shell, navigation shell, page header, list/detail layouts, form layout, data table layout, state primitives, and template reference surfaces.
+- Data model: None in the template itself; generated apps define their own entities and schemas.
+- Permissions: None in the template itself; generated apps define their own roles and access rules.
+- Platforms: desktop web, mobile web, Android, and iOS unless a generated app narrows the target set.
+- Native requirements: Capacitor shell only; generated apps add platform folders and native APIs when the product requires them.
 
 ## Required Before Feature Work
 
@@ -25,6 +25,7 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Review the starter `AppShell`, `NavigationShell`, and base route structure.
 - Initialize Tailwind and shadcn/ui when the first real UI surface needs component styling; use optional shadcn capability only if available.
 - Add `.env.example` for required public environment variables.
+- Treat the template README checklist as the completion baseline for later tasks in this plan.
 
 ## Capability Routing
 

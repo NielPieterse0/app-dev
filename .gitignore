@@ -32,3 +32,6 @@ pnpm-debug.log*
 # Generated app workspaces
 projects/*
 !projects/.gitkeep
+
+# Superpowers coordination scratch
+.superpowers/
