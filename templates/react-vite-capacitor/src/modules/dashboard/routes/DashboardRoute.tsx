@@ -9,6 +9,17 @@ const modules = [
   { name: "Verification", status: "Ready" },
 ];
 
+const moduleColumns = [
+  {
+    accessorKey: "name",
+    header: "Module",
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+  },
+];
+
 export function DashboardRoute() {
   return (
     <div className="dashboard-route">
@@ -28,24 +39,7 @@ export function DashboardRoute() {
           </ul>
         }
         detail={
-          <DataTableLayout toolbar={<button type="button">New module</button>}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Module</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {modules.map((module) => (
-                  <tr key={module.name}>
-                    <td>{module.name}</td>
-                    <td>{module.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </DataTableLayout>
+          <DataTableLayout columns={moduleColumns} data={modules} toolbar={<button type="button">New module</button>} />
         }
       />
     </div>

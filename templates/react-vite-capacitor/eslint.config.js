@@ -34,7 +34,7 @@ export default tseslint.config(
         "warn",
         {
           allowConstantExport: true,
-          allowExportNames: ["badgeVariants", "buttonVariants"],
+          allowExportNames: ["badgeVariants", "buttonVariants", "useFormField"],
         },
       ],
     },

@@ -1,7 +1,17 @@
+import { Outlet, useLocation } from "react-router-dom";
 import { PageHeader } from "../../../app/PageHeader";
+import { FormLayoutExample } from "../../../components/layout/FormLayout";
+import { SettingsLayout } from "../../../components/layout/SettingsLayout";
 import { useAuthSession } from "../../auth";
 
+const settingsItems = [
+  { label: "General", href: "/settings" },
+  { label: "Notifications", href: "/settings/notifications" },
+  { label: "Protected", href: "/settings/protected" },
+];
+
 export function SettingsRoute() {
+  const { pathname } = useLocation();
   const { session, isLoading } = useAuthSession();
 
   return (
@@ -10,26 +20,45 @@ export function SettingsRoute() {
         title="Settings"
         description="Configure app-level preferences, integrations, and operational defaults."
       />
-      <p>Replace this starter route with real settings workflows when the product decision record defines them.</p>
       <p>
         Auth example status:{" "}
         {isLoading ? "checking session" : session ? "signed in" : "not signed in or Supabase not configured"}
       </p>
-      <p>
-        Protected route example: visit <code>/settings/protected</code> after wiring a real Supabase project and auth flow.
-      </p>
+      <SettingsLayout
+        items={settingsItems.map((item) => ({
+          ...item,
+          isActive: pathname === item.href,
+        }))}
+      >
+        <Outlet />
+      </SettingsLayout>
     </section>
+  );
+}
+
+export function SettingsGeneralRoute() {
+  return (
+    <div>
+      <p>Replace this starter route with real settings workflows when the product decision record defines them.</p>
+      <FormLayoutExample />
+    </div>
+  );
+}
+
+export function SettingsNotificationsRoute() {
+  return (
+    <div>
+      <h2>Notification defaults</h2>
+      <p>Use this section to document alert channels, digest cadence, and operational ownership defaults.</p>
+    </div>
   );
 }
 
 export function ProtectedSettingsExampleRoute() {
   return (
-    <section>
-      <PageHeader
-        title="Protected settings example"
-        description="This route is loader-guarded to demonstrate how a generated app can require a Supabase session."
-      />
-      <p>Use this route as the reference seam for product-specific protected settings sections.</p>
-    </section>
+    <div>
+      <h2>Protected settings example</h2>
+      <p>This route is loader-guarded to demonstrate how a generated app can require a Supabase session.</p>
+    </div>
   );
 }

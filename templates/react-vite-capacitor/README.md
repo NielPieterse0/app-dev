@@ -41,6 +41,12 @@ Required app layout primitives:
 - `src/components/state/LoadingState.tsx`
 - `src/components/state/ErrorState.tsx`
 
+Reference surfaces included in the template:
+
+- `FormLayoutExample` shows the supported React Hook Form + Zod + shadcn `Form` pattern.
+- `DataTableLayout` shows the supported TanStack Table + shadcn `Table` pattern.
+- `SettingsLayout` is wired into nested settings routes for general, notifications, and a protected example section.
+
 ## Reference template complete when
 
 - [ ] `Supabase` env handling is present with a documented public key contract.
