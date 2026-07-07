@@ -10,14 +10,21 @@ Start with independent app repositories. Move to a pnpm/Turborepo monorepo only 
 app-dev/
   AGENTS.md
   .agents/
+  docs/
+    audit/
+    superpowers/
+  PLANS.md
   standards/
   templates/
+    PLAN.template.md
   scripts/
   projects/
     app-name/
       AGENTS.md
       package.json
 ```
+
+The root workspace owns governance, planning, audit, and template assets in addition to project generators. Keep workspace-level audit notes under `docs/audit/`, implementation plans and execution records under `docs/superpowers/`, the shared planning protocol in `PLANS.md`, and the reusable per-app plan scaffold in `templates/PLAN.template.md`.
 
 ## When To Use A Monorepo
 

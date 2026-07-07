@@ -62,6 +62,8 @@ This ledger is complete only when these commands pass from the workspace root:
 
 ## React Vite Capacitor Template Finalization 2026-07-07
 
+This branch intentionally bundles the React/Vite/Capacitor template finalization with the broader workspace-audit closeout that the same verification gate depends on. The generated-app CI template, planning assets, secret scan/export scripts, and Next/Expo template baselines were kept in one branch because `scripts/check-workspace.ps1`, `scripts/validate-codex-assets.ps1`, and `scripts/test-workspace.ps1` validate them together as one control-workspace surface.
+
 - Dependencies finalized in `templates/react-vite-capacitor`: `@supabase/supabase-js`, `@t3-oss/env-core`, `@hookform/resolvers`, shadcn/ui source dependencies, Recharts. `@capacitor/android` and `@capacitor/ios` were removed from always-on template dependencies and moved to the per-app native setup flow.
 - Commands verified from the template directory: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`, `npm run e2e`.
 - Disposable generated-app verification passed through `scripts/test-workspace.ps1`, including `npm install` and `..\..\scripts\verify-app.ps1 -ProjectPath .` inside `projects/__verify-react-vite-capacitor`.
