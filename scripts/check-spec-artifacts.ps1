@@ -86,9 +86,10 @@ foreach ($dir in $specDirs) {
 
   $specPath = Join-Path $dir.FullName "spec.md"
   $tasksPath = Join-Path $dir.FullName "tasks.md"
+  $receiptPath = Join-Path $dir.FullName "workflow-receipts.md"
   $checklistPath = Join-Path $dir.FullName "checklist.md"
 
-  foreach ($requiredPath in @($specPath, $tasksPath)) {
+  foreach ($requiredPath in @($specPath, $tasksPath, $receiptPath)) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
       Add-Failure "Missing required feature artifact: $requiredPath"
     }
@@ -105,6 +106,21 @@ foreach ($dir in $specDirs) {
     $tasksContent = Assert-Contains -Path $tasksPath -Needles @("## Task List", "check-spec-artifacts.ps1", "verify-app.ps1")
     if ($tasksContent -match "{{|Replace this section") {
       Add-Failure "$tasksPath still contains unresolved template placeholders."
+    }
+  }
+
+  if (Test-Path -LiteralPath $receiptPath) {
+    $receiptContent = Assert-Contains -Path $receiptPath -Needles @(
+      "## Workflow Classification",
+      "## UI Change Workflow Receipt",
+      "## Data Change Workflow Receipt",
+      "## Mobile Validation Workflow Receipt",
+      "## Release Readiness Workflow Receipt"
+    )
+    foreach ($needle in @("Trigger surface:", "Command path used:", "Local workflow used:", "Verification performed:", "Decision/closure:")) {
+      if ($receiptContent -notmatch [regex]::Escape($needle)) {
+        Add-Failure "$receiptPath is missing required content: $needle"
+      }
     }
   }
 

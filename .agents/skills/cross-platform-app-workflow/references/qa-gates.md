@@ -8,6 +8,10 @@ Run available package scripts:
 - build
 - e2e
 
+Run workflow receipt validation before claiming completion:
+
+- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`
+
 For UI work, also verify rendered behavior:
 
 - meaningful first screen

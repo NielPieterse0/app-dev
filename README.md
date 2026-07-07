@@ -43,7 +43,7 @@ Do not install app dependencies at the `app-dev` root. Install dependencies insi
 
 React + Vite + React Router, TypeScript, Tailwind, shadcn/ui, Radix, Zod, React Hook Form, TanStack Query, TanStack Table, Supabase, Capacitor, Vitest, Testing Library, and Playwright.
 
-Repo-specific Codex skills live in `.agents/skills/` so Codex can discover them as project skills. Optional external/global skills and plugins are documented in `standards/codex-capabilities.md`; they are not required local dependencies.
+Repo-specific Codex skills live in `.agents/skills/` so Codex can discover them as project skills. Repo-owned workflow entry commands live in `.agents/commands/`. Optional external/global skills and plugins are documented in `standards/codex-capabilities.md`; they are not required local dependencies.
 
 ## Planning
 
@@ -66,6 +66,12 @@ Run Codex asset validation after changing `.codex/`, `.agents/skills/`, `AGENTS.
 
 ```powershell
 .\scripts\validate-codex-assets.ps1
+```
+
+Run workflow receipt validation inside a generated app before claiming work is complete:
+
+```powershell
+..\..\scripts\validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence
 ```
 
 Run hook policy tests separately:

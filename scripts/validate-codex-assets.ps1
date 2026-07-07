@@ -311,7 +311,7 @@ function Test-CapabilityRouting {
   }
 
   $content = Get-Content -LiteralPath $CapabilityPath -Raw
-  foreach ($required in @("Required Local Capability", "Optional External Capabilities", "cross-platform-app-workflow", "not repository dependencies")) {
+  foreach ($required in @("Required Local Capability", "Optional External Capabilities", "cross-platform-app-workflow", "ui-change-workflow", "data-change-workflow", "mobile-validation-workflow", "release-readiness-workflow", "workflow-receipts.md", "not repository dependencies")) {
     if ($content -notmatch [regex]::Escape($required)) {
       Add-Failure "standards/codex-capabilities.md is missing P1 capability-separation wording: $required"
     }
@@ -398,7 +398,7 @@ function Test-TemplateAgents {
     }
 
     $content = Get-Content -LiteralPath $path -Raw
-    foreach ($required in @("Active Specification", "Done When", "verify-app.ps1 -ProjectPath .", "check-spec-artifacts.ps1 -ProjectPath .", "Missing scripts are reported instead of invented")) {
+    foreach ($required in @("Active Specification", "Done When", "verify-app.ps1 -ProjectPath .", "check-spec-artifacts.ps1 -ProjectPath .", "validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence", "workflow-receipts.md", "Missing scripts are reported instead of invented")) {
       if ($content -notmatch [regex]::Escape($required)) {
         Add-Failure "$relativePath is missing generated app reliability wording: $required"
       }
@@ -409,21 +409,58 @@ function Test-TemplateAgents {
 function Test-SpecWorkflowAssets {
   foreach ($relativePath in @(
     "standards/spec-driven-workflow.md",
+    "standards/command-workflow-contract.md",
     "templates/spec-workflow/spec.template.md",
     "templates/spec-workflow/tasks.template.md",
     "templates/spec-workflow/checklist.template.md",
+    "templates/spec-workflow/workflow-receipts.template.md",
     "templates/spec-workflow/converge.template.md",
     "scripts/new-spec.ps1",
     "scripts/check-spec-artifacts.ps1",
+    "scripts/validate-workflow-receipts.ps1",
     ".agents/skills/cross-platform-app-workflow/references/spec-driven-workflow.md"
   )) {
     Assert-PathExists $relativePath
   }
 
   $workflow = Get-Content -LiteralPath (Resolve-WorkspacePath "standards/spec-driven-workflow.md") -Raw
-  foreach ($required in @("Numbered Specs", "Lean Path", "Gated Path", "Convergence")) {
+  foreach ($required in @("Numbered Specs", "workflow-receipts.md", "Lean Path", "Gated Path", "Convergence")) {
     if ($workflow -notmatch [regex]::Escape($required)) {
       Add-Failure "standards/spec-driven-workflow.md is missing required workflow content: $required"
+    }
+  }
+}
+
+function Test-WorkflowWrapperAssets {
+  foreach ($relativePath in @(
+    ".agents/skills/ui-change-workflow/SKILL.md",
+    ".agents/skills/data-change-workflow/SKILL.md",
+    ".agents/skills/mobile-validation-workflow/SKILL.md",
+    ".agents/skills/release-readiness-workflow/SKILL.md",
+    ".agents/commands/specify.md",
+    ".agents/commands/plan.md",
+    ".agents/commands/tasks.md",
+    ".agents/commands/implement.md",
+    ".agents/commands/verify.md",
+    ".agents/commands/release-readiness.md",
+    "scripts/get-workflow-obligations.ps1",
+    "scripts/validate-workflow-receipts.ps1",
+    "scripts/test-workflow-enforcement.ps1"
+  )) {
+    Assert-PathExists $relativePath
+  }
+
+  $skill = Get-Content -LiteralPath (Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/SKILL.md") -Raw
+  foreach ($required in @("ui-change-workflow", "data-change-workflow", "mobile-validation-workflow", "release-readiness-workflow", "workflow-receipts.md", "validate-workflow-receipts.ps1")) {
+    if ($skill -notmatch [regex]::Escape($required)) {
+      Add-Failure "cross-platform-app-workflow is missing required workflow-enforcement wording: $required"
+    }
+  }
+
+  $commandContract = Get-Content -LiteralPath (Resolve-WorkspacePath "standards/command-workflow-contract.md") -Raw
+  foreach ($required in @("workflow-receipts.md", "UI", "Data", "Mobile", "Release readiness")) {
+    if ($commandContract -notmatch [regex]::Escape($required)) {
+      Add-Failure "standards/command-workflow-contract.md is missing required workflow contract content: $required"
     }
   }
 }
@@ -493,7 +530,7 @@ function Test-CiWorkflow {
   }
 
   $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
-  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1")) {
+  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/test-workflow-enforcement.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1")) {
     if ($workflow -notmatch [regex]::Escape($required)) {
       Add-Failure ".github/workflows/app-dev-validation.yml is missing required CI content: $required"
     }
@@ -517,7 +554,7 @@ function Test-AuditCloseoutLedger {
 }
 
 function Test-ScriptAssets {
-  foreach ($relativePath in @("scripts/scan-secrets.ps1", "scripts/export-workspace.ps1", "scripts/new-spec.ps1", "scripts/check-spec-artifacts.ps1")) {
+  foreach ($relativePath in @("scripts/scan-secrets.ps1", "scripts/export-workspace.ps1", "scripts/new-spec.ps1", "scripts/check-spec-artifacts.ps1", "scripts/get-workflow-obligations.ps1", "scripts/validate-workflow-receipts.ps1", "scripts/test-workflow-enforcement.ps1")) {
     Assert-PathExists $relativePath
   }
 
@@ -563,7 +600,7 @@ $workflowPath = Resolve-WorkspacePath ".github/workflows/app-dev-validation.yml"
 $openAiAgentMetadataPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/agents/openai.yaml"
 $auditLedgerPath = Resolve-WorkspacePath "docs/audit/app-dev-audit-closeout.md"
 
-foreach ($path in @(
+  foreach ($path in @(
   "AGENTS.md",
   "PLANS.md",
   "docs/audit/app-dev-audit-closeout.md",
@@ -573,26 +610,41 @@ foreach ($path in @(
   ".codex/hooks/pre-command.ps1",
   ".codex/hooks/post-edit.ps1",
   ".codex/hooks/verify-before-finish.ps1",
+  ".agents/commands/specify.md",
+  ".agents/commands/plan.md",
+  ".agents/commands/tasks.md",
+  ".agents/commands/implement.md",
+  ".agents/commands/verify.md",
+  ".agents/commands/release-readiness.md",
   ".agents/README.md",
   ".agents/skills/README.md",
   ".agents/skills/cross-platform-app-workflow/SKILL.md",
+  ".agents/skills/ui-change-workflow/SKILL.md",
+  ".agents/skills/data-change-workflow/SKILL.md",
+  ".agents/skills/mobile-validation-workflow/SKILL.md",
+  ".agents/skills/release-readiness-workflow/SKILL.md",
   ".agents/skills/cross-platform-app-workflow/agents/openai.yaml",
   ".agents/skills/cross-platform-app-workflow/references/stack.md",
   ".agents/skills/cross-platform-app-workflow/references/module-contract.md",
   ".agents/skills/cross-platform-app-workflow/references/adaptive-layouts.md",
   ".agents/skills/cross-platform-app-workflow/references/qa-gates.md",
   ".agents/skills/cross-platform-app-workflow/references/spec-driven-workflow.md",
+  "standards/command-workflow-contract.md",
   "standards/codex-capabilities.md",
   "standards/spec-driven-workflow.md",
   "templates/PLAN.template.md",
   "templates/spec-workflow/spec.template.md",
   "templates/spec-workflow/tasks.template.md",
   "templates/spec-workflow/checklist.template.md",
+  "templates/spec-workflow/workflow-receipts.template.md",
   "templates/spec-workflow/converge.template.md",
   "templates/common/.github/workflows/verify.yml",
   "templates/react-vite-capacitor/.github/workflows/verify.yml",
   "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
   "scripts/validate-codex-assets.ps1",
+  "scripts/get-workflow-obligations.ps1",
+  "scripts/validate-workflow-receipts.ps1",
+  "scripts/test-workflow-enforcement.ps1",
   "scripts/new-spec.ps1",
   "scripts/check-spec-artifacts.ps1",
   "scripts/scan-secrets.ps1",
@@ -618,6 +670,7 @@ Test-NoDisposableVerificationFolders
 Test-CapabilityRouting -CapabilityPath $capabilityPath
 Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath
 Test-SpecWorkflowAssets
+Test-WorkflowWrapperAssets
 Test-TemplateAgents -AgentPaths @(
   "templates/react-vite-capacitor/AGENTS.md",
   "templates/next-web-app/AGENTS.md",

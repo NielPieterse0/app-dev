@@ -11,6 +11,7 @@ $projectMatrix = @(
       "PLAN.md",
       "specs/001-initial/spec.md",
       "specs/001-initial/tasks.md",
+      "specs/001-initial/workflow-receipts.md",
       "specs/001-initial/checklist.md",
       ".env.example",
       ".github/workflows/verify.yml",
@@ -57,6 +58,7 @@ $projectMatrix = @(
       "PLAN.md",
       "specs/001-initial/spec.md",
       "specs/001-initial/tasks.md",
+      "specs/001-initial/workflow-receipts.md",
       "specs/001-initial/checklist.md",
       ".env.example",
       "app/layout.tsx",
@@ -77,6 +79,7 @@ $projectMatrix = @(
       "PLAN.md",
       "specs/001-initial/spec.md",
       "specs/001-initial/tasks.md",
+      "specs/001-initial/workflow-receipts.md",
       "specs/001-initial/checklist.md",
       ".env.example",
       "app.json",
@@ -136,7 +139,7 @@ function Assert-GeneratedProject {
   }
 
   $agents = Get-Content -LiteralPath (Join-Path $projectPath "AGENTS.md") -Raw
-  foreach ($required in @("Active Specification", "Done When", "verify-app.ps1 -ProjectPath .", "check-spec-artifacts.ps1 -ProjectPath .")) {
+  foreach ($required in @("Active Specification", "Done When", "verify-app.ps1 -ProjectPath .", "check-spec-artifacts.ps1 -ProjectPath .", "validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence")) {
     if ($agents -notmatch [regex]::Escape($required)) {
       Write-Error "Generated AGENTS.md for $($Project.Name) is missing: $required"
     }
@@ -153,6 +156,10 @@ function Assert-GeneratedProject {
     & (Join-Path $root "scripts/check-spec-artifacts.ps1") -ProjectPath "."
     if ($LASTEXITCODE -ne 0) {
       Write-Error "check-spec-artifacts.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
+    }
+    & (Join-Path $root "scripts/validate-workflow-receipts.ps1") -ProjectPath "."
+    if ($LASTEXITCODE -ne 0) {
+      Write-Error "validate-workflow-receipts.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
     }
   } finally {
     Pop-Location
@@ -177,6 +184,7 @@ try {
   & (Join-Path $root "scripts/check-workspace.ps1")
   & (Join-Path $root "scripts/validate-codex-assets.ps1") -RequirePythonToml:$true
   & (Join-Path $root "scripts/test-hooks.ps1")
+  & (Join-Path $root "scripts/test-workflow-enforcement.ps1")
 
   foreach ($project in $projectMatrix) {
     $projectPath = Join-Path $root "projects/$($project.Name)"

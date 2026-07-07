@@ -18,6 +18,7 @@ Replace this line with explicit exclusions that prevent scope drift.
 - Spec id: `001-initial`
 - Spec path: `specs/001-initial/spec.md`
 - Tasks path: `specs/001-initial/tasks.md`
+- Workflow receipts path: `specs/001-initial/workflow-receipts.md`
 - Checklist path: `specs/001-initial/checklist.md` when the feature follows the gated path.
 
 ## Architecture Decision
@@ -42,7 +43,7 @@ Replace this line with explicit exclusions that prevent scope drift.
 3. Build or update the app shell, providers, routing, and theme tokens.
 4. Implement vertical modules with schema, services/hooks, UI, routes, and tests.
 5. Add empty, loading, and error states for every primary workflow.
-6. Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`, then run verification and rendered desktop/mobile checks.
+6. Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`, then `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`, then verification and rendered desktop/mobile checks.
 
 ## Risks and Assumptions
 
@@ -79,6 +80,7 @@ Rendered UI checks:
 Pre-implementation artifact check:
 
 - `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`
+- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`
 
 ## Open Decisions
 

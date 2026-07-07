@@ -51,4 +51,5 @@ Replace this line with the user problem or workflow gap this feature addresses.
 ## Verification Intent
 
 - Pre-implementation gate: Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` after updating this spec set.
+- Workflow evidence gate: Keep `workflow-receipts.md` current and run `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` before completion.
 - Completion checks: Run `../../scripts/verify-app.ps1 -ProjectPath .` plus rendered desktop and mobile checks before handoff.

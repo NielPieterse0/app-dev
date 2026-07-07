@@ -60,7 +60,7 @@ Use this project's `PLAN.md` for architecture, module, risk, and verification de
 
 - Start with `specs/001-initial/spec.md`.
 - Create later feature specs under `specs/NNN-<slug>/`.
-- Keep `PLAN.md` and `tasks.md` aligned to the active spec before implementation starts.
+- Keep `PLAN.md`, `tasks.md`, and `workflow-receipts.md` aligned to the active spec before implementation starts.
 
 ## Verification
 
@@ -73,8 +73,10 @@ Use the scripts in package.json. Before completion, run available checks through
 ## Done When
 
 - Active specification and task artifacts are current for the feature being built.
+- `workflow-receipts.md` is current for any UI, data, mobile, or release-readiness work.
 - `PLAN.md` is current for architecture, data model, auth, routing, deployment, migration, or multi-module work.
 - `..\..\scripts\check-spec-artifacts.ps1 -ProjectPath .` passes before completion.
+- `..\..\scripts\validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` passes before completion.
 - Available checks pass through `..\..\scripts\verify-app.ps1 -ProjectPath .`.
 - Missing scripts are reported instead of invented.
 - UI changes include rendered desktop and mobile checks.
@@ -108,7 +110,7 @@ $specReplacements = @{
   "{{DATE}}" = (Get-Date -Format "yyyy-MM-dd")
 }
 
-foreach ($templateName in @("spec.template.md", "tasks.template.md", "checklist.template.md")) {
+foreach ($templateName in @("spec.template.md", "tasks.template.md", "workflow-receipts.template.md", "checklist.template.md")) {
   $sourcePath = Join-Path $specTemplateDir $templateName
   if (-not (Test-Path -LiteralPath $sourcePath)) {
     Write-Error "Spec workflow template not found: $sourcePath"
@@ -122,7 +124,7 @@ foreach ($templateName in @("spec.template.md", "tasks.template.md", "checklist.
       $text = $text.Replace($entry.Key, $entry.Value)
     }
     if ($targetName -eq "spec.md") {
-      $text = $text.Replace("Replace this line with the user-visible outcome this feature must deliver.", "Establish the initial app foundation, base shell, and delivery constraints for $Name.")
+      $text = $text.Replace("Replace this line with the user-visible outcome this feature must deliver.", "Establish the initial app foundation, base shell, workflow receipts, and delivery constraints for $Name.")
       $text = $text.Replace("Replace this line with the user problem or workflow gap this feature addresses.", "Provide a concrete starting specification for the first generated version of $Name so implementation can proceed from a numbered spec instead of an empty placeholder.")
       $text = $text.Replace("Replace with the operators or audiences for this feature.", "Developers and operators building the first production-ready workflows in $Name.")
       $text = $text.Replace("Replace with the main workflow this feature unlocks.", "Set up the first runnable app shell, base routes, and delivery guardrails so later features can build on a stable foundation.")
@@ -143,11 +145,20 @@ foreach ($templateName in @("spec.template.md", "tasks.template.md", "checklist.
     if ($targetName -eq "tasks.md") {
       $text = $text.Replace("Replace this section with dependency ordering, deferred items, or release notes specific to this feature.", "Use this initial task list to confirm the scaffold, review the active spec, and prepare the first product-specific feature spec.")
     }
+    if ($targetName -eq "workflow-receipts.md") {
+      $text = $text.Replace("- [ ] UI workflow required", "- [x] UI workflow required")
+      $text = $text.Replace("- [ ] Release-readiness workflow required", "- [x] Release-readiness workflow required")
+      $text = $text.Replace("- Trigger surface: none", "- Trigger surface: initial scaffold and app shell")
+      $text = $text.Replace("- Command path used: none", "- Command path used: scaffold generation")
+      $text = $text.Replace("- Files/surfaces reviewed: none", "- Files/surfaces reviewed: AGENTS.md, PLAN.md, specs/001-initial/")
+      $text = $text.Replace("- Verification performed: not-run", "- Verification performed: check-spec-artifacts and verify-app planned")
+      $text = $text.Replace("- Decision/closure: not-applicable", "- Decision/closure: deferred")
+    }
     Set-Content -LiteralPath $targetPath -Encoding UTF8 -Value $text
   }
 }
 
-$required = @("package.json", "AGENTS.md", "PLAN.md", "specs/001-initial/spec.md", "specs/001-initial/tasks.md", "specs/001-initial/checklist.md")
+$required = @("package.json", "AGENTS.md", "PLAN.md", "specs/001-initial/spec.md", "specs/001-initial/tasks.md", "specs/001-initial/workflow-receipts.md", "specs/001-initial/checklist.md")
 if ($Template -eq "react-vite-capacitor") {
   $required += @(".env.example", "index.html", "src/main.tsx")
 }
@@ -176,4 +187,4 @@ if ($InitializeGit) {
 }
 
 Write-Host "Created $Name from $Template at $target"
-Write-Host "Next: review $agentPath, $planPath, and specs/001-initial/, install dependencies inside the project, then run ../../scripts/check-spec-artifacts.ps1 -ProjectPath . followed by ../../scripts/verify-app.ps1 -ProjectPath ."
+Write-Host "Next: review $agentPath, $planPath, and specs/001-initial/, install dependencies inside the project, then run ../../scripts/check-spec-artifacts.ps1 -ProjectPath ., ../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence, and ../../scripts/verify-app.ps1 -ProjectPath ."

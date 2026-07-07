@@ -11,6 +11,7 @@ Root `AGENTS.md` is the only constitution for this workspace. Do not create a se
 - `projects/<app>/AGENTS.md`: durable app identity, stack constraints, verification rules, and active spec pointer
 - `projects/<app>/specs/NNN-<slug>/spec.md`: feature intent, requirements, acceptance criteria, data impact, and risk
 - `projects/<app>/specs/NNN-<slug>/tasks.md`: ordered implementation checklist for that feature
+- `projects/<app>/specs/NNN-<slug>/workflow-receipts.md`: workflow classification and closure evidence for UI, data, mobile, and release-readiness obligations
 - `projects/<app>/specs/NNN-<slug>/checklist.md`: gated review checklist for sensitive work
 - `projects/<app>/PLAN.md`: architecture, rollout, verification, and implementation constraints derived from the active spec
 
@@ -32,7 +33,9 @@ Lean-path work still requires:
 - a complete `spec.md`
 - a current `PLAN.md`
 - a tracked `tasks.md`
+- a current `workflow-receipts.md`
 - `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` before implementation handoff
+- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` before completion
 - `../../scripts/verify-app.ps1 -ProjectPath .` plus rendered UI checks before completion
 
 ## Gated Path
@@ -44,6 +47,7 @@ Use the gated path for work involving auth, payments, secrets, public APIs, data
 Gated-path work requires:
 
 - a populated `checklist.md`
+- a populated `workflow-receipts.md` with the relevant sections closed
 - explicit security, data, and rollback notes
 - explicit user approval before destructive or live-environment operations
 
@@ -54,6 +58,7 @@ Convergence is artifact-based in this workspace. Before claiming a feature is co
 - implemented scope still matches the active `spec.md`
 - `PLAN.md` reflects the real architecture and verification decisions
 - `tasks.md` accurately marks completed and deferred work
+- `workflow-receipts.md` accurately captures which local wrapper workflows were required and what verification evidence exists
 - handoff notes capture deviations, skipped checks, and follow-up items
 
 Use `templates/spec-workflow/converge.template.md` as the default handoff structure when a feature needs an explicit convergence note.

@@ -10,7 +10,8 @@ Use this reference when creating or updating app specs, plans, and task artifact
 4. Read `specs/NNN-<slug>/spec.md`.
 5. Read or update `PLAN.md`.
 6. Read or update `specs/NNN-<slug>/tasks.md`.
-7. For sensitive work, read or update `specs/NNN-<slug>/checklist.md`.
+7. Read or update `specs/NNN-<slug>/workflow-receipts.md`.
+8. For sensitive work, read or update `specs/NNN-<slug>/checklist.md`.
 
 ## Lean Path
 
@@ -27,5 +28,6 @@ Use the gated path for auth, payments, secrets, public APIs, data access, file u
 ## Required Checks
 
 - Before implementation handoff: `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`
+- Before completion: `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`
 - Before completion: `../../scripts/verify-app.ps1 -ProjectPath .`
 - For UI work: rendered desktop and mobile verification

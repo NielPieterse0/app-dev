@@ -22,5 +22,7 @@ Use this checklist for auth, payments, secrets, public APIs, data access, file u
 ## Implementation Readiness
 
 - [ ] `tasks.md` reflects the final work sequence.
+- [ ] `workflow-receipts.md` identifies the required workflow sections for this spec.
+- [ ] Relevant receipt sections include current verification and outstanding-gap notes.
 - [ ] Verification commands are current.
 - [ ] Any live migration or deployment step requires explicit user approval.

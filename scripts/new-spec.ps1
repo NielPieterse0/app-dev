@@ -80,7 +80,7 @@ $replacements = @{
   "{{DATE}}" = (Get-Date -Format "yyyy-MM-dd")
 }
 
-$files = @("spec.template.md", "tasks.template.md")
+$files = @("spec.template.md", "tasks.template.md", "workflow-receipts.template.md")
 if ($RiskLevel -eq "sensitive") {
   $files += "checklist.template.md"
 }
