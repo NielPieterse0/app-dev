@@ -142,7 +142,7 @@ git commit -m "docs: define react vite capacitor template completion baseline"
 - Consumes: `components.json` aliases and Radix-compatible shadcn guidance.
 - Produces: shadcn source components and `cn(...inputs: ClassValue[]): string`.
 
-- [ ] **Step 1: Inspect shadcn context**
+- [x] **Step 1: Inspect shadcn context**
 
 Run from `templates/react-vite-capacitor`:
 
@@ -152,7 +152,7 @@ npx shadcn@latest info --json
 
 Expected: project is detected, `aliases.utils` points to `@/lib/utils`, Tailwind CSS file is `src/styles.css`, and primitive base is confirmed. If the output indicates Base UI while the workspace still requires Radix, stop and use a scratch diff with `--base radix` before applying changes.
 
-- [ ] **Step 2: Preview generated files**
+- [x] **Step 2: Preview generated files**
 
 Run from `templates/react-vite-capacitor`:
 
@@ -162,7 +162,7 @@ npx shadcn@latest add button card table field input label select badge dropdown-
 
 Expected: dry run lists generated UI files and dependency changes without writing.
 
-- [ ] **Step 3: Generate components**
+- [x] **Step 3: Generate components**
 
 Run from `templates/react-vite-capacitor`:
 
@@ -172,11 +172,11 @@ npx shadcn@latest add button card table field input label select badge dropdown-
 
 Expected: `src/components/ui/` is populated and `src/lib/utils.ts` exists or is generated.
 
-- [ ] **Step 4: Review generated source**
+- [x] **Step 4: Review generated source**
 
 Read every generated `src/components/ui/*.tsx` file. Confirm imports use `@/lib/utils`, icons use `lucide-react`, components use semantic tokens, and no component imports a missing file.
 
-- [ ] **Step 5: Run focused checks**
+- [x] **Step 5: Run focused checks**
 
 ```powershell
 npm run typecheck
@@ -186,7 +186,7 @@ npm run test
 
 Expected: all exit 0 from `templates/react-vite-capacitor`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add templates/react-vite-capacitor
