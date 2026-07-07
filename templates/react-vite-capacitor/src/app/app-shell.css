@@ -38,7 +38,8 @@
   text-decoration: none;
 }
 
-.navigation-shell__item[aria-current="page"] {
+.navigation-shell__item[aria-current="page"],
+.navigation-shell__item--active {
   background: #2e7d6f;
 }
 

@@ -12,3 +12,5 @@ npm run typecheck
 npm run lint
 npm run test
 ```
+
+This template includes `App.tsx`, `app.json`, TypeScript, ESLint, Jest Expo, and a React Native Testing Library smoke test. Document platform permissions in `AGENTS.md` before adding device APIs such as camera, contacts, location, Bluetooth, background tasks, or secure storage.

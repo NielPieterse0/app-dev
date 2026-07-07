@@ -48,6 +48,13 @@ prefix_rule(
 )
 
 prefix_rule(
+    pattern = ["gh", "release", "create"],
+    decision = "forbidden",
+    justification = "GitHub release creation must be performed manually after release review.",
+    match = ["gh release create v1.0.0"],
+)
+
+prefix_rule(
     pattern = ["rm", "-rf"],
     decision = "forbidden",
     justification = "Recursive forced deletion is blocked. Use targeted file edits or a reviewed cleanup script.",
@@ -69,10 +76,52 @@ prefix_rule(
 )
 
 prefix_rule(
+    pattern = ["ri"],
+    decision = "prompt",
+    justification = "PowerShell deletion aliases require approval so recursive/forced removals are reviewed.",
+    match = ["ri projects/demo -Recurse -Force"],
+)
+
+prefix_rule(
+    pattern = ["del"],
+    decision = "prompt",
+    justification = "Delete aliases require approval so recursive/quiet removals are reviewed.",
+    match = ["del projects/demo -Recurse -Force"],
+)
+
+prefix_rule(
+    pattern = ["erase"],
+    decision = "prompt",
+    justification = "Delete aliases require approval so recursive/quiet removals are reviewed.",
+    match = ["erase projects/demo /s /q"],
+)
+
+prefix_rule(
+    pattern = ["node", "-e"],
+    decision = "prompt",
+    justification = "Inline Node scripts can perform broad filesystem mutations. Approval is required before evaluation.",
+    match = ["node -e \"require('fs').rmSync('dist', { recursive: true })\""],
+)
+
+prefix_rule(
+    pattern = ["python", "-c"],
+    decision = "prompt",
+    justification = "Inline Python scripts can perform broad filesystem mutations. Approval is required before evaluation.",
+    match = ["python -c \"import shutil; shutil.rmtree('dist')\""],
+)
+
+prefix_rule(
     pattern = ["npm", "publish"],
     decision = "forbidden",
     justification = "Package publishing must be performed manually by the user after release review.",
     match = ["npm publish", "npm publish --access public"],
+)
+
+prefix_rule(
+    pattern = ["npm", "version"],
+    decision = "prompt",
+    justification = "Version bumps can trigger release flows. Approval is required with the intended release target.",
+    match = ["npm version patch"],
 )
 
 prefix_rule(
@@ -139,10 +188,31 @@ prefix_rule(
 )
 
 prefix_rule(
+    pattern = ["docker", "system", "prune"],
+    decision = "prompt",
+    justification = "Docker system prune can remove broad local state. Approval is required with exact flags.",
+    match = ["docker system prune -a"],
+)
+
+prefix_rule(
     pattern = ["supabase", "db", "push"],
     decision = "prompt",
     justification = "Database pushes require explicit linked project and environment approval.",
     match = ["supabase db push", "supabase db push --linked"],
+)
+
+prefix_rule(
+    pattern = ["supabase", "db", "remote"],
+    decision = "prompt",
+    justification = "Supabase remote database mutations require explicit project/environment approval.",
+    match = ["supabase db remote commit"],
+)
+
+prefix_rule(
+    pattern = ["supabase", "db", "deploy"],
+    decision = "prompt",
+    justification = "Supabase database deploys require explicit project/environment approval.",
+    match = ["supabase db deploy"],
 )
 
 prefix_rule(

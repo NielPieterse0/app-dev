@@ -1,0 +1,59 @@
+name: app-dev validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  workspace-validation:
+    name: Workspace validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Show tool versions
+        shell: pwsh
+        run: |
+          $PSVersionTable.PSVersion
+          git --version
+          node --version
+          npm --version
+          python --version
+
+      - name: Check workspace structure
+        shell: pwsh
+        run: ./scripts/check-workspace.ps1
+
+      - name: Validate Codex assets
+        shell: pwsh
+        run: ./scripts/validate-codex-assets.ps1 -RequirePythonToml $true
+
+      - name: Test hook policy
+        shell: pwsh
+        run: ./scripts/test-hooks.ps1
+
+      - name: Scan for secrets
+        shell: pwsh
+        run: ./scripts/scan-secrets.ps1
+
+      - name: Test project generation
+        shell: pwsh
+        run: ./scripts/test-workspace.ps1

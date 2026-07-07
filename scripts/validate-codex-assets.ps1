@@ -1,12 +1,18 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
-  [bool]$RequirePythonToml = $false,
+  [object]$RequirePythonToml = $false,
   [bool]$JsonSummary = $false
 )
 
 $ErrorActionPreference = "Stop"
 $failures = New-Object System.Collections.Generic.List[string]
 $warnings = New-Object System.Collections.Generic.List[string]
+
+if ($RequirePythonToml -is [string]) {
+  $RequirePythonToml = $RequirePythonToml -match "^(?i:true|1)$"
+} else {
+  $RequirePythonToml = [bool]$RequirePythonToml
+}
 
 function Add-Failure {
   param([Parameter(Mandatory=$true)][string]$Message)
@@ -18,9 +24,14 @@ function Add-Warning {
   $warnings.Add($Message) | Out-Null
 }
 
+function Resolve-WorkspacePath {
+  param([Parameter(Mandatory=$true)][string]$RelativePath)
+  return Join-Path $Root $RelativePath
+}
+
 function Assert-PathExists {
   param([Parameter(Mandatory=$true)][string]$RelativePath)
-  $path = Join-Path $Root $RelativePath
+  $path = Resolve-WorkspacePath $RelativePath
   if (-not (Test-Path -LiteralPath $path)) {
     Add-Failure "Missing required path: $RelativePath"
   }
@@ -135,15 +146,32 @@ function Test-SkillFrontmatter {
   }
 
   $frontmatter = ($lines[1..($endIndex - 1)] -join "`n")
-  $nameMatch = [regex]::Match($frontmatter, "(?m)^name:\s*([A-Za-z0-9_-]+)\s*$")
+  $nameMatch = [regex]::Match($frontmatter, "(?m)^name:\s*([a-z0-9-]+)\s*$")
   $descriptionMatch = [regex]::Match($frontmatter, "(?m)^description:\s*(.+)\s*$")
 
   if (-not $nameMatch.Success) {
-    Add-Failure "SKILL.md frontmatter must contain a simple name field."
+    Add-Failure "SKILL.md frontmatter must contain a lowercase hyphenated name field."
   }
 
   if (-not $descriptionMatch.Success -or [string]::IsNullOrWhiteSpace($descriptionMatch.Groups[1].Value)) {
     Add-Failure "SKILL.md frontmatter must contain a non-empty description field."
+  } else {
+    $description = $descriptionMatch.Groups[1].Value.Trim()
+    if ($description.Length -gt 1024) {
+      Add-Failure "SKILL.md description is $($description.Length) characters, above the 1024 character skill specification limit."
+    }
+    if ($description -notmatch "(?i)Scaffold|React|Vite|Capacitor|Next|Expo") {
+      Add-Warning "SKILL.md description may not be front-loaded with app-dev trigger terms."
+    }
+    if ($description -notmatch "(?i)^app-dev\s+scaffold") {
+      Add-Failure "SKILL.md description must be front-loaded with app-dev scaffold trigger terms."
+    }
+  }
+
+  foreach ($required in @("metadata:", "owner: app-dev", "version:", "maturity:")) {
+    if ($frontmatter -notmatch [regex]::Escape($required)) {
+      Add-Failure "SKILL.md frontmatter is missing required metadata content: $required"
+    }
   }
 
   if ($nameMatch.Success) {
@@ -151,6 +179,9 @@ function Test-SkillFrontmatter {
     $skillName = $nameMatch.Groups[1].Value.Trim()
     if ($skillName -ne $folderName) {
       Add-Failure "SKILL.md name '$skillName' must match parent folder '$folderName'."
+    }
+    if ($skillName.StartsWith("-") -or $skillName.EndsWith("-") -or $skillName.Contains("--")) {
+      Add-Failure "SKILL.md name violates hyphen placement rules."
     }
   }
 }
@@ -212,7 +243,7 @@ function Test-HookReferences {
     }
   }
 
-  if (Test-Path -LiteralPath (Join-Path $Root ".codex/hooks.json")) {
+  if (Test-Path -LiteralPath (Resolve-WorkspacePath ".codex/hooks.json")) {
     Add-Failure "Do not use .codex/hooks.json while inline hooks are configured in .codex/config.toml. Use one hook representation per config layer."
   }
 }
@@ -243,7 +274,7 @@ function Test-RulesFile {
   }
 
   $rules = Get-Content -LiteralPath $RulesPath -Raw
-  foreach ($required in @('prefix_rule(', 'decision = "forbidden"', 'decision = "prompt"', 'git reset', 'npm', 'supabase', 'prisma')) {
+  foreach ($required in @('prefix_rule(', 'decision = "forbidden"', 'decision = "prompt"', 'git reset', 'npm', 'npm version', 'gh release', 'docker system prune', 'supabase', 'supabase", "db", "remote', 'supabase", "db", "deploy', 'prisma')) {
     if ($rules -notmatch [regex]::Escape($required)) {
       Add-Failure ".codex/rules/default.rules is missing expected rule coverage: $required"
     }
@@ -265,7 +296,7 @@ function Test-RulesFile {
 }
 
 function Test-NoDisposableVerificationFolders {
-  $projectsPath = Join-Path $Root "projects"
+  $projectsPath = Resolve-WorkspacePath "projects"
   if (-not (Test-Path -LiteralPath $projectsPath)) { return }
   $badFolders = Get-ChildItem -LiteralPath $projectsPath -Directory -Force | Where-Object { $_.Name -like "__verify-*" -or $_.Name -eq "__verify-template" }
   foreach ($folder in $badFolders) {
@@ -273,19 +304,274 @@ function Test-NoDisposableVerificationFolders {
   }
 }
 
-$Root = (Resolve-Path -LiteralPath $Root).Path
-$configPath = Join-Path $Root ".codex/config.toml"
-$skillPath = Join-Path $Root ".agents/skills/cross-platform-app-workflow/SKILL.md"
-$rulesPath = Join-Path $Root ".codex/rules/default.rules"
+function Test-CapabilityRouting {
+  param([Parameter(Mandatory=$true)][string]$CapabilityPath)
 
-Assert-PathExists "AGENTS.md"
-Assert-PathExists ".codex/config.toml"
-Assert-PathExists ".codex/rules/default.rules"
-Assert-PathExists ".codex/hooks/pre-command.ps1"
-Assert-PathExists ".codex/hooks/post-edit.ps1"
-Assert-PathExists ".codex/hooks/verify-before-finish.ps1"
-Assert-PathExists ".agents/skills/cross-platform-app-workflow/SKILL.md"
-Assert-PathExists "scripts/validate-codex-assets.ps1"
+  if (-not (Test-Path -LiteralPath $CapabilityPath)) {
+    Add-Failure "Missing capability routing standard: $CapabilityPath"
+    return
+  }
+
+  $content = Get-Content -LiteralPath $CapabilityPath -Raw
+  foreach ($required in @("Required Local Capability", "Optional External Capabilities", "cross-platform-app-workflow", "not repository dependencies")) {
+    if ($content -notmatch [regex]::Escape($required)) {
+      Add-Failure "standards/codex-capabilities.md is missing P1 capability-separation wording: $required"
+    }
+  }
+}
+
+function Test-PlanAssets {
+  param(
+    [Parameter(Mandatory=$true)][string]$PlansPath,
+    [Parameter(Mandatory=$true)][string]$PlanTemplatePath
+  )
+
+  if (-not (Test-Path -LiteralPath $PlansPath)) {
+    Add-Failure "Missing root PLANS.md."
+  } else {
+    $plans = Get-Content -LiteralPath $PlansPath -Raw
+    foreach ($required in @("Planning Standard", "projects/<app>/PLAN.md", "templates/PLAN.template.md", "Completion Rule")) {
+      if ($plans -notmatch [regex]::Escape($required)) {
+        Add-Failure "PLANS.md is missing required planning protocol content: $required"
+      }
+    }
+  }
+
+  if (-not (Test-Path -LiteralPath $PlanTemplatePath)) {
+    Add-Failure "Missing templates/PLAN.template.md."
+  } else {
+    $template = Get-Content -LiteralPath $PlanTemplatePath -Raw
+    foreach ($required in @("{{APP_NAME}}", "{{TEMPLATE}}", "{{DATE}}", "Verification", "Risks and Assumptions")) {
+      if ($template -notmatch [regex]::Escape($required)) {
+        Add-Failure "templates/PLAN.template.md is missing required content: $required"
+      }
+    }
+    if ($template -match "\bTBD\b") {
+      Add-Failure "templates/PLAN.template.md must not contain unresolved TBD placeholders."
+    }
+  }
+}
+
+function Test-PackageJson {
+  param([Parameter(Mandatory=$true)][string]$RelativePath)
+
+  $path = Resolve-WorkspacePath $RelativePath
+  if (-not (Test-Path -LiteralPath $path)) {
+    Add-Failure "Missing package.json: $RelativePath"
+    return
+  }
+
+  try {
+    $null = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -ErrorAction Stop
+  } catch {
+    Add-Failure "Invalid package.json JSON: $RelativePath. $($_.Exception.Message)"
+  }
+}
+
+function Test-ReactTemplatePackageJson {
+  $path = Resolve-WorkspacePath "templates/react-vite-capacitor/package.json"
+  if (-not (Test-Path -LiteralPath $path)) {
+    Add-Failure "Missing package.json: templates/react-vite-capacitor/package.json"
+    return
+  }
+
+  try {
+    $package = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json -ErrorAction Stop
+  } catch {
+    Add-Failure "Invalid package.json JSON: templates/react-vite-capacitor/package.json. $($_.Exception.Message)"
+    return
+  }
+
+  foreach ($scriptName in @("typecheck", "lint", "test", "build", "e2e")) {
+    if ($null -eq $package.scripts -or -not ($package.scripts.PSObject.Properties.Name -contains $scriptName)) {
+      Add-Failure "templates/react-vite-capacitor/package.json is missing required script: $scriptName"
+    }
+  }
+}
+
+function Test-TemplateAgents {
+  param([Parameter(Mandatory=$true)][string[]]$AgentPaths)
+
+  foreach ($relativePath in $AgentPaths) {
+    $path = Resolve-WorkspacePath $relativePath
+    if (-not (Test-Path -LiteralPath $path)) {
+      Add-Failure "Missing template AGENTS.md: $relativePath"
+      continue
+    }
+
+    $content = Get-Content -LiteralPath $path -Raw
+    foreach ($required in @("Product Decision Record", "Done When", "verify-app.ps1 -ProjectPath .", "Missing scripts are reported instead of invented")) {
+      if ($content -notmatch [regex]::Escape($required)) {
+        Add-Failure "$relativePath is missing generated app reliability wording: $required"
+      }
+    }
+  }
+}
+
+function Test-TemplateReadiness {
+  $requiredPaths = @(
+    "templates/common/.github/workflows/verify.yml",
+    "templates/react-vite-capacitor/.github/workflows/verify.yml",
+    "templates/react-vite-capacitor/capacitor.config.ts",
+    "templates/react-vite-capacitor/tailwind.config.ts",
+    "templates/react-vite-capacitor/postcss.config.js",
+    "templates/react-vite-capacitor/components.json",
+    "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
+    "templates/react-vite-capacitor/src/app/routes.tsx",
+    "templates/react-vite-capacitor/src/vite-env.d.ts",
+    "templates/react-vite-capacitor/src/lib/env.ts",
+    "templates/react-vite-capacitor/src/lib/supabase.ts",
+    "templates/react-vite-capacitor/src/lib/query-client.ts",
+    "templates/react-vite-capacitor/src/components/layout/SettingsLayout.tsx",
+    "templates/react-vite-capacitor/src/components/ui/form.tsx",
+    "templates/react-vite-capacitor/src/modules/settings/routes/SettingsRoute.tsx",
+    "templates/react-vite-capacitor/src/components/state/EmptyState.tsx",
+    "templates/react-vite-capacitor/src/components/state/LoadingState.tsx",
+    "templates/react-vite-capacitor/src/components/state/ErrorState.tsx",
+    "templates/react-vite-capacitor/src/components/state/StatePrimitives.test.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/components/DashboardModulesTable.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/components/DashboardSummary.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/components/DashboardActivityChart.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/hooks/useDashboardModules.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/routes/DashboardRoute.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/schemas/dashboard-module.schema.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/services/dashboard-service.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/state/dashboard-view-store.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/tests/DashboardRoute.test.tsx",
+    "templates/react-vite-capacitor/src/modules/dashboard/tests/dashboard-module.schema.test.ts",
+    "templates/react-vite-capacitor/src/modules/dashboard/tests/DashboardActivityChart.test.tsx",
+    "templates/next-web-app/app/layout.tsx",
+    "templates/next-web-app/app/page.tsx",
+    "templates/next-web-app/tsconfig.json",
+    "templates/next-web-app/eslint.config.js",
+    "templates/next-web-app/tests/smoke.test.ts",
+    "templates/expo-native-app/app.json",
+    "templates/expo-native-app/App.tsx",
+    "templates/expo-native-app/tsconfig.json",
+    "templates/expo-native-app/jest.config.js",
+    "templates/expo-native-app/tests/App.test.tsx"
+  )
+
+  foreach ($relativePath in $requiredPaths) {
+    Assert-PathExists $relativePath
+  }
+
+  $reactNav = Get-Content -LiteralPath (Resolve-WorkspacePath "templates/react-vite-capacitor/src/app/NavigationShell.tsx") -Raw
+  foreach ($required in @("NavLink", "/settings")) {
+    if ($reactNav -notmatch [regex]::Escape($required)) {
+      Add-Failure "React navigation template is missing route readiness content: $required"
+    }
+  }
+}
+
+function Test-CiWorkflow {
+  param([Parameter(Mandatory=$true)][string]$WorkflowPath)
+
+  if (-not (Test-Path -LiteralPath $WorkflowPath)) {
+    Add-Failure "Missing CI workflow: .github/workflows/app-dev-validation.yml"
+    return
+  }
+
+  $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
+  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1")) {
+    if ($workflow -notmatch [regex]::Escape($required)) {
+      Add-Failure ".github/workflows/app-dev-validation.yml is missing required CI content: $required"
+    }
+  }
+}
+
+function Test-AuditCloseoutLedger {
+  param([Parameter(Mandatory=$true)][string]$LedgerPath)
+
+  if (-not (Test-Path -LiteralPath $LedgerPath)) {
+    Add-Failure "Missing audit closeout ledger: $LedgerPath"
+    return
+  }
+
+  $ledger = Get-Content -LiteralPath $LedgerPath -Raw
+  foreach ($required in @("P0 Findings", "P1 Findings", "P2 Findings", "Other Findings", "accepted-decision", "open-fixed-by-this-plan", "MCP", "export-workspace.ps1", "scan-secrets.ps1")) {
+    if ($ledger -notmatch [regex]::Escape($required)) {
+      Add-Failure "Audit closeout ledger is missing required content: $required"
+    }
+  }
+}
+
+function Test-ScriptAssets {
+  foreach ($relativePath in @("scripts/scan-secrets.ps1", "scripts/export-workspace.ps1")) {
+    Assert-PathExists $relativePath
+  }
+
+  $verify = Get-Content -LiteralPath (Resolve-WorkspacePath "scripts/verify-app.ps1") -Raw
+  foreach ($required in @("bun.lockb", "missing-dependencies", "missing-script", "command-failure", "no-checks-ran")) {
+    if ($verify -notmatch [regex]::Escape($required)) {
+      Add-Failure "scripts/verify-app.ps1 is missing verification classification content: $required"
+    }
+  }
+
+  $export = Get-Content -LiteralPath (Resolve-WorkspacePath "scripts/export-workspace.ps1") -Raw
+  foreach ($required in @(".git", "projects/", "node_modules", "Compress-Archive")) {
+    if ($export -notmatch [regex]::Escape($required)) {
+      Add-Failure "scripts/export-workspace.ps1 is missing export exclusion content: $required"
+    }
+  }
+}
+
+function Test-OpenAiAgentMetadata {
+  param([Parameter(Mandatory=$true)][string]$MetadataPath)
+
+  if (-not (Test-Path -LiteralPath $MetadataPath)) {
+    Add-Failure "Missing OpenAI agent metadata: $MetadataPath"
+    return
+  }
+
+  $content = Get-Content -LiteralPath $MetadataPath -Raw
+  foreach ($required in @("display_name:", "short_description:", "default_prompt:", "external skills/plugins as optional")) {
+    if ($content -notmatch [regex]::Escape($required)) {
+      Add-Failure "OpenAI agent metadata is missing required P1 wording: $required"
+    }
+  }
+}
+
+$Root = (Resolve-Path -LiteralPath $Root).Path
+$configPath = Resolve-WorkspacePath ".codex/config.toml"
+$skillPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/SKILL.md"
+$rulesPath = Resolve-WorkspacePath ".codex/rules/default.rules"
+$capabilityPath = Resolve-WorkspacePath "standards/codex-capabilities.md"
+$plansPath = Resolve-WorkspacePath "PLANS.md"
+$planTemplatePath = Resolve-WorkspacePath "templates/PLAN.template.md"
+$workflowPath = Resolve-WorkspacePath ".github/workflows/app-dev-validation.yml"
+$openAiAgentMetadataPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/agents/openai.yaml"
+$auditLedgerPath = Resolve-WorkspacePath "docs/audit/app-dev-audit-closeout.md"
+
+foreach ($path in @(
+  "AGENTS.md",
+  "PLANS.md",
+  "docs/audit/app-dev-audit-closeout.md",
+  ".github/workflows/app-dev-validation.yml",
+  ".codex/config.toml",
+  ".codex/rules/default.rules",
+  ".codex/hooks/pre-command.ps1",
+  ".codex/hooks/post-edit.ps1",
+  ".codex/hooks/verify-before-finish.ps1",
+  ".agents/README.md",
+  ".agents/skills/README.md",
+  ".agents/skills/cross-platform-app-workflow/SKILL.md",
+  ".agents/skills/cross-platform-app-workflow/agents/openai.yaml",
+  ".agents/skills/cross-platform-app-workflow/references/stack.md",
+  ".agents/skills/cross-platform-app-workflow/references/module-contract.md",
+  ".agents/skills/cross-platform-app-workflow/references/adaptive-layouts.md",
+  ".agents/skills/cross-platform-app-workflow/references/qa-gates.md",
+  "standards/codex-capabilities.md",
+  "templates/PLAN.template.md",
+  "templates/common/.github/workflows/verify.yml",
+  "templates/react-vite-capacitor/.github/workflows/verify.yml",
+  "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
+  "scripts/validate-codex-assets.ps1",
+  "scripts/scan-secrets.ps1",
+  "scripts/export-workspace.ps1"
+)) {
+  Assert-PathExists $path
+}
 
 if (Test-Path -LiteralPath $configPath) {
   Test-ConfigTextChecks -ConfigPath $configPath
@@ -301,6 +587,26 @@ Test-SkillFrontmatter -SkillPath $skillPath
 Test-MarkdownReferences -MarkdownPath $skillPath
 Test-AgentsSize -AgentsPath (Join-Path $Root "AGENTS.md")
 Test-NoDisposableVerificationFolders
+Test-CapabilityRouting -CapabilityPath $capabilityPath
+Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath
+Test-TemplateAgents -AgentPaths @(
+  "templates/react-vite-capacitor/AGENTS.md",
+  "templates/next-web-app/AGENTS.md",
+  "templates/expo-native-app/AGENTS.md"
+)
+Test-TemplateReadiness
+foreach ($packagePath in @(
+  "templates/react-vite-capacitor/package.json",
+  "templates/next-web-app/package.json",
+  "templates/expo-native-app/package.json"
+)) {
+  Test-PackageJson -RelativePath $packagePath
+}
+Test-ReactTemplatePackageJson
+Test-CiWorkflow -WorkflowPath $workflowPath
+Test-OpenAiAgentMetadata -MetadataPath $openAiAgentMetadataPath
+Test-AuditCloseoutLedger -LedgerPath $auditLedgerPath
+Test-ScriptAssets
 
 $summary = [ordered]@{
   root = $Root

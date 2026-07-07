@@ -37,25 +37,27 @@ Promote to a pnpm/Turborepo monorepo only after at least two apps share real cod
 
 - Put durable workspace rules in this file.
 - Put app-specific rules in `projects/<app>/AGENTS.md`.
+- Put task planning protocol in `PLANS.md` and per-app plans in `projects/<app>/PLAN.md`.
 - Put repeatable task workflows in `.agents/skills/`.
-- Put project settings and hook examples in `.codex/`.
+- Put project settings, rules, and hooks in `.codex/`.
 - Put human-readable standards in `standards/`.
-- Put starter app files in `templates/`.
+- Put starter app files and reusable plan templates in `templates/`.
 - Put Codex skill and plugin routing guidance in `standards/codex-capabilities.md`.
-- Do not put secrets, API keys, tokens, or Supabase service role keys in this workspace.
+- Do not put secrets, API keys, tokens, private keys, `.env` files, or Supabase service role keys in this workspace.
 
 ## Development Workflow
 
-1. Start every app with a short product decision record: users, core jobs, modules, data model, permissions, target platforms, and native requirements.
-2. Choose the simplest app type that satisfies requirements:
+1. Start every material app task with a short product decision record: users, core jobs, modules, data model, permissions, target platforms, and native requirements.
+2. Create or update `projects/<app>/PLAN.md` for architectural, data model, auth, routing, deployment, migration, or multi-module work. Use `templates/PLAN.template.md` when creating a new app plan.
+3. Choose the simplest app type that satisfies requirements:
    - React + Vite + Capacitor for most cross-platform business apps.
    - Next.js for SSR/SEO/server-rendered public apps.
    - Expo for native-first mobile apps.
-3. Build vertical modules, not page dumps. Each module owns schema, API/data hooks, UI components, routes, tests, and empty/loading/error states.
-4. Reuse existing components and templates before creating new abstractions.
-5. Install dependencies where they are used. Keep root dependencies minimal.
-6. Keep adaptive layout explicit: desktop, tablet, and mobile view states must be designed and checked.
-7. Before completion, run the app's verification commands and check rendered UI at desktop and mobile sizes.
+4. Build vertical modules, not page dumps. Each module owns schema, API/data hooks, UI components, routes, tests, and empty/loading/error states.
+5. Reuse existing components and templates before creating new abstractions.
+6. Install dependencies where they are used. Keep root dependencies minimal.
+7. Keep adaptive layout explicit: desktop, tablet, and mobile view states must be designed and checked.
+8. Before completion, run the app's verification commands and check rendered UI at desktop and mobile sizes.
 
 ## Module Contract
 
@@ -75,6 +77,13 @@ src/modules/<module>/
 
 Avoid cross-module deep relative imports. Use public `index.ts` exports or shared `src/lib` utilities.
 
+## Planning Rules
+
+- Keep plans short, decision-oriented, and current.
+- A plan is required before multi-module or architecture-sensitive work.
+- Do not let stale plans override current user instructions or app `AGENTS.md`.
+- In the final handoff, report deviations from the plan and skipped verification.
+
 ## Quality Gates
 
 Before claiming work is complete, run the strongest available checks:
@@ -88,6 +97,8 @@ npm run e2e
 ```
 
 Use the package manager already present in the project. If a command is missing, report that instead of inventing it.
+
+`npm run e2e` is mandatory when the project defines it or when UI/browser behavior changed enough to require rendered flow coverage. If an app template or project does not define `e2e`, report the missing script and run the strongest available checks instead.
 
 For UI work, rendered verification is required: first meaningful screen, core interaction, desktop viewport, and mobile viewport.
 
@@ -104,19 +115,20 @@ For UI work, rendered verification is required: first meaningful screen, core in
 ## Dependency Rules
 
 - Prefer the standard stack in `standards/stack.md`.
-- Prefer the capability routing in `standards/codex-capabilities.md` when a task needs a specialist Codex skill or plugin.
+- Prefer the capability routing in `standards/codex-capabilities.md` when a task may benefit from an optional specialist Codex skill or plugin.
+- Do not assume optional global skills/plugins are installed. Continue with local standards if they are unavailable and report the gap.
 - Do not add libraries for solved problems already covered by the stack.
 - Do not add a new state manager, router, form library, table library, or UI kit without documenting the reason in the project `AGENTS.md`.
 - Avoid global root installs for app dependencies. App dependencies belong in the app package.
 
 ## Codex Governance Checks
 
-When changing `.codex/`, `.agents/skills/`, root `AGENTS.md`, or workspace scripts, run:
+When changing `.codex/`, `.agents/skills/`, root `AGENTS.md`, planning templates, CI, or workspace scripts, run:
 
 ```text
-.\scripts\check-workspace.ps1
-.\scripts\validate-codex-assets.ps1
-.\scripts\test-hooks.ps1
+scripts/check-workspace.ps1
+scripts/validate-codex-assets.ps1
+scripts/test-hooks.ps1
 ```
 
 Project-local Codex hooks and rules are active only after the repository `.codex/` layer is trusted in Codex. Do not add `.codex/hooks.json` while inline hooks remain configured in `.codex/config.toml`.

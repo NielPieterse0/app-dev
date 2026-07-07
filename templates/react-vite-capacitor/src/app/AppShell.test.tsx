@@ -8,18 +8,17 @@ test("renders navigation and child route content", () => {
       {
         path: "/",
         element: <AppShell />,
-        children: [{ index: true, element: <p>Starter content</p> }],
+        children: [
+          { index: true, element: <p>Starter content</p> },
+          { path: "settings", element: <p>Settings content</p> },
+        ],
       },
-    ],
-    {
-      future: {
-        v7_relativeSplatPath: true,
-      },
-    },
+    ]
   );
 
-  render(<RouterProvider router={router} future={{ v7_startTransition: true }} />);
+  render(<RouterProvider router={router} />);
 
   expect(screen.getByRole("navigation", { name: "Primary" })).toBeInTheDocument();
   expect(screen.getByText("Starter content")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /settings/i })).toHaveAttribute("href", "/settings");
 });

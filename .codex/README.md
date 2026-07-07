@@ -33,6 +33,10 @@ Default behavior:
 
 For deliberate governance edits under `.codex/`, temporarily use a profile that permits those edits, then restore this profile.
 
+## MCP Policy
+
+No project-level MCP server is configured by default. Keep personal documentation, browser, GitHub, Supabase, Figma, or hosting MCP servers in user-level Codex configuration unless a generated app needs repo-specific tooling that can be documented without secrets. If a project-level MCP server is added later, use environment variable forwarding for secrets and document the safety boundary in this file.
+
 ## Validation
 
 Run this after changes to Codex configuration, hooks, skills, or workspace structure:
