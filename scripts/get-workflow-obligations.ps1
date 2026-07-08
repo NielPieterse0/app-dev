@@ -6,6 +6,34 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Get-GitChangedFiles {
+  param(
+    [Parameter(Mandatory=$true)][string]$BasePath
+  )
+
+  $commands = @(
+    "git diff --name-only --cached 2>nul",
+    "git diff --name-only 2>nul"
+  )
+
+  $results = New-Object System.Collections.Generic.List[string]
+
+  foreach ($command in $commands) {
+    $output = & cmd.exe /d /c $command
+    if ($LASTEXITCODE -ne 0) {
+      throw "git diff failed while collecting workflow obligations from $BasePath."
+    }
+
+    foreach ($line in @($output)) {
+      if (-not [string]::IsNullOrWhiteSpace($line)) {
+        $results.Add($line) | Out-Null
+      }
+    }
+  }
+
+  return @($results | Select-Object -Unique)
+}
+
 function Normalize-RelativePath {
   param(
     [Parameter(Mandatory=$true)][string]$BasePath,
@@ -50,10 +78,7 @@ $ProjectPath = (Resolve-Path -LiteralPath $ProjectPath).Path
 if (-not $ChangedFiles -or $ChangedFiles.Count -eq 0) {
   Push-Location $ProjectPath
   try {
-    $ChangedFiles = @(
-      & git diff --name-only --cached 2>$null
-      & git diff --name-only 2>$null
-    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
+    $ChangedFiles = Get-GitChangedFiles -BasePath $ProjectPath
   } finally {
     Pop-Location
   }

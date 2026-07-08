@@ -17,12 +17,12 @@ Use this skill for modular app planning, scaffolding, implementation review, and
 2. Read the app `AGENTS.md` when working inside `projects/<app>`.
 3. Read the app `PLAN.md` when present. Create one from `templates/PLAN.template.md` for architectural or multi-module work.
 4. Load only the reference file needed for the task:
-   - `references/stack.md` for app-type or library decisions.
+   - `../../../standards/stack.md` for app-type or library decisions.
    - `references/module-contract.md` for module structure.
-   - `references/adaptive-layouts.md` for responsive UI work.
-   - `references/qa-gates.md` for verification and handoff.
-   - `references/spec-driven-workflow.md` for numbered specs, tasks, and gated-path rules.
-   - `../../standards/command-workflow-contract.md` for local command and receipt obligations when relevant.
+   - `../../../standards/adaptive-layouts.md` for responsive UI work.
+   - `../../../standards/testing.md` for verification and rendered QA.
+   - `../../../standards/spec-driven-workflow.md` for numbered specs, tasks, and gated-path rules.
+   - `../../../standards/command-workflow-contract.md` for local command and receipt obligations when relevant.
 5. Reuse `templates/` before inventing structure.
 
 ## Workflow

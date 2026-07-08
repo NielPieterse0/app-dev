@@ -1,25 +1,10 @@
-# QA Gates
+# QA Gates Reference
 
-Run available package scripts:
+This file intentionally delegates to the canonical workspace standards to prevent drift.
 
-- typecheck
-- lint
-- test
-- build
-- e2e
+Canonical sources:
 
-Run workflow receipt validation before claiming completion:
+- `../../../../standards/testing.md`
+- `../../../../standards/command-workflow-contract.md`
 
-- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`
-
-For UI work, also verify rendered behavior:
-
-- meaningful first screen
-- no framework overlay
-- no relevant console errors
-- one core interaction
-- desktop viewport
-- mobile viewport
-- no clipping, overlap, or horizontal overflow
-
-Use Browser plugin first when available, otherwise Playwright.
+Read those standards files directly instead of maintaining duplicated verification guidance here.

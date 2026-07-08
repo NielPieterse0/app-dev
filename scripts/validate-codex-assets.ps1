@@ -465,6 +465,69 @@ function Test-WorkflowWrapperAssets {
   }
 }
 
+function Test-SkillReferenceDelegation {
+  $skill = Get-Content -LiteralPath (Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/SKILL.md") -Raw
+  foreach ($required in @(
+    "../../../standards/stack.md",
+    "../../../standards/adaptive-layouts.md",
+    "../../../standards/testing.md",
+    "../../../standards/spec-driven-workflow.md",
+    "../../../standards/command-workflow-contract.md"
+  )) {
+    if ($skill -notmatch [regex]::Escape($required)) {
+      Add-Failure "cross-platform-app-workflow must reference canonical standards docs directly: $required"
+    }
+  }
+
+  $delegations = @(
+    @{
+      RelativePath = ".agents/skills/cross-platform-app-workflow/references/stack.md"
+      RequiredText = @(
+        "This file intentionally delegates to the canonical workspace standard to prevent drift.",
+        'Canonical source: `../../../../standards/stack.md`'
+      )
+    },
+    @{
+      RelativePath = ".agents/skills/cross-platform-app-workflow/references/adaptive-layouts.md"
+      RequiredText = @(
+        "This file intentionally delegates to the canonical workspace standard to prevent drift.",
+        'Canonical source: `../../../../standards/adaptive-layouts.md`'
+      )
+    },
+    @{
+      RelativePath = ".agents/skills/cross-platform-app-workflow/references/qa-gates.md"
+      RequiredText = @(
+        "This file intentionally delegates to the canonical workspace standards to prevent drift.",
+        '`../../../../standards/testing.md`',
+        '`../../../../standards/command-workflow-contract.md`'
+      )
+    },
+    @{
+      RelativePath = ".agents/skills/cross-platform-app-workflow/references/spec-driven-workflow.md"
+      RequiredText = @(
+        "This file intentionally delegates to the canonical workspace standards to prevent drift.",
+        '`../../../../standards/spec-driven-workflow.md`',
+        '`../../../../standards/command-workflow-contract.md`'
+      )
+    }
+  )
+
+  foreach ($delegation in $delegations) {
+    $path = Resolve-WorkspacePath $delegation.RelativePath
+    if (-not (Test-Path -LiteralPath $path)) {
+      Add-Failure "Missing delegated skill reference: $($delegation.RelativePath)"
+      continue
+    }
+
+    $content = Get-Content -LiteralPath $path -Raw
+    foreach ($required in $delegation.RequiredText) {
+      if ($content -notmatch [regex]::Escape($required)) {
+        Add-Failure "$($delegation.RelativePath) is missing required delegation text: $required"
+      }
+    }
+  }
+}
+
 function Test-TemplateReadiness {
   $requiredPaths = @(
     "templates/common/.github/workflows/verify.yml",
@@ -671,6 +734,7 @@ Test-CapabilityRouting -CapabilityPath $capabilityPath
 Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath
 Test-SpecWorkflowAssets
 Test-WorkflowWrapperAssets
+Test-SkillReferenceDelegation
 Test-TemplateAgents -AgentPaths @(
   "templates/react-vite-capacitor/AGENTS.md",
   "templates/next-web-app/AGENTS.md",

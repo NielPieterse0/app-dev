@@ -1,15 +1,7 @@
-# Adaptive Layouts
+# Adaptive Layout Reference
 
-Required app primitives:
+This file intentionally delegates to the canonical workspace standard to prevent drift.
 
-- `AppShell`
-- `NavigationShell`
-- `PageHeader`
-- `ListDetailLayout`
-- `FormLayout`
-- `DataTableLayout`
-- `SettingsLayout`
+Canonical source: `../../../../standards/adaptive-layouts.md`
 
-Check desktop, laptop, tablet, and mobile widths. Use container queries for reusable modules and viewport breakpoints for app shell changes.
-
-Tables must have a mobile strategy. Sidebars must collapse. Primary actions must remain reachable.
+Read the standards file directly instead of maintaining duplicated adaptive-layout guidance here.
