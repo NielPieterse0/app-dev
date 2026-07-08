@@ -1,1 +1,6 @@
-export { SettingsRoute } from "./routes/SettingsRoute";
+export {
+  ProtectedSettingsExampleRoute,
+  SettingsGeneralRoute,
+  SettingsNotificationsRoute,
+  SettingsRoute,
+} from "./routes/SettingsRoute";

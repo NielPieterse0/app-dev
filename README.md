@@ -43,6 +43,8 @@ Do not install app dependencies at the `app-dev` root. Install dependencies insi
 
 React + Vite + React Router, TypeScript, Tailwind, shadcn/ui, Radix, Zod, React Hook Form, TanStack Query, TanStack Table, Supabase, Capacitor, Vitest, Testing Library, and Playwright.
 
+For the modular React/Vite/Capacitor template, cross-module imports are part of the contract: import other modules through `@/modules/<module>` and keep internal module files private behind `index.ts`.
+
 Repo-specific Codex skills live in `.agents/skills/` so Codex can discover them as project skills. Repo-owned workflow entry commands live in `.agents/commands/`. Optional external/global skills and plugins are documented in `standards/codex-capabilities.md`; they are not required local dependencies.
 
 ## Planning

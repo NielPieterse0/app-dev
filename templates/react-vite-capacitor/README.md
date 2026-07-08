@@ -7,6 +7,7 @@ Use this template for default cross-platform business apps. It is a minimal runn
 - Tailwind config and Tailwind CSS entry wiring.
 - shadcn/ui config with React-friendly path aliases.
 - `@/*` import alias in Vite and TypeScript.
+- Enforced module boundaries for cross-module imports via `@/modules/<module>` public barrels.
 - Capacitor config for web-first native packaging.
 - State primitives for empty, loading, and error surfaces.
 - Verification scripts for `typecheck`, `lint`, `test`, `build`, and `e2e`.
@@ -46,6 +47,12 @@ Reference surfaces included in the template:
 - `FormLayoutExample` shows the supported React Hook Form + Zod + shadcn `Form` pattern.
 - `DataTableLayout` shows the supported TanStack Table + shadcn `Table` pattern.
 - `SettingsLayout` is wired into nested settings routes for general, notifications, and a protected example section.
+
+## Module boundaries
+
+- Treat `src/modules/<module>/index.ts` as the only public cross-module API surface.
+- Import another module through `@/modules/<module>`.
+- Do not import another module's `routes/`, `hooks/`, `services/`, `schemas/`, `state/`, or `components/` files directly; the template ESLint config rejects those deep imports.
 
 ## Reference template complete when
 

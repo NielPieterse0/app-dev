@@ -532,6 +532,8 @@ function Test-TemplateReadiness {
   $requiredPaths = @(
     "templates/common/.github/workflows/verify.yml",
     "templates/react-vite-capacitor/.github/workflows/verify.yml",
+    "templates/react-vite-capacitor/eslint/index.js",
+    "templates/react-vite-capacitor/eslint/rules/enforce-module-boundaries.js",
     "templates/react-vite-capacitor/capacitor.config.ts",
     "templates/react-vite-capacitor/tailwind.config.ts",
     "templates/react-vite-capacitor/postcss.config.js",
@@ -574,6 +576,13 @@ function Test-TemplateReadiness {
 
   foreach ($relativePath in $requiredPaths) {
     Assert-PathExists $relativePath
+  }
+
+  $reactEslintConfig = Get-Content -LiteralPath (Resolve-WorkspacePath "templates/react-vite-capacitor/eslint.config.js") -Raw
+  foreach ($required in @("app-dev/enforce-module-boundaries", 'import appDevEslint from "./eslint/index.js"')) {
+    if ($reactEslintConfig -notmatch [regex]::Escape($required)) {
+      Add-Failure "React template ESLint config is missing required boundary enforcement wiring: $required"
+    }
   }
 
   $reactNav = Get-Content -LiteralPath (Resolve-WorkspacePath "templates/react-vite-capacitor/src/app/NavigationShell.tsx") -Raw

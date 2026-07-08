@@ -69,3 +69,9 @@ This branch intentionally bundles the React/Vite/Capacitor template finalization
 - Disposable generated-app verification passed through `scripts/test-workspace.ps1`, including `npm install` and `..\..\scripts\verify-app.ps1 -ProjectPath .` inside `projects/__verify-react-vite-capacitor`.
 - Native platform policy: `android/` and `ios/` stay per generated app only. The shared template now excludes those folders from `create-app.ps1` copies and provides `templates/react-vite-capacitor/scripts/add-native-platforms.ps1` for opt-in setup.
 - Task 2 closeout note: the independent re-review subagent was unavailable because of a usage-limit failure, so closeout was performed with fresh local verification of the shadcn source, theme-token fix, build/test checks, and 1440/1280/768/390 rendered browser evidence.
+
+## Review Rebaseline 2026-07-08
+
+- PR merge finding: closed. PR #1 merged to `main` on 2026-07-07, so this branch is being reviewed for follow-on merge rather than treated as unmerged shadow work from the original audit.
+- `standards/workspace.md` structure finding: closed. The current workspace standard documents `docs/`, `PLANS.md`, and `templates/PLAN.template.md` in the root control-workspace shape.
+- ESLint module-boundary finding: open-fixed-by-this-plan. The React/Vite/Capacitor template now enforces `@/modules/<module>` as the public cross-module API surface and rejects deep imports into another module's internals.

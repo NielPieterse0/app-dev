@@ -1,13 +1,13 @@
 import { createBrowserRouter } from "react-router-dom";
-import { AppShell } from "./AppShell";
-import { requireAuthSession } from "../modules/auth";
-import { DashboardRoute } from "../modules/dashboard/routes/DashboardRoute";
+import { DashboardRoute } from "@/modules/dashboard";
 import {
   ProtectedSettingsExampleRoute,
   SettingsGeneralRoute,
   SettingsNotificationsRoute,
   SettingsRoute,
-} from "../modules/settings/routes/SettingsRoute";
+} from "@/modules/settings";
+import { requireAuthSession } from "@/modules/auth";
+import { AppShell } from "./AppShell";
 
 export const router = createBrowserRouter([
   {

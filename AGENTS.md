@@ -80,7 +80,7 @@ src/modules/<module>/
   index.ts
 ```
 
-Avoid cross-module deep relative imports. Use public `index.ts` exports or shared `src/lib` utilities.
+Cross-module imports must use the target module's public `index.ts` surface, exposed as `@/modules/<module>` in the React template. Deep imports into another module's internals are lint errors; use shared `src/lib` utilities only for genuinely shared code.
 
 ## Planning Rules
 

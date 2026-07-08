@@ -23,5 +23,6 @@
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src", "tests"],
+  "exclude": ["tests/fixtures/eslint-module-boundaries"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

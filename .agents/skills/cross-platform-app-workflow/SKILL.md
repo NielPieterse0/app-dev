@@ -37,6 +37,7 @@ Use this skill for modular app planning, scaffolding, implementation review, and
 5. Generate or update `tasks.md` and `workflow-receipts.md` before implementation. Add `checklist.md` for auth, payments, secrets, public APIs, data access, file uploads, RLS, AI tool actions, deployment, or live migrations.
 6. Build the base shell before feature modules: providers, routing, navigation, theme tokens, empty/loading/error states.
 7. Implement vertical modules with schemas, services/hooks, UI, routes, tests, and exports.
+   - Keep cross-module imports on the public module surface only. For the React/Vite/Capacitor template, import other modules via `@/modules/<module>` instead of reaching into `routes/`, `hooks/`, or other internals.
 8. Prefer standard libraries and local templates over custom framework code.
 9. Classify the work into any required local wrapper workflows before implementation:
    - `ui-change-workflow`

@@ -1,8 +1,8 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { useAuthSession } from "@/modules/auth";
 import { PageHeader } from "../../../app/PageHeader";
 import { FormLayoutExample } from "../../../components/layout/FormLayout";
 import { SettingsLayout } from "../../../components/layout/SettingsLayout";
-import { useAuthSession } from "../../auth";
 
 const settingsItems = [
   { label: "General", href: "/settings" },

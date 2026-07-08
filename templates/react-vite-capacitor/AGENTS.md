@@ -28,6 +28,7 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Update `PLAN.md` for architecture-sensitive or multi-module work.
 - Update `specs/001-initial/tasks.md` before material implementation.
 - Review the starter `AppShell`, `NavigationShell`, and base route structure.
+- Keep module boundaries explicit: import other modules only through `@/modules/<module>`, and treat deep imports into another module's internals as lint failures.
 - Initialize Tailwind and shadcn/ui when the first real UI surface needs component styling; use optional shadcn capability only if available.
 - Add `.env.example` for required public environment variables.
 - Use publishable Supabase browser keys only; never add service-role or secret keys to Vite env.
@@ -55,6 +56,7 @@ After installing dependencies inside this project, run available scripts through
 - `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` passes before completion.
 - `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` passes before completion.
 - Available checks pass through `../../scripts/verify-app.ps1 -ProjectPath .`.
+- The React template lint config still enforces `@/modules/<module>` as the only public cross-module import surface.
 - Missing scripts are reported instead of invented.
 - UI changes include rendered desktop and mobile checks.
 - Handoff notes record deviations, skipped checks, and unresolved decisions.
