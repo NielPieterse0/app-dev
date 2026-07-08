@@ -17,7 +17,8 @@ src/modules/<module>/
 Rules:
 
 - Export public module APIs from `index.ts`.
-- Avoid cross-module deep relative imports.
+- Import other modules only through their public `index.ts` surface.
+- In the React/Vite/Capacitor template, use `@/modules/<module>` for cross-module imports. Deep imports into another module's internals are lint errors.
 - Keep data schemas close to module behavior.
 - Keep reusable generic helpers in `src/lib`.
 - Add tests proportional to module risk and shared surface area.

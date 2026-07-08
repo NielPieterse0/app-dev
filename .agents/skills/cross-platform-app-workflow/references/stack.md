@@ -1,11 +1,7 @@
-# Stack Selection
+# Stack Reference
 
-Default: React + Vite + React Router + Capacitor.
+This file intentionally delegates to the canonical workspace standard to prevent drift.
 
-Use Next.js when SSR, SEO, server routes, or public content requirements are real.
+Canonical source: `../../../../standards/stack.md`
 
-Use Expo when native mobile UX and native APIs are central enough that web-first development would fight the product.
-
-Use Tauri when desktop packaging and OS integration are required.
-
-Prefer Supabase as default backend. Use Firebase only when offline-first realtime mobile behavior is the main constraint.
+Read the standards file directly instead of maintaining duplicated stack guidance here.

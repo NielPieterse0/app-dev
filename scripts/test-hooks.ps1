@@ -2,9 +2,17 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $hook = Join-Path $root ".codex\hooks\pre-command.ps1"
+$postEditHook = Join-Path $root ".codex\hooks\post-edit.ps1"
+$finishHook = Join-Path $root ".codex\hooks\verify-before-finish.ps1"
 
 if (-not (Test-Path $hook)) {
   Write-Error "pre-command hook not found: $hook"
+}
+
+foreach ($requiredHook in @($postEditHook, $finishHook)) {
+  if (-not (Test-Path $requiredHook)) {
+    Write-Error "Expected hook not found: $requiredHook"
+  }
 }
 
 $blocked = @(
@@ -97,6 +105,13 @@ if ($LASTEXITCODE -ne 0 -or -not [string]::IsNullOrWhiteSpace($jsonAllowed)) {
   $failures += "Expected allowed hook JSON command to produce no output and exit 0."
 } else {
   Write-Host "Allowed hook JSON command passed silently as expected."
+}
+
+$postEditOutput = & $postEditHook -ProjectPath $root
+if ($LASTEXITCODE -ne 0) {
+  $failures += "post-edit hook should exit 0 when invoked directly."
+} else {
+  Write-Host "post-edit hook executed successfully."
 }
 
 if ($failures.Count -gt 0) {

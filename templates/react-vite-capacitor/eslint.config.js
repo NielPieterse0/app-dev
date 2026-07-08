@@ -3,6 +3,7 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
+import appDevEslint from "./eslint/index.js";
 
 export default tseslint.config(
   {
@@ -12,6 +13,7 @@ export default tseslint.config(
       "coverage",
       "playwright-report",
       "test-results",
+      "tests/fixtures/eslint-module-boundaries",
       "android/app/src/main/assets/public",
       "ios/App/App/public",
     ],
@@ -25,10 +27,12 @@ export default tseslint.config(
       globals: globals.browser,
     },
     plugins: {
+      "app-dev": appDevEslint,
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
     },
     rules: {
+      "app-dev/enforce-module-boundaries": "error",
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": [
         "warn",

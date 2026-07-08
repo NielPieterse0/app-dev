@@ -1,3 +1,3 @@
 display_name: Cross-Platform App Workflow
 short_description: Scaffold, build, review, and verify React/Vite/Capacitor, Next.js, and Expo apps in the app-dev workspace.
-default_prompt: Use the local cross-platform app workflow. Read AGENTS.md, project AGENTS.md, and PLAN.md where present; treat external skills/plugins as optional.
+default_prompt: Use the local cross-platform app workflow. Read AGENTS.md, project AGENTS.md, the active numbered spec, and PLAN.md where present; treat external skills/plugins as optional and run local spec artifact checks before implementation handoff.

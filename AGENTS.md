@@ -37,8 +37,10 @@ Promote to a pnpm/Turborepo monorepo only after at least two apps share real cod
 
 - Put durable workspace rules in this file.
 - Put app-specific rules in `projects/<app>/AGENTS.md`.
+- Put feature specifications in `projects/<app>/specs/NNN-<slug>/`.
 - Put task planning protocol in `PLANS.md` and per-app plans in `projects/<app>/PLAN.md`.
 - Put repeatable task workflows in `.agents/skills/`.
+- Put repo-owned workflow entry commands in `.agents/commands/`.
 - Put project settings, rules, and hooks in `.codex/`.
 - Put human-readable standards in `standards/`.
 - Put starter app files and reusable plan templates in `templates/`.
@@ -47,17 +49,20 @@ Promote to a pnpm/Turborepo monorepo only after at least two apps share real cod
 
 ## Development Workflow
 
-1. Start every material app task with a short product decision record: users, core jobs, modules, data model, permissions, target platforms, and native requirements.
-2. Create or update `projects/<app>/PLAN.md` for architectural, data model, auth, routing, deployment, migration, or multi-module work. Use `templates/PLAN.template.md` when creating a new app plan.
-3. Choose the simplest app type that satisfies requirements:
+1. Start every material app task by selecting or creating a numbered feature spec under `projects/<app>/specs/NNN-<slug>/`.
+2. Keep app identity and durable rules in `projects/<app>/AGENTS.md`, and keep feature intent, acceptance criteria, and risk in the active `spec.md`.
+3. Create or update `projects/<app>/PLAN.md` for architectural, data model, auth, routing, deployment, migration, or multi-module work. Use `templates/PLAN.template.md` when creating a new app plan.
+4. Create or update `projects/<app>/specs/NNN-<slug>/workflow-receipts.md` before material implementation and keep the relevant receipt sections current through handoff.
+5. Choose the simplest app type that satisfies requirements:
    - React + Vite + Capacitor for most cross-platform business apps.
    - Next.js for SSR/SEO/server-rendered public apps.
    - Expo for native-first mobile apps.
-4. Build vertical modules, not page dumps. Each module owns schema, API/data hooks, UI components, routes, tests, and empty/loading/error states.
-5. Reuse existing components and templates before creating new abstractions.
-6. Install dependencies where they are used. Keep root dependencies minimal.
-7. Keep adaptive layout explicit: desktop, tablet, and mobile view states must be designed and checked.
-8. Before completion, run the app's verification commands and check rendered UI at desktop and mobile sizes.
+6. Create or update `specs/NNN-<slug>/tasks.md` before material implementation, and add `checklist.md` for auth, payments, secrets, public APIs, data access, file uploads, RLS, AI tool actions, deployment, or live migrations.
+7. Build vertical modules, not page dumps. Each module owns schema, API/data hooks, UI components, routes, tests, and empty/loading/error states.
+8. Reuse existing components and templates before creating new abstractions.
+9. Install dependencies where they are used. Keep root dependencies minimal.
+10. Keep adaptive layout explicit: desktop, tablet, and mobile view states must be designed and checked.
+11. Before completion, run the app's verification commands, run `scripts/validate-workflow-receipts.ps1` for the app, and check rendered UI at desktop and mobile sizes when UI changed.
 
 ## Module Contract
 
@@ -75,11 +80,12 @@ src/modules/<module>/
   index.ts
 ```
 
-Avoid cross-module deep relative imports. Use public `index.ts` exports or shared `src/lib` utilities.
+Cross-module imports must use the target module's public `index.ts` surface, exposed as `@/modules/<module>` in the React template. Deep imports into another module's internals are lint errors; use shared `src/lib` utilities only for genuinely shared code.
 
 ## Planning Rules
 
 - Keep plans short, decision-oriented, and current.
+- Keep specs numbered, current, and tied to one feature or workflow slice.
 - A plan is required before multi-module or architecture-sensitive work.
 - Do not let stale plans override current user instructions or app `AGENTS.md`.
 - In the final handoff, report deviations from the plan and skipped verification.
@@ -101,6 +107,7 @@ Use the package manager already present in the project. If a command is missing,
 `npm run e2e` is mandatory when the project defines it or when UI/browser behavior changed enough to require rendered flow coverage. If an app template or project does not define `e2e`, report the missing script and run the strongest available checks instead.
 
 For UI work, rendered verification is required: first meaningful screen, core interaction, desktop viewport, and mobile viewport.
+For app-dev workflow enforcement, `projects/<app>/specs/NNN-<slug>/workflow-receipts.md` is required evidence. Keep the relevant receipt sections current for UI, data, mobile, and release-readiness work.
 
 ## Design Rules
 
@@ -116,6 +123,7 @@ For UI work, rendered verification is required: first meaningful screen, core in
 
 - Prefer the standard stack in `standards/stack.md`.
 - Prefer the capability routing in `standards/codex-capabilities.md` when a task may benefit from an optional specialist Codex skill or plugin.
+- Treat local wrapper workflows as conditionally required when their surfaces are touched, even when the external/global accelerator skills are unavailable.
 - Do not assume optional global skills/plugins are installed. Continue with local standards if they are unavailable and report the gap.
 - Do not add libraries for solved problems already covered by the stack.
 - Do not add a new state manager, router, form library, table library, or UI kit without documenting the reason in the project `AGENTS.md`.

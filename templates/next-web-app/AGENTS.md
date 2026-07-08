@@ -3,19 +3,23 @@
 Follow the root `app-dev/AGENTS.md` standards. Use this template only when SSR, SEO, server routes, public content, or ecommerce-like flows justify Next.js.
 Use this project's `PLAN.md` for architecture, module, risk, and verification decisions.
 
-## Product Decision Record
+## Active Specification
 
-- Users: Replace with the target audience before feature work.
-- Core jobs: Replace with the primary user jobs before feature work.
-- Modules: Replace with vertical modules before feature work.
-- Data model: Replace with primary entities before feature work.
-- Permissions: Replace with roles and access rules before feature work.
+- Start with `specs/001-initial/spec.md`.
+- Create later feature specs under `specs/NNN-<slug>/`.
+- Keep `PLAN.md`, `tasks.md`, and `workflow-receipts.md` aligned to the active spec before implementation starts.
+
+## App Identity
+
+- Users: Replace with the target audience when establishing the initial app identity.
+- Core jobs: Replace with the primary user jobs the overall app will support.
 - Platforms: desktop web and mobile web unless revised.
 - Native requirements: none.
 
 ## Capability Routing
 
 - Use `cross-platform-app-workflow` as the required local app-dev skill.
+- Use the local wrapper workflows when triggered: `ui-change-workflow`, `data-change-workflow`, and `release-readiness-workflow`.
 - Treat frontend, React/Next, security, GitHub, and deployment skills/plugins as optional external capabilities.
 - Continue with local standards and report the gap if optional capabilities are unavailable.
 
@@ -25,8 +29,11 @@ After installing dependencies inside this project, run available scripts through
 
 ## Done When
 
-- Product decision record is complete for the current app.
+- Active specification and task artifacts are current for the feature being built.
+- `workflow-receipts.md` is current for any UI, data, or release-readiness work.
 - `PLAN.md` is current for architecture, data model, auth, routing, deployment, migration, or multi-module work.
+- `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` passes before completion.
+- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` passes before completion.
 - Available checks pass through `../../scripts/verify-app.ps1 -ProjectPath .`.
 - Missing scripts are reported instead of invented.
 - UI changes include rendered desktop and mobile checks.

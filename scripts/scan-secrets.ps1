@@ -273,42 +273,46 @@ if ($null -ne $gitleaks) {
   $reportPath = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-gitleaks-{0}.json" -f ([System.Guid]::NewGuid().ToString("N")))
   Push-Location $Root
   try {
-    & $gitleaks.Source detect --no-git --redact --source $Root --report-format json --report-path $reportPath | Out-Null
-    $gitleaksExitCode = $LASTEXITCODE
+    try {
+      & $gitleaks.Source detect --no-git --redact --source $Root --report-format json --report-path $reportPath | Out-Null
+      $gitleaksExitCode = $LASTEXITCODE
 
-    if ($gitleaksExitCode -ne 0) {
-      if (Test-Path -LiteralPath $reportPath) {
-        $rawReport = Get-Content -LiteralPath $reportPath -Raw -ErrorAction SilentlyContinue
-        if (-not [string]::IsNullOrWhiteSpace($rawReport)) {
-          $leaks = $rawReport | ConvertFrom-Json
-          foreach ($leak in @($leaks)) {
-            $relativeFile = ConvertTo-RepoRelativePath -Path ([string]$leak.File)
-            $lineNumber = ConvertTo-LineNumber -Value $leak.StartLine
+      if ($gitleaksExitCode -ne 0) {
+        if (Test-Path -LiteralPath $reportPath) {
+          $rawReport = Get-Content -LiteralPath $reportPath -Raw -ErrorAction SilentlyContinue
+          if (-not [string]::IsNullOrWhiteSpace($rawReport)) {
+            $leaks = $rawReport | ConvertFrom-Json
+            foreach ($leak in @($leaks)) {
+              $relativeFile = ConvertTo-RepoRelativePath -Path ([string]$leak.File)
+              $lineNumber = ConvertTo-LineNumber -Value $leak.StartLine
 
-            $leakLineText = ""
-            if ($null -ne $leak.Line) {
-              $leakLineText = ConvertTo-SafeText -Value $leak.Line
-            } elseif ($null -ne $leak.Match) {
-              $leakLineText = ConvertTo-SafeText -Value $leak.Match
-            } elseif ($null -ne $leak.Secret) {
-              $leakLineText = ConvertTo-SafeText -Value $leak.Secret
+              $leakLineText = ""
+              if ($null -ne $leak.Line) {
+                $leakLineText = ConvertTo-SafeText -Value $leak.Line
+              } elseif ($null -ne $leak.Match) {
+                $leakLineText = ConvertTo-SafeText -Value $leak.Match
+              } elseif ($null -ne $leak.Secret) {
+                $leakLineText = ConvertTo-SafeText -Value $leak.Secret
+              }
+
+              $ruleName = "gitleaks"
+              if ($null -ne $leak.Description -and -not [string]::IsNullOrWhiteSpace([string]$leak.Description)) {
+                $ruleName = [string]$leak.Description
+              } elseif ($null -ne $leak.RuleID -and -not [string]::IsNullOrWhiteSpace([string]$leak.RuleID)) {
+                $ruleName = [string]$leak.RuleID
+              }
+
+              Add-SecretFinding -File $relativeFile -Line $lineNumber -Type $ruleName -LineText $leakLineText
             }
-
-            $ruleName = "gitleaks"
-            if ($null -ne $leak.Description -and -not [string]::IsNullOrWhiteSpace([string]$leak.Description)) {
-              $ruleName = [string]$leak.Description
-            } elseif ($null -ne $leak.RuleID -and -not [string]::IsNullOrWhiteSpace([string]$leak.RuleID)) {
-              $ruleName = [string]$leak.RuleID
-            }
-
-            Add-SecretFinding -File $relativeFile -Line $lineNumber -Type $ruleName -LineText $leakLineText
+          } else {
+            Add-SecretFinding -File "." -Line 0 -Type "gitleaks" -LineText "gitleaks reported one or more findings but produced an empty report"
           }
         } else {
-          Add-SecretFinding -File "." -Line 0 -Type "gitleaks" -LineText "gitleaks reported one or more findings but produced an empty report"
+          Add-SecretFinding -File "." -Line 0 -Type "gitleaks" -LineText "gitleaks reported one or more findings but no report was written"
         }
-      } else {
-        Add-SecretFinding -File "." -Line 0 -Type "gitleaks" -LineText "gitleaks reported one or more findings but no report was written"
       }
+    } catch {
+      $warnings.Add("gitleaks was found but could not execute; using local regex fallback scan. $($_.Exception.Message)") | Out-Null
     }
   } finally {
     Pop-Location
@@ -318,7 +322,7 @@ if ($null -ne $gitleaks) {
   $warnings.Add("gitleaks not found; using local regex fallback scan.") | Out-Null
 }
 
-$files = Get-ChildItem -LiteralPath $Root -Recurse -File -Force | Where-Object {
+$files = Get-ChildItem -LiteralPath $Root -Recurse -File -Force -ErrorAction SilentlyContinue | Where-Object {
   -not (Test-IsExcludedPath -File $_) -and (Test-IsTextFile -File $_)
 }
 

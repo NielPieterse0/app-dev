@@ -2,6 +2,7 @@
 
 - Created: {{DATE}}
 - Template: {{TEMPLATE}}
+- Active spec: `specs/001-initial/spec.md`
 - Status: draft
 
 ## Goal
@@ -12,15 +13,13 @@ Replace this line with the outcome this app or task must deliver.
 
 Replace this line with explicit exclusions that prevent scope drift.
 
-## Product Decision Record
+## Spec Link
 
-- Users: Replace with the target audience and primary operators.
-- Core jobs: Replace with the main jobs the app must support.
-- Modules: Replace with the vertical modules that own routes, UI, data, and tests.
-- Data model: Replace with the primary entities, relationships, and persistence needs.
-- Permissions: Replace with roles, access rules, and sensitive operations.
-- Target platforms: Replace with desktop web, mobile web, Android, iOS, or another explicit set.
-- Native requirements: Replace with the native APIs or device capabilities required, or state none.
+- Spec id: `001-initial`
+- Spec path: `specs/001-initial/spec.md`
+- Tasks path: `specs/001-initial/tasks.md`
+- Workflow receipts path: `specs/001-initial/workflow-receipts.md`
+- Checklist path: `specs/001-initial/checklist.md` when the feature follows the gated path.
 
 ## Architecture Decision
 
@@ -29,6 +28,7 @@ Replace this line with explicit exclusions that prevent scope drift.
 - State/data strategy: Replace with client state, server state, validation, and cache decisions.
 - Backend/auth/storage: Replace with backend, auth, storage, and migration choices.
 - UI system: Replace with design system, component library, and token decisions.
+- Implementation constraints: Replace with spec-driven constraints, approvals, and workflow notes.
 
 ## Module Plan
 
@@ -39,10 +39,11 @@ Replace this line with explicit exclusions that prevent scope drift.
 ## Implementation Steps
 
 1. Confirm product decision record and app type.
-2. Build or update the app shell, providers, routing, and theme tokens.
-3. Implement vertical modules with schema, services/hooks, UI, routes, and tests.
-4. Add empty, loading, and error states for every primary workflow.
-5. Run verification and rendered desktop/mobile checks.
+2. Confirm the active spec path and whether the feature follows the lean or gated path.
+3. Build or update the app shell, providers, routing, and theme tokens.
+4. Implement vertical modules with schema, services/hooks, UI, routes, and tests.
+5. Add empty, loading, and error states for every primary workflow.
+6. Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`, then `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`, then verification and rendered desktop/mobile checks.
 
 ## Risks and Assumptions
 
@@ -75,6 +76,11 @@ Rendered UI checks:
 - desktop viewport
 - mobile viewport
 - no clipped, overlapping, or overflowing text
+
+Pre-implementation artifact check:
+
+- `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`
+- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`
 
 ## Open Decisions
 
