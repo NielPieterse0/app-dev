@@ -37,5 +37,9 @@ templates/react-vite-capacitor/android/
 templates/react-vite-capacitor/ios/
 
 # Generated app workspaces
-projects/*
+# Active app projects are tracked in this repo.
+# Generated/local files inside projects are ignored by each project .gitignore.
+!projects/
+!projects/signal/
+!projects/signal/**
 !projects/.gitkeep
