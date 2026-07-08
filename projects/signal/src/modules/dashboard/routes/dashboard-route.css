@@ -26,6 +26,19 @@
   gap: 8px;
 }
 
+.dashboard-route__toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.dashboard-route__toolbar-copy {
+  display: grid;
+  gap: 4px;
+}
+
 .dashboard-route__chart {
   background: #ffffff;
   border: 1px solid #d7dce3;
@@ -42,7 +55,19 @@
   padding: 8px 12px;
 }
 
+.dashboard-route__filters button[aria-pressed="true"] {
+  background: #142033;
+  border-color: #142033;
+  color: #f8fbff;
+}
+
 .dashboard-route__hint {
+  color: #526072;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.dashboard-route__meta {
   color: #526072;
   font-size: 0.95rem;
   margin: 0;

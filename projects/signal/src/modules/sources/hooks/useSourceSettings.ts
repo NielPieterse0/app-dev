@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isSupabaseConfigured } from "../../../lib/env";
 import { getSupabaseClient } from "../../../lib/supabase";
@@ -13,9 +12,9 @@ import {
 } from "../services/source-settings-repository";
 
 type SourceSettingsQueryData = {
-  settings: SourceSettings;
   backend: SettingsBackend;
   degradedReason: string | null;
+  settings: SourceSettings;
 };
 
 type UseSourceSettingsOptions = {
@@ -69,6 +68,7 @@ export function useSourceSettings(options: UseSourceSettingsOptions = {}) {
     queryKey: sourceSettingsQueryKey,
     queryFn: () =>
       loadSettingsData(supabaseConfigured, primaryRepository, fallbackRepository),
+    refetchOnWindowFocus: false,
   });
 
   const mutation = useMutation({
@@ -81,28 +81,27 @@ export function useSourceSettings(options: UseSourceSettingsOptions = {}) {
         };
       }
 
-      return {
-        settings: await primaryRepository.save(settings),
-        backend: "supabase" as const,
-        degradedReason: null,
-      };
+      try {
+        return {
+          settings: await primaryRepository.save(settings),
+          backend: "supabase" as const,
+          degradedReason: null,
+        };
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to save settings to Supabase.";
+
+        return {
+          settings: await fallbackRepository.save(settings),
+          backend: "local-fallback" as const,
+          degradedReason: message,
+        };
+      }
     },
     onSuccess: (nextData) => {
       queryClient.setQueryData(sourceSettingsQueryKey, nextData);
     },
   });
-
-  useEffect(() => {
-    if (!query.error) {
-      return;
-    }
-
-    // Keep the last confirmed settings in cache when a save fails.
-    queryClient.setQueryData<SourceSettingsQueryData | undefined>(
-      sourceSettingsQueryKey,
-      (current) => current
-    );
-  }, [query.error, queryClient]);
 
   return {
     settings: query.data?.settings ?? defaultSourceSettings,

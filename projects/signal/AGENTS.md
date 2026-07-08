@@ -6,7 +6,7 @@ Use this project's `PLAN.md` for architecture, module, risk, and verification de
 
 ## Active Specification
 
-- Active spec: `specs/002-live-settings/spec.md`.
+- Active spec: `specs/003-live-ingestion/spec.md`.
 - Create later feature specs under `specs/NNN-<slug>/`.
 - Keep `PLAN.md`, `tasks.md`, and `workflow-receipts.md` aligned to the active spec before implementation starts.
 
@@ -19,16 +19,16 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Product: Signal, a personal tech and AI trend-scouting dashboard.
 - Primary users: a single operator evaluating public-source trend signals and shaping future product concepts.
 - Core jobs: ingest public source items, normalize them, rank them, review the feed, tune source settings, and export promising concepts into future scoped product work.
-- Current v1 scope: GitHub + Hacker News source ingestion, ranked dashboard, source filters, and source settings.
+- Current v1 scope: GitHub + Hacker News source ingestion, persisted ranked dashboard, manual refresh, source filters, and source settings.
 - Platforms: desktop web and mobile web first; Capacitor stays available for later Android and iOS packaging if product validation justifies it.
 - Native requirements: none for the first slice beyond the existing Capacitor-ready shell.
 - Repository model: Signal stays tracked in the root `app-dev` repository unless a later recorded decision changes that ownership model.
 
 ## Required Before Feature Work
 
-- Complete `specs/002-live-settings/spec.md` before feature work.
+- Complete `specs/003-live-ingestion/spec.md` before feature work.
 - Update `PLAN.md` for architecture-sensitive or multi-module work.
-- Update `specs/002-live-settings/tasks.md` before material implementation.
+- Update `specs/003-live-ingestion/tasks.md` before material implementation.
 - Review the starter `AppShell`, `NavigationShell`, and base route structure.
 - Keep module boundaries explicit: import other modules only through `@/modules/<module>`, and treat deep imports into another module's internals as lint failures.
 - Add `.env.example` for required public environment variables.
@@ -37,6 +37,7 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Treat the template README checklist as the completion baseline for later tasks in this plan.
 - Keep Signal on free-tier services until product proof or a documented production need justifies an upgrade.
 - Treat public-source ingestion, Supabase schema work, and source/API terms as gated-path concerns even while the app remains internal and no-auth.
+- Treat any no-auth browser write path as internal-MVP only and record that it is not production-ready or public-launch safe in the active checklist, receipts, and handoff.
 
 ## Capability Routing
 

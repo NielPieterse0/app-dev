@@ -5,31 +5,52 @@ import { defaultSourceSettings } from "../services/source-settings-repository";
 
 type SourcePreferencesStore = {
   enabledSources: SourceKind[];
+  hasHydrated: boolean;
   includeKeywordsText: string;
-  hydrateFromSettings: (settings: SourceSettings) => void;
+  isDirty: boolean;
+  hydrateFromSettings: (settings: SourceSettings, options?: { force?: boolean }) => void;
   setSourceEnabled: (source: SourceKind, enabled: boolean) => void;
   setIncludeKeywordsText: (value: string) => void;
 };
 
 export const useSourcePreferencesStore = create<SourcePreferencesStore>((set) => ({
   enabledSources: defaultSourceSettings.enabledSources,
+  hasHydrated: false,
   includeKeywordsText: "",
-  hydrateFromSettings: (settings) =>
-    set({
-      enabledSources: settings.enabledSources,
-      includeKeywordsText: settings.includeKeywords.join(", "),
+  isDirty: false,
+  hydrateFromSettings: (settings, options) =>
+    set((state) => {
+      if (state.isDirty && !options?.force) {
+        return state;
+      }
+
+      return {
+        enabledSources: settings.enabledSources,
+        hasHydrated: true,
+        includeKeywordsText: settings.includeKeywords.join(", "),
+        isDirty: false,
+      };
     }),
   setSourceEnabled: (source, enabled) =>
     set((state) => {
       const nextEnabledSources = enabled
         ? [...new Set([...state.enabledSources, source])]
         : state.enabledSources.filter((entry) => entry !== source);
+      const normalizedEnabledSources = nextEnabledSources.length ? nextEnabledSources : [source];
+      const didChange =
+        normalizedEnabledSources.length !== state.enabledSources.length ||
+        normalizedEnabledSources.some((entry, index) => entry !== state.enabledSources[index]);
 
       return {
-        enabledSources: nextEnabledSources.length ? nextEnabledSources : [source],
+        enabledSources: normalizedEnabledSources,
+        isDirty: didChange ? true : state.isDirty,
       };
     }),
-  setIncludeKeywordsText: (includeKeywordsText) => set({ includeKeywordsText }),
+  setIncludeKeywordsText: (includeKeywordsText) =>
+    set((state) => ({
+      includeKeywordsText,
+      isDirty: includeKeywordsText !== state.includeKeywordsText ? true : state.isDirty,
+    })),
 }));
 
 export function getEnabledKeywordFilters(includeKeywordsText: string) {

@@ -138,7 +138,10 @@ describe("useSourceSettings", () => {
     };
     const fallbackRepository: SourceSettingsRepository = {
       get: vi.fn(),
-      save: vi.fn(),
+      save: vi.fn().mockResolvedValue({
+        enabledSources: ["github"],
+        includeKeywords: ["agents"],
+      }),
     };
     const { wrapper } = createWrapper();
 
@@ -158,15 +161,21 @@ describe("useSourceSettings", () => {
         enabledSources: ["github"],
         includeKeywords: ["agents"],
       })
-    ).rejects.toThrow("write failed");
+    ).resolves.toEqual({
+      settings: {
+        enabledSources: ["github"],
+        includeKeywords: ["agents"],
+      },
+      backend: "local-fallback",
+      degradedReason: "write failed",
+    });
 
     expect(result.current.settings).toEqual({
-      enabledSources: ["github", "hacker_news"],
-      includeKeywords: [],
+      enabledSources: ["github"],
+      includeKeywords: ["agents"],
     });
-    await waitFor(() =>
-      expect(result.current.error?.message).toContain("write failed")
-    );
+    expect(result.current.backend).toBe("local-fallback");
+    expect(result.current.degradedReason).toContain("write failed");
   });
 
   test("saves through the fallback repository when Supabase is not configured", async () => {

@@ -1,74 +1,10 @@
 param(
   [string]$ProjectPath = (Get-Location).Path,
   [string[]]$ChangedFiles,
-  [string]$ChangedFilesJson,
-  [string]$BaseRef,
-  [switch]$JsonSummary
+  [bool]$JsonSummary = $false
 )
 
 $ErrorActionPreference = "Stop"
-$commonPath = Join-Path $PSScriptRoot "common.ps1"
-. $commonPath
-
-function Invoke-GitNameOnlyDiff {
-  param(
-    [AllowEmptyString()][string]$Arguments = ""
-  )
-
-  $output = & cmd.exe /d /c "git diff --name-only $Arguments 2>nul"
-  if ($LASTEXITCODE -ne 0) {
-    throw "git diff failed while collecting workflow obligations."
-  }
-
-  return @($output)
-}
-
-function Invoke-GitUntrackedFiles {
-  $output = & cmd.exe /d /c "git ls-files --others --exclude-standard 2>nul"
-  if ($LASTEXITCODE -ne 0) {
-    throw "git ls-files failed while collecting workflow obligations."
-  }
-
-  return @($output)
-}
-
-function Get-GitChangedFiles {
-  param(
-    [Parameter(Mandatory=$true)][string]$BasePath,
-    [string]$BaseRef
-  )
-
-  $results = New-Object System.Collections.Generic.List[string]
-
-  if (-not [string]::IsNullOrWhiteSpace($BaseRef)) {
-    $mergeBase = (& git merge-base $BaseRef HEAD 2>$null)
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace(($mergeBase | Out-String))) {
-      throw "git merge-base failed while collecting workflow obligations from $BasePath."
-    }
-
-    foreach ($line in @(Invoke-GitNameOnlyDiff -Arguments "$mergeBase..HEAD")) {
-      if (-not [string]::IsNullOrWhiteSpace($line)) {
-        $results.Add($line) | Out-Null
-      }
-    }
-  }
-
-  foreach ($arguments in @("--cached", "")) {
-    foreach ($line in @(Invoke-GitNameOnlyDiff -Arguments $arguments)) {
-      if (-not [string]::IsNullOrWhiteSpace($line)) {
-        $results.Add($line) | Out-Null
-      }
-    }
-  }
-
-  foreach ($line in @(Invoke-GitUntrackedFiles)) {
-    if (-not [string]::IsNullOrWhiteSpace($line)) {
-      $results.Add($line) | Out-Null
-    }
-  }
-
-  return @($results | Select-Object -Unique)
-}
 
 function Normalize-RelativePath {
   param(
@@ -95,7 +31,7 @@ function Normalize-RelativePath {
 
 function Add-Match {
   param(
-    [Parameter(Mandatory=$true)][System.Collections.IDictionary]$Bucket,
+    [Parameter(Mandatory=$true)][hashtable]$Bucket,
     [Parameter(Mandatory=$true)][string]$File,
     [Parameter(Mandatory=$true)][string]$Reason
   )
@@ -109,29 +45,21 @@ function Add-Match {
   }
 }
 
-$ProjectPath = Resolve-ProjectPath -ProjectPath $ProjectPath
-
-if (-not [string]::IsNullOrWhiteSpace($ChangedFilesJson)) {
-  $parsedChangedFiles = $ChangedFilesJson | ConvertFrom-Json -ErrorAction Stop
-  $ChangedFiles = @($parsedChangedFiles)
-}
+$ProjectPath = (Resolve-Path -LiteralPath $ProjectPath).Path
 
 if (-not $ChangedFiles -or $ChangedFiles.Count -eq 0) {
   Push-Location $ProjectPath
   try {
-    $ChangedFiles = Get-GitChangedFiles -BasePath $ProjectPath -BaseRef $BaseRef
+    $ChangedFiles = @(
+      & git diff --name-only --cached 2>$null
+      & git diff --name-only 2>$null
+    ) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique
   } finally {
     Pop-Location
   }
 }
 
-$normalizedFiles = @(
-  $ChangedFiles |
-    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
-    ForEach-Object { Normalize-RelativePath -BasePath $ProjectPath -Candidate $_ } |
-    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
-    Select-Object -Unique
-)
+$normalizedFiles = @($ChangedFiles | ForEach-Object { Normalize-RelativePath -BasePath $ProjectPath -Candidate $_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
 
 $result = [ordered]@{
   projectPath = $ProjectPath

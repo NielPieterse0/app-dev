@@ -7,7 +7,6 @@ import {
 } from "./source-settings-repository";
 
 const storageKey = "signal.source-settings";
-let memorySettings = defaultSourceSettings;
 
 function getStorage(storageOverride?: Storage) {
   if (storageOverride) {
@@ -21,7 +20,11 @@ function getStorage(storageOverride?: Storage) {
   return undefined;
 }
 
-export function createLocalSourceSettingsRepository(storageOverride?: Storage): SourceSettingsRepository {
+export function createLocalSourceSettingsRepository(
+  storageOverride?: Storage
+): SourceSettingsRepository {
+  let memorySettings = defaultSourceSettings;
+
   return {
     async get() {
       const storage = getStorage(storageOverride);
@@ -32,8 +35,8 @@ export function createLocalSourceSettingsRepository(storageOverride?: Storage): 
       }
 
       const parsed = JSON.parse(raw) as {
-        sourceRows?: unknown;
         preferenceRows?: unknown;
+        sourceRows?: unknown;
       };
 
       memorySettings = mapPersistedRowsToSourceSettings(
@@ -52,8 +55,8 @@ export function createLocalSourceSettingsRepository(storageOverride?: Storage): 
       storage?.setItem(
         storageKey,
         JSON.stringify({
-          sourceRows,
           preferenceRows,
+          sourceRows,
         })
       );
 

@@ -16,4 +16,6 @@ export type {
 } from "./services/source-settings-repository";
 export { defaultSourceSettings } from "./services/source-settings-repository";
 export { listSourceItems } from "./services/source-repository";
+export { refreshSourceItems } from "./services/source-repository";
 export { buildActivityPoints } from "./services/source-normalizer";
+export type { SourceFeedData } from "./services/source-repository";

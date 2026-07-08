@@ -106,8 +106,6 @@ export function requireSupabaseEnv(source: SupabaseRuntimeEnv): {
   };
 }
 
-export const env = parseSupabaseEnv(import.meta.env as SupabaseRuntimeEnv);
-
 export function isSupabaseConfigured(
   source: SupabaseRuntimeEnv = import.meta.env as SupabaseRuntimeEnv
 ) {

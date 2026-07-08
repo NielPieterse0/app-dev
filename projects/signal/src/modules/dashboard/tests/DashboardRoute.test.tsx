@@ -42,7 +42,12 @@ describe("DashboardRoute", () => {
 
   test("renders a loading state", () => {
     useRankedItemsMock.mockReturnValue({
-      data: undefined,
+      items: [],
+      backend: "local-fallback",
+      degradedReason: null,
+      lastRefreshedAt: null,
+      isRefreshing: false,
+      refreshItems: vi.fn(),
       isLoading: true,
       error: null,
     });
@@ -52,21 +57,26 @@ describe("DashboardRoute", () => {
     expect(screen.getByText("Loading source signals")).toBeInTheDocument();
   });
 
-  test("renders an empty state", () => {
+  test("renders an empty state before the first refresh", () => {
     useRankedItemsMock.mockReturnValue({
-      data: [],
+      items: [],
+      backend: "local-fallback",
+      degradedReason: null,
+      lastRefreshedAt: null,
+      isRefreshing: false,
+      refreshItems: vi.fn(),
       isLoading: false,
       error: null,
     });
 
     render(<DashboardRoute />);
 
-    expect(screen.getByRole("region", { name: "No signals match the current view" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "No persisted signals yet" })).toBeInTheDocument();
   });
 
   test("renders dashboard content when data exists", () => {
     useRankedItemsMock.mockReturnValue({
-      data: [
+      items: [
         {
           id: "github:1",
           source: "github",
@@ -82,6 +92,11 @@ describe("DashboardRoute", () => {
           keywords: ["ai", "agents"],
         },
       ],
+      backend: "supabase",
+      degradedReason: null,
+      lastRefreshedAt: "2026-07-08T10:10:00.000Z",
+      isRefreshing: false,
+      refreshItems: vi.fn(),
       isLoading: false,
       error: null,
     });
@@ -91,5 +106,6 @@ describe("DashboardRoute", () => {
     expect(screen.getByRole("heading", { name: "Trend scout" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "owner/repo" })).toBeInTheDocument();
     expect(screen.getByText("Total signals")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Refresh live feed" })).toBeInTheDocument();
   });
 });

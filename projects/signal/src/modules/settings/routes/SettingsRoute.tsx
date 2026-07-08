@@ -24,6 +24,7 @@ type SettingsRouteContext = {
   enabledSources: ("github" | "hacker_news")[];
   errorMessage: string | null;
   includeKeywordsText: string;
+  isDirty: boolean;
   isLoading: boolean;
   isSaving: boolean;
   saveMessage: string | null;
@@ -35,17 +36,22 @@ type SettingsRouteContext = {
 export function SettingsRoute() {
   const { pathname } = useLocation();
   const enabledSources = useSourcePreferencesStore((state) => state.enabledSources);
+  const hasHydrated = useSourcePreferencesStore((state) => state.hasHydrated);
   const includeKeywordsText = useSourcePreferencesStore((state) => state.includeKeywordsText);
+  const isDirty = useSourcePreferencesStore((state) => state.isDirty);
   const hydrateFromSettings = useSourcePreferencesStore((state) => state.hydrateFromSettings);
   const setSourceEnabled = useSourcePreferencesStore((state) => state.setSourceEnabled);
   const setIncludeKeywordsText = useSourcePreferencesStore((state) => state.setIncludeKeywordsText);
   const { settings, backend, degradedReason, isLoading, isSaving, error, saveSettings } =
     useSourceSettings();
+  const [routeErrorMessage, setRouteErrorMessage] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    hydrateFromSettings(settings);
-  }, [hydrateFromSettings, settings]);
+    hydrateFromSettings(settings, {
+      force: !hasHydrated,
+    });
+  }, [hasHydrated, hydrateFromSettings, settings]);
 
   useEffect(() => {
     if (error) {
@@ -53,19 +59,29 @@ export function SettingsRoute() {
     }
   }, [error]);
 
-  const saveErrorMessage = error?.message ?? null;
+  const saveErrorMessage = routeErrorMessage ?? error?.message ?? null;
 
   async function handleSaveSettings() {
     setSaveMessage(null);
-    await saveSettings({
-      enabledSources,
-      includeKeywords: getEnabledKeywordFilters(includeKeywordsText),
-    });
-    setSaveMessage(
-      backend === "local-fallback"
-        ? "Saved locally while Supabase is unavailable."
-        : "Settings saved to Supabase."
-    );
+    setRouteErrorMessage(null);
+
+    try {
+      const nextData = await saveSettings({
+        enabledSources,
+        includeKeywords: getEnabledKeywordFilters(includeKeywordsText),
+      });
+
+      hydrateFromSettings(nextData.settings, { force: true });
+      setSaveMessage(
+        nextData.backend === "local-fallback"
+          ? "Saved locally while Supabase is unavailable."
+          : "Settings saved to Supabase."
+      );
+    } catch (saveError) {
+      setRouteErrorMessage(
+        saveError instanceof Error ? saveError.message : "Settings could not be saved."
+      );
+    }
   }
 
   const canSave = enabledSources.length > 0 && !isLoading && !isSaving;
@@ -76,6 +92,7 @@ export function SettingsRoute() {
     enabledSources,
     errorMessage: saveErrorMessage,
     includeKeywordsText,
+    isDirty,
     isLoading,
     isSaving,
     saveMessage,
@@ -125,6 +142,7 @@ export function SettingsSourcesRoute() {
     canSave,
     enabledSources,
     errorMessage,
+    isDirty,
     isLoading,
     isSaving,
     saveMessage,
@@ -153,6 +171,7 @@ export function SettingsSourcesRoute() {
             <Button
               key={source.key}
               type="button"
+              aria-pressed={enabled}
               variant={enabled ? "default" : "outline"}
               disabled={isLoading || isSaving || disableToggle}
               onClick={() => setSourceEnabled(source.key as "github" | "hacker_news", !enabled)}
@@ -173,10 +192,11 @@ export function SettingsSourcesRoute() {
         ) : null}
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button type="button" disabled={!canSave} onClick={() => void saveSettings()}>
           {isSaving ? "Saving settings..." : "Save source settings"}
         </Button>
+        {isDirty ? <p className="text-sm text-muted-foreground">Unsaved draft changes.</p> : null}
       </div>
 
       <div className="rounded-lg border p-4">
@@ -195,6 +215,7 @@ export function SettingsKeywordsRoute() {
     canSave,
     errorMessage,
     includeKeywordsText,
+    isDirty,
     isLoading,
     isSaving,
     saveMessage,
@@ -242,10 +263,11 @@ export function SettingsKeywordsRoute() {
         ) : null}
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button type="button" disabled={!canSave} onClick={() => void saveSettings()}>
           {isSaving ? "Saving settings..." : "Save keyword settings"}
         </Button>
+        {isDirty ? <p className="text-sm text-muted-foreground">Unsaved draft changes.</p> : null}
       </div>
 
       <div className="rounded-lg border p-4">

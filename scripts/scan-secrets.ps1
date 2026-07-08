@@ -9,7 +9,6 @@ $findings = New-Object System.Collections.Generic.List[object]
 $warnings = New-Object System.Collections.Generic.List[string]
 
 $excludedDirectoryNames = @(".git", "node_modules", "dist", "build", ".next", "out", "coverage", "playwright-report", "test-results")
-$excludedRelativePrefixes = @("projects/")
 $allowedFileNames = @(".env.example")
 $textExtensions = @(".md", ".txt", ".json", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".yml", ".yaml", ".toml", ".ps1", ".css", ".html", ".config", ".example")
 
@@ -77,10 +76,9 @@ function Test-IsExcludedPath {
   param([Parameter(Mandatory=$true)][System.IO.FileInfo]$File)
 
   $relative = Get-RelativePath -Path $File.FullName
-  foreach ($prefix in $excludedRelativePrefixes) {
-    if ($relative.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-      return $true
-    }
+
+  if ($relative -match "(?i)^projects/__verify-[^/]+(/|$)") {
+    return $true
   }
 
   if ($allowedFileNames -contains $File.Name) {
@@ -211,14 +209,12 @@ function Test-IsAllowedPlaceholderLine {
 
   $lineText = [string]$Line
 
-  # Do not allow concrete high-confidence secret shapes, even in Markdown.
   if ($lineText -match "sk-[A-Za-z0-9_-]{20,}") { return $false }
   if ($lineText -match "gh[pousr]_[A-Za-z0-9_]{20,}") { return $false }
   if ($lineText -match "AKIA[0-9A-Z]{16}") { return $false }
   if ($lineText -match "eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}") { return $false }
   if ($lineText -match "-----BEGIN (RSA |OPENSSH |EC |DSA |PRIVATE )?PRIVATE KEY-----") { return $false }
 
-  # Safe documentation/code references to environment variables.
   if ($lineText -match "(?i)process\.env\.[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*") { return $true }
   if ($lineText -match "(?i)os\.environ(\.get)?\(\s*['""][A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*['""]") { return $true }
   if ($lineText -match "(?i)os\.environ\[\s*['""][A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*['""]\s*\]") { return $true }
@@ -226,22 +222,15 @@ function Test-IsAllowedPlaceholderLine {
   if ($lineText -match "\$[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*") { return $true }
   if ($lineText -match "\$\{[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*\}") { return $true }
 
-  # Safe placeholder values in examples and docs.
   if ($lineText -match "(?i)(your|example|sample|dummy|fake|placeholder)[-_ ]?(token|secret|password|api[-_ ]?key|key)") { return $true }
   if ($lineText -match "(?i)<[^>]*(token|secret|password|api[-_ ]?key|key)[^>]*>") { return $true }
   if ($lineText -match "(?i)\{[^}]*(token|secret|password|api[-_ ]?key|key)[^}]*\}") { return $true }
   if ($lineText -match "(?i)(account-id|zone-id|record-id|dns_record_id|user@example\.com|example\.com)") { return $true }
 
-  # Gitleaks may redact or partially report the matching curl/header text. For
-  # agent skill reference documentation only, allow known documentation-example
-  # rule classes after the concrete high-confidence secret checks above have run.
-  # This is intentionally scoped to .agents/skills/* reference docs and SKILL.md,
-  # not generated app code, scripts, configs, or environment files.
   if ($RelativePath -match "(?i)^\.agents/skills/.+/(references/|SKILL\.md$)" -and $FindingType -match "(?i)(authorization token|curl command header|OpenAI API key|Generic API Key|Secret assignment)") {
     return $true
   }
 
-  # Markdown/code documentation may mention env var names without assigning values.
   if ($RelativePath -match "\.md$" -and $lineText -match "\b[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*\b") {
     if ($lineText -notmatch "['""]\s*(sk-|gh[pousr]_|AKIA|eyJ)[A-Za-z0-9_\.-]+['""]") {
       return $true
@@ -270,12 +259,6 @@ function Add-SecretFinding {
     }
   }
 
-  # Gitleaks can flag skill documentation based on rule names even when the
-  # reported line is empty, redacted, or unrelated to the rule label. Keep this
-  # narrow: only allow known documentation/example rule classes inside agent
-  # skill reference docs or SKILL.md files, after concrete secret-shape checks
-  # in Test-IsAllowedPlaceholderLine have already had a chance to reject real
-  # tokens.
   $isAgentSkillDoc = $safeFile -match "(?i)^\.?agents/skills/[^/]+/(references/.+|SKILL\.md)$"
   $isDocumentationRule = $Type -match "(?i)(authorization token|curl command header|OpenAI API key|Generic API Key|Secret assignment)"
   $hasConcreteSecretShape = (
@@ -370,10 +353,6 @@ foreach ($file in $files) {
   }
 }
 
-# Known false positive:
-# gitleaks can flag the data-visualization skill reference list as "OpenAI API key"
-# even though the uploaded/current SKILL.md line is only a documentation reference line.
-# Keep this suppression exact so real OpenAI keys elsewhere still fail.
 $reportableFindings = @(
   $findings | Where-Object {
     -not (

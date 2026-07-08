@@ -4,6 +4,7 @@ import { DataTableLayout } from "../../../components/layout/DataTableLayout";
 import type { NormalizedSourceItem } from "@/modules/sources";
 
 type RankedItemsTableProps = {
+  backend: "supabase" | "local-fallback";
   items: NormalizedSourceItem[];
 };
 
@@ -51,12 +52,18 @@ const columns: ColumnDef<NormalizedSourceItem>[] = [
   },
 ];
 
-export function RankedItemsTable({ items }: RankedItemsTableProps) {
+export function RankedItemsTable({ backend, items }: RankedItemsTableProps) {
   return (
     <DataTableLayout
       columns={columns}
       data={items}
-      toolbar={<p className="dashboard-route__table-note">Fixture-backed feed. Supabase persistence boundary is in place for the next slice.</p>}
+      toolbar={
+        <p className="dashboard-route__table-note">
+          {backend === "supabase"
+            ? "Persisted feed from the configured Supabase workspace."
+            : "Persisted local fallback feed. Refreshes stay in this browser until Supabase is reachable."}
+        </p>
+      }
       emptyDescription="Adjust sources or keyword filters to bring candidate signals back into scope."
       emptyTitle="No signals match the current filters"
     />

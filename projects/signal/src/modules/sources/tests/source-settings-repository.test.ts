@@ -20,13 +20,16 @@ function createSupabaseTableMock(responses: Array<{ data: unknown; error: { mess
       return Promise.resolve(next);
     }),
     eq: vi.fn(() => builder),
-    upsert: vi.fn(() => builder),
   };
 
   return {
     builder,
     client: {
       from: vi.fn(() => builder),
+      rpc: vi.fn(() => {
+        const next = queue.shift() ?? { data: null, error: null };
+        return Promise.resolve(next);
+      }),
     },
   };
 }
@@ -35,15 +38,14 @@ describe("source settings repository", () => {
   test("documents the migration contract with RLS and internal MVP warnings", () => {
     const migrationPath = path.resolve(
       import.meta.dirname,
-      "../../../../supabase/migrations/002_live_source_settings.sql"
+      "../../../../supabase/migrations/003_signal_live_ingestion.sql"
     );
     const migration = readFileSync(migrationPath, "utf8");
 
-    expect(migration).toContain("create table if not exists public.signal_preferences");
-    expect(migration).toContain("alter table public.source_settings enable row level security");
-    expect(migration).toContain("alter table public.signal_preferences enable row level security");
+    expect(migration).toContain("create or replace function public.save_signal_settings");
+    expect(migration).toContain("security definer");
     expect(migration).toContain("Internal MVP browser settings only");
-    expect(migration).toContain("grant select, insert, update on public.source_settings to anon, authenticated");
+    expect(migration).toContain("revoke insert, update, delete on public.source_settings");
     expect(migration).not.toContain("service_role");
   });
 
@@ -138,11 +140,13 @@ describe("source settings repository", () => {
     };
     const { client } = createSupabaseTableMock([
       {
-        data: createSourceSettingsRows(settings).map((row) => ({ ...row, updated_at: null })),
-        error: null,
-      },
-      {
-        data: [{ ...createSignalPreferencesRow(settings), updated_at: null }],
+        data: {
+          source_rows: createSourceSettingsRows(settings).map((row) => ({
+            ...row,
+            updated_at: null,
+          })),
+          preference_rows: [{ ...createSignalPreferencesRow(settings), updated_at: null }],
+        },
         error: null,
       },
     ]);

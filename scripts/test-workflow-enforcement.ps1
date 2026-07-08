@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $common = Join-Path $root "scripts\common.ps1"
 $validator = Join-Path $root "scripts\validate-workflow-receipts.ps1"
+$obligationsScript = Join-Path $root "scripts\get-workflow-obligations.ps1"
 $tmpRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-workflow-test-" + [guid]::NewGuid().ToString("N"))
 
 . $common
@@ -51,6 +52,7 @@ Tasks path: specs/001-initial/tasks.md
 # 001 Fixture Specification
 
 - Risk level: sensitive
+- Authorization: no-auth internal MVP; public launch remains blocked
 "@
 
   Write-TextFile -Path (Join-Path $projectPath "specs\001-initial\tasks.md") -Content "# tasks"
@@ -148,6 +150,38 @@ function Assert-Passes {
   & $validator -ProjectPath $ProjectPath -ChangedFilesJson $ChangedFilesJson -RequireVerificationEvidence *> $null
 }
 
+function Initialize-GitWorkflowFixture {
+  $repoPath = Join-Path $tmpRoot "workflow-obligations-git"
+  New-Item -ItemType Directory -Force -Path (Join-Path $repoPath "src\components") | Out-Null
+  New-Item -ItemType Directory -Force -Path (Join-Path $repoPath "supabase\migrations") | Out-Null
+
+  Push-Location $repoPath
+  try {
+    git init | Out-Null
+    git config user.email "fixture@example.com"
+    git config user.name "Fixture"
+
+    Write-TextFile -Path (Join-Path $repoPath "README.md") -Content "# fixture"
+    git add .
+    git commit -m "base" | Out-Null
+    $baseCommit = (git rev-parse HEAD).Trim()
+
+    Write-TextFile -Path (Join-Path $repoPath "src\components\Button.tsx") -Content "export const Button = () => null;"
+    Write-TextFile -Path (Join-Path $repoPath "supabase\migrations\001.sql") -Content "select 1;"
+    git add .
+    git commit -m "feature" | Out-Null
+
+    Write-TextFile -Path (Join-Path $repoPath "src\app.css") -Content ".app { display: grid; }"
+
+    return @{
+      RepoPath = $repoPath
+      BaseCommit = $baseCommit
+    }
+  } finally {
+    Pop-Location
+  }
+}
+
 try {
   New-Item -ItemType Directory -Force -Path $tmpRoot | Out-Null
 
@@ -178,6 +212,25 @@ try {
 
   $docsOnly = New-FixtureProject -Name "docs-only"
   Assert-Passes -ProjectPath $docsOnly -ChangedFilesJson '{"uiChange":{"required":false},"dataChange":{"required":false},"mobileValidation":{"required":false},"releaseReadiness":{"required":false}}'
+
+  $gitFixture = Initialize-GitWorkflowFixture
+  $obligations = & $obligationsScript -ProjectPath $gitFixture.RepoPath -BaseRef $gitFixture.BaseCommit -JsonSummary | ConvertFrom-Json
+
+  if (-not $obligations.uiChange.required) {
+    throw "Expected UI workflow obligation from committed-tree diff."
+  }
+  if (-not $obligations.dataChange.required) {
+    throw "Expected data workflow obligation from committed-tree diff."
+  }
+  if (-not ($obligations.changedFiles -contains "src/components/Button.tsx")) {
+    throw "Expected committed UI file in obligation diff."
+  }
+  if (-not ($obligations.changedFiles -contains "supabase/migrations/001.sql")) {
+    throw "Expected committed migration file in obligation diff."
+  }
+  if (-not ($obligations.changedFiles -contains "src/app.css")) {
+    throw "Expected working-tree file overlay in obligation diff."
+  }
 
   Write-Host "Workflow enforcement tests passed."
 } finally {

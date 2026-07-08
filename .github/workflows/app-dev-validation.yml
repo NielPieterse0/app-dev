@@ -58,6 +58,10 @@ jobs:
         shell: pwsh
         run: ./scripts/test-analyze-spec.ps1
 
+      - name: Analyze Signal spec artifacts
+        shell: pwsh
+        run: ./scripts/analyze-spec.ps1 -ProjectPath projects/signal
+
       - name: Scan for secrets
         shell: pwsh
         run: ./scripts/scan-secrets.ps1

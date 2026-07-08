@@ -1,8 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
-  createSignalPreferencesRow,
-  createSourceSettingsRows,
   mapPersistedRowsToSourceSettings,
+  mapSignalSettingsRpcPayload,
   type SourceSettingsRepository,
 } from "./source-settings-repository";
 
@@ -35,31 +34,16 @@ export function createSupabaseSourceSettingsRepository(
       );
     },
     async save(settings) {
-      const sourceRows = createSourceSettingsRows(settings);
-      const sourceResponse = await client
-        .from("source_settings")
-        .upsert(sourceRows, { onConflict: "source" })
-        .select("source, enabled, updated_at");
+      const response = await client.rpc("save_signal_settings", {
+        enabled_sources_input: settings.enabledSources,
+        include_keywords_input: settings.includeKeywords,
+      });
 
-      if (sourceResponse.error) {
-        throw new Error(`Failed to save source settings: ${sourceResponse.error.message}`);
+      if (response.error) {
+        throw new Error(`Failed to save signal settings: ${response.error.message}`);
       }
 
-      const preferenceResponse = await client
-        .from("signal_preferences")
-        .upsert(createSignalPreferencesRow(settings), { onConflict: "preference_key" })
-        .select("preference_key, include_keywords, updated_at");
-
-      if (preferenceResponse.error) {
-        throw new Error(
-          `Failed to save signal preferences: ${preferenceResponse.error.message}`
-        );
-      }
-
-      return mapPersistedRowsToSourceSettings(
-        sourceResponse.data ?? [],
-        preferenceResponse.data ?? []
-      );
+      return mapSignalSettingsRpcPayload(response.data);
     },
   };
 }

@@ -10,7 +10,9 @@ import {
 
 const sourcesState = {
   enabledSources: ["github", "hacker_news"] as ("github" | "hacker_news")[],
+  hasHydrated: false,
   includeKeywordsText: "agents, research",
+  isDirty: false,
   hydrateFromSettings: vi.fn(),
   setSourceEnabled: vi.fn(),
   setIncludeKeywordsText: vi.fn(),
@@ -49,7 +51,9 @@ function renderSettings(initialEntry = "/settings") {
 describe("SettingsRoute", () => {
   beforeEach(() => {
     sourcesState.enabledSources = ["github", "hacker_news"];
+    sourcesState.hasHydrated = false;
     sourcesState.includeKeywordsText = "agents, research";
+    sourcesState.isDirty = false;
     sourcesState.hydrateFromSettings.mockReset();
     sourcesState.setSourceEnabled.mockReset();
     sourcesState.setIncludeKeywordsText.mockReset();
@@ -64,7 +68,14 @@ describe("SettingsRoute", () => {
       isLoading: false,
       isSaving: false,
       error: null,
-      saveSettings: vi.fn().mockResolvedValue(undefined),
+      saveSettings: vi.fn().mockResolvedValue({
+        settings: {
+          enabledSources: ["github", "hacker_news"],
+          includeKeywords: ["agents", "research"],
+        },
+        backend: "supabase",
+        degradedReason: null,
+      }),
     });
   });
 
@@ -74,7 +85,7 @@ describe("SettingsRoute", () => {
     expect(sourcesState.hydrateFromSettings).toHaveBeenCalledWith({
       enabledSources: ["github", "hacker_news"],
       includeKeywords: ["agents", "research"],
-    });
+    }, { force: true });
     expect(screen.getByRole("button", { name: "Enabled GitHub" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Enabled Hacker News" })).toBeInTheDocument();
   });
@@ -99,7 +110,14 @@ describe("SettingsRoute", () => {
   });
 
   test("shows save confirmation after a successful save", async () => {
-    const saveSettings = vi.fn().mockResolvedValue(undefined);
+    const saveSettings = vi.fn().mockResolvedValue({
+      settings: {
+        enabledSources: ["github", "hacker_news"],
+        includeKeywords: ["agents", "research"],
+      },
+      backend: "supabase",
+      degradedReason: null,
+    });
     useSourceSettingsMock.mockReturnValue({
       settings: {
         enabledSources: ["github", "hacker_news"],

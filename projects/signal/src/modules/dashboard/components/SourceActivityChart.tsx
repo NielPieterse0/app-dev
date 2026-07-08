@@ -1,6 +1,8 @@
 import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import {
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
@@ -29,12 +31,13 @@ export function SourceActivityChart({ activity }: SourceActivityChartProps) {
         <LineChart accessibilityLayer data={activity}>
           <CartesianGrid vertical={false} />
           <XAxis axisLine={false} dataKey="label" tickLine={false} tickMargin={8} />
+          <ChartLegend content={<ChartLegendContent />} />
           <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
           <Line dataKey="github" dot={false} stroke="var(--color-github)" strokeWidth={2} type="monotone" />
           <Line
             dataKey="hacker_news"
             dot={false}
-            stroke="var(--color-hacker-news)"
+            stroke="var(--color-hacker_news)"
             strokeWidth={2}
             type="monotone"
           />

@@ -177,6 +177,12 @@ if (((Test-CompletedStatus -Status $specStatus) -or (Test-CompletedStatus -Statu
   Add-Failure "Completed artifacts may not contain unresolved NEEDS CLARIFICATION markers."
 }
 
+$mentionsNoAuth = $specContent -match '(?i)\bno-auth\b|\banon(ymous)?\b'
+$hasNoAuthGuardrail = $specContent -match '(?i)(internal[- ]mvp|not production|not production-ready|public launch|public-launch safe|blocks public launch)'
+if ($mentionsNoAuth -and -not $hasNoAuthGuardrail) {
+  Add-Failure "No-auth or anonymous browser-access wording must also state the internal-MVP or not-production/public-launch guardrail."
+}
+
 if ($failures.Count -gt 0) {
   Write-CorrectiveFailure -Summary "Spec analysis failed:" -Failures $failures
 }

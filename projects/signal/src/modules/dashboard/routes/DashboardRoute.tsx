@@ -1,4 +1,5 @@
 import { PageHeader } from "../../../app/PageHeader";
+import { Button } from "../../../components/ui/button";
 import { EmptyState, ErrorState, LoadingState } from "../../../components/state";
 import { getEnabledKeywordFilters, useSourcePreferencesStore } from "@/modules/sources";
 import { RankedItemsTable } from "../components/RankedItemsTable";
@@ -12,7 +13,16 @@ import "./dashboard-route.css";
 export function DashboardRoute() {
   const enabledSources = useSourcePreferencesStore((state) => state.enabledSources);
   const includeKeywordsText = useSourcePreferencesStore((state) => state.includeKeywordsText);
-  const { data, error, isLoading } = useRankedItems({
+  const {
+    backend,
+    degradedReason,
+    error,
+    isLoading,
+    isRefreshing,
+    items: data,
+    lastRefreshedAt,
+    refreshItems,
+  } = useRankedItems({
     enabledSources,
     includeKeywords: getEnabledKeywordFilters(includeKeywordsText),
   });
@@ -32,14 +42,48 @@ export function DashboardRoute() {
         description="Rank public GitHub and Hacker News signals before they become app concepts."
       />
 
+      <div className="dashboard-route__toolbar">
+        <div className="dashboard-route__toolbar-copy">
+          <p className="dashboard-route__meta">
+            Feed backend:{" "}
+            {backend === "supabase"
+              ? "Supabase persisted source feed"
+              : "local fallback persisted source feed"}
+          </p>
+          <p className="dashboard-route__meta">
+            {lastRefreshedAt
+              ? `Last refresh: ${new Date(lastRefreshedAt).toLocaleString()}`
+              : "No persisted feed yet. Run a manual refresh to ingest live signals."}
+          </p>
+          {degradedReason ? (
+            <p className="dashboard-route__meta">Degraded mode reason: {degradedReason}</p>
+          ) : null}
+        </div>
+        <Button disabled={isRefreshing} onClick={() => void refreshItems()} type="button">
+          {isRefreshing ? "Refreshing live feed..." : "Refresh live feed"}
+        </Button>
+      </div>
+
       <div className="dashboard-route__filters">
-        <button type="button" onClick={() => setSelectedSource("all")}>
+        <button
+          aria-pressed={selectedSource === "all"}
+          type="button"
+          onClick={() => setSelectedSource("all")}
+        >
           All
         </button>
-        <button type="button" onClick={() => setSelectedSource("github")}>
+        <button
+          aria-pressed={selectedSource === "github"}
+          type="button"
+          onClick={() => setSelectedSource("github")}
+        >
           GitHub
         </button>
-        <button type="button" onClick={() => setSelectedSource("hacker_news")}>
+        <button
+          aria-pressed={selectedSource === "hacker_news"}
+          type="button"
+          onClick={() => setSelectedSource("hacker_news")}
+        >
           Hacker News
         </button>
       </div>
@@ -55,8 +99,16 @@ export function DashboardRoute() {
 
       {!isLoading && !error && !items.length ? (
         <EmptyState
-          title="No signals match the current view"
-          description="Enable more sources or relax the keyword filter in Settings to widen the scouting net."
+          title={
+            lastRefreshedAt
+              ? "No signals match the current view"
+              : "No persisted signals yet"
+          }
+          description={
+            lastRefreshedAt
+              ? "Enable more sources or relax the keyword filter in Settings to widen the scouting net."
+              : "Run a manual refresh to ingest live GitHub and Hacker News signals into the persisted feed."
+          }
         />
       ) : null}
 
@@ -69,7 +121,7 @@ export function DashboardRoute() {
             totalItems={summary.totalItems}
           />
           <SourceActivityChart activity={activity} />
-          <RankedItemsTable items={items} />
+          <RankedItemsTable backend={backend} items={items} />
         </>
       ) : null}
     </div>

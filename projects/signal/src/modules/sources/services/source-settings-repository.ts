@@ -22,15 +22,20 @@ export const defaultSourceSettings: SourceSettings = sourceSettingsSchema.parse(
 });
 
 const sourceSettingsRowSchema = z.object({
-  source: sourceKindSchema,
   enabled: z.boolean(),
+  source: sourceKindSchema,
   updated_at: z.string().nullable().optional(),
 });
 
 const signalPreferencesRowSchema = z.object({
-  preference_key: z.literal("default"),
   include_keywords: z.array(z.string()).default([]),
+  preference_key: z.literal("default"),
   updated_at: z.string().nullable().optional(),
+});
+
+const signalSettingsRpcResultSchema = z.object({
+  preference_rows: z.array(signalPreferencesRowSchema).max(1).default([]),
+  source_rows: z.array(sourceSettingsRowSchema).default([]),
 });
 
 export const sourceSettingsRowsSchema = z.array(sourceSettingsRowSchema);
@@ -49,7 +54,9 @@ export function mapPersistedRowsToSourceSettings(
   );
 
   const enabledSources = sourceKinds.filter((source) =>
-    parsedSourceRows.length ? enabledSourceSet.has(source) : defaultSourceSettings.enabledSources.includes(source)
+    parsedSourceRows.length
+      ? enabledSourceSet.has(source)
+      : defaultSourceSettings.enabledSources.includes(source)
   );
   const preferenceRow = parsedPreferenceRows[0];
 
@@ -75,4 +82,13 @@ export function createSignalPreferencesRow(settings: SourceSettings) {
     preference_key: "default" as const,
     include_keywords: parsedSettings.includeKeywords,
   };
+}
+
+export function mapSignalSettingsRpcPayload(payload: unknown) {
+  const parsedPayload = signalSettingsRpcResultSchema.parse(payload);
+
+  return mapPersistedRowsToSourceSettings(
+    parsedPayload.source_rows,
+    parsedPayload.preference_rows
+  );
 }
