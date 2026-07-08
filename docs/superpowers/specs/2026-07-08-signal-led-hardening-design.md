@@ -1,7 +1,7 @@
 # Signal-Led App-Dev Hardening Design
 
 Date: 2026-07-08
-Status: Draft for user review
+Status: Revised after plugin and local workflow review
 
 ## Purpose
 
@@ -19,6 +19,24 @@ This phase has four coupled lanes:
 4. Idea-to-product intake.
 
 The lanes must move together. A Signal feature should validate or improve a concrete part of the harness, and a harness change should be justified by a real Signal or project-assembly need.
+
+## Capability Routing
+
+The app-dev local workflows remain the enforceable contract. External plugin skills are accelerators that must be recorded in workflow receipts when used or unavailable.
+
+Use this routing for the phase:
+
+- `cross-platform-app-workflow`: required local workflow for Signal scaffolding, modular app work, and verification.
+- `ui-change-workflow`: required for routes, components, layouts, styles, rendered UI behavior, and responsive checks.
+- `data-change-workflow`: required for Supabase, SQL, RLS, migrations, schemas, and data access changes.
+- `release-readiness-workflow`: required for completion claims, PR readiness, deploy-adjacent work, secrets, public APIs, auth, live migrations, or production-readiness surfaces.
+- GitHub plugin: repository orientation, PR/issue context, PR creation, review follow-up, and GitHub workflow triage.
+- Codex Security plugin: threat-model creation, scoped security scans, finding validation, and attack-path analysis for high-risk changes or release gates.
+- Supabase plugin: Postgres schema, query, RLS, connection, and performance review.
+- Product Design plugin: product UI brief confirmation, UX direction, and interface exploration before major UI buildout.
+- Data Analytics plugin: product proof metrics, opportunity sizing, source authority, and Signal scoring/idea-quality evaluation.
+- Creative Production plugin: brand, positioning, mood board, scene, ad, or asset exploration when Signal or future products need market-facing creative direction.
+- CircleCI plugin: only when a project intentionally uses CircleCI or when GitHub Actions is insufficient for CI needs; otherwise GitHub Actions remains the default CI baseline.
 
 ## App-Dev Core Constitution
 
@@ -52,6 +70,19 @@ New libraries, UI components, workflow patterns, and backend services must be ad
 
 Each adoption that changes app-dev defaults must document why the source is trusted, what problem it solves, and whether it belongs in the core template, an optional module, or project-local code only.
 
+### Library And Module Adoption Routine
+
+Every new reusable module, library, or service must pass an adoption routine before it becomes an app-dev default:
+
+1. Define the product or harness problem it solves.
+2. Check whether an existing repo module, template, script, or standard already covers the need.
+3. Check the approved source hierarchy and prefer official docs or mature stack libraries.
+4. Record free-tier, license, security, maintenance, and portability implications.
+5. Decide the placement: core template, optional app module, project-local dependency, or rejected.
+6. Add or update tests, examples, standards, and workflow receipts that make the adoption repeatable.
+
+Project-local experimentation is allowed, but promotion into app-dev core requires evidence from at least one real project slice and a recorded backport decision.
+
 ## Compliance And Security Baseline
 
 Compliance is part of product design, not launch cleanup. This baseline is engineering governance, not legal advice.
@@ -77,8 +108,21 @@ Baseline checks for all apps:
 - Supabase checks for publishable keys only, no service-role leakage, migrations, backup/export posture, RLS posture when user data or multi-user access exists
 - GDPR-oriented checks for purpose limitation, minimization, retention, access/export/delete readiness, security controls, and accountability
 - launch checklist for privacy notice, cookies/tracking, production monitoring, rollback, domains, and support/contact path
+- repository threat model for apps that introduce auth, personal data, public APIs, payments, uploads, AI tool actions, production deployment, or multi-user access
+- scoped security scan before public launch and after material changes to auth, RLS, secrets, public APIs, payments, uploads, or AI tool actions
 
 Sensitive features require an expanded checklist before implementation. Sensitive features include auth, payments, public APIs, user content, uploads, personal data, live migrations, AI tool actions, and production deployment.
+
+### Security Review Routine
+
+Security review is risk-triggered:
+
+1. Low-risk personal/internal slices use the baseline checklist, secret scan, dependency checks, and workflow receipts.
+2. Data, auth, public API, RLS, or deployment changes require a threat-model note in the active spec or a repo-scoped threat model when the app is becoming productized.
+3. Public launch, customer data, payments, file uploads, AI tool actions, or production auth require Codex Security review or an equivalent documented security review before release.
+4. Findings must be recorded as fixed, accepted risk, deferred with reason, or not applicable.
+
+Signal v1 is low-risk if it remains single-user, no-auth, public-source-only, and internal. It becomes higher risk when it adds accounts, sharing, private notes, user profiles, public APIs, or production deployment.
 
 ## GitHub Requirements
 
@@ -99,6 +143,12 @@ The root repo should maintain:
 
 GitHub tier limits must be treated like any other free-tier boundary. Use free capabilities until a product or governance need justifies an upgrade.
 
+### CI Provider Rule
+
+GitHub Actions is the default CI provider because it is already aligned with GitHub repository governance. CircleCI is an approved optional provider only when a project documents a reason such as workflow portability, better parallelism, runner needs, queue/runtime constraints, or a customer/team requirement.
+
+When CircleCI is used, its config must follow the CircleCI config workflow: establish baseline job duration and flake data, remove duplicate pipeline work, use deterministic lockfile-based cache keys, separate caches from workspaces and artifacts, and validate runtime or reliability impact. CircleCI free-tier limits must be recorded before adoption.
+
 ### Project GitHub Routine
 
 Each real app under `projects/<app>` should normally become its own repository once it is more than a local scaffold. Before that split, app-dev owns its assembly evidence.
@@ -114,6 +164,16 @@ Project repos should preserve:
 - secrets kept out of git
 - release-readiness evidence before public launch
 
+Project GitHub setup should also define:
+
+- repository visibility and ownership
+- branch protection expectations available on the current plan
+- required checks for merge
+- secret locations and environment names
+- dependency update cadence
+- issue labels or project tracking fields for product, security, compliance, and harness-backport work
+- release tag and changelog routine once the app is public
+
 ## Projects Core Assembly Methodology
 
 The projects core is the method for turning a scoped product into a built app under `projects/`.
@@ -124,6 +184,18 @@ The projects core is the method for turning a scoped product into a built app un
 4. Data assembly: define Supabase schema, migrations, RLS posture, TanStack Query hooks, Zod schemas, retention, and source terms.
 5. Verification assembly: run typecheck, lint, tests, build, e2e when available, rendered desktop/mobile checks, workflow receipt validation, and launch-readiness checks.
 6. Backport loop: record reusable discoveries and promote them into app-dev core only when Signal proves they are generally useful.
+
+### Assembly Evidence
+
+Each project should maintain assembly evidence in its active spec, `PLAN.md`, or workflow receipts:
+
+- which template was used and why
+- which modules were reused unchanged
+- which modules were adapted
+- which libraries were selected from approved sources
+- which new custom code was necessary and why
+- which decisions should be backported to app-dev core
+- which decisions should remain project-local
 
 ## Idea-To-Product Intake
 
@@ -139,6 +211,8 @@ The intake pipeline is:
 6. Development loop: build vertical slices, verify them, and backport reusable improvements.
 
 No idea should become a project until it has passed concept brief, product spec, app-dev import, and assembly plan.
+
+The concept brief should include an evidence score, not just a narrative. Signal should track enough source metadata to support product-business analysis: source count, source authority, recency, engagement, repeated mentions, category, target user, comparable products, and confidence. Future dashboards can use those fields to evaluate whether Signal is producing useful product ideas.
 
 ## Signal V1 Reference App
 
@@ -165,8 +239,19 @@ V1 technical scope:
 - Zod for source payload validation and normalized item schemas
 - tests for adapters, scoring, schemas, and key UI flows
 - rendered desktop and mobile checks before handoff
+- data-quality checks for duplicate source items, malformed payloads, stale sources, and scoring edge cases
+- product-proof metrics for idea volume, source coverage, ranking usefulness, and concept conversion rate
 
 Supabase Free tier is allowed for Signal because this is a personal/internal MVP. The app must document free-tier operating boundaries, including the risk that a free project can pause after inactivity and that free quotas can change. Before production or public use, the live Supabase pricing page must be checked and the app `PLAN.md` must record whether Free remains acceptable or Pro is required.
+
+Signal database work must follow Supabase/Postgres guardrails:
+
+- migrations are source controlled
+- exposed-schema tables have RLS deliberately enabled or a documented reason why they are not exposed to untrusted clients
+- service-role keys are never used in browser code or committed
+- source-item queries have indexes for source, external id, published time, score, and status as needed
+- scoring logic is testable outside the database before it is promoted into views or functions
+- retention rules are recorded before source volume grows beyond MVP scale
 
 ## First Implementation Slice
 
@@ -178,8 +263,10 @@ The first implementation slice should produce both product value and harness evi
 4. Add the first Supabase schema/migration artifacts for persisted source items and settings.
 5. Add local mock ingestion for GitHub and Hacker News payloads before depending on scheduled production ingestion.
 6. Build the initial ranked feed from persisted or fixture-backed items.
-7. Run app-dev project artifact checks and app verification.
-8. Record every harness gap as either fixed immediately, deferred, or rejected as not general enough.
+7. Add workflow receipts for UI, data, and release-readiness obligations.
+8. Run app-dev project artifact checks and app verification.
+9. Record every harness gap as either fixed immediately, deferred, or rejected as not general enough.
+10. Record plugin accelerators used or unavailable in the relevant receipts.
 
 ## Non-Goals
 
@@ -188,6 +275,8 @@ The first implementation slice should produce both product value and harness evi
 - Do not add all source adapters before the GitHub and Hacker News adapter pattern is proven.
 - Do not adopt paid tiers before product proof or production need is recorded.
 - Do not add new custom framework code when existing app-dev patterns or proven libraries are sufficient.
+- Do not introduce CircleCI as a second CI system unless a documented project or governance need outweighs the added maintenance surface.
+- Do not run a full repository-wide security scan for every small internal slice; escalate security review by risk trigger.
 
 ## Source Anchors
 
@@ -195,7 +284,10 @@ The first implementation slice should produce both product value and harness evi
 - GitHub pricing and plan boundaries: https://github.com/pricing
 - GitHub security features: https://docs.github.com/en/code-security/getting-started/github-security-features
 - GitHub Actions usage and administration: https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/usage-limits-billing-and-administration
+- CircleCI pricing and plan boundaries: https://circleci.com/pricing/
+- CircleCI config optimization: local CircleCI config skill
 - OWASP ASVS: https://owasp.org/www-project-application-security-verification-standard/
+- Supabase RLS: https://supabase.com/docs/guides/database/postgres/row-level-security
 - European Commission data protection: https://commission.europa.eu/law/law-topic/data-protection_en
 - GDPR Article 5 principles: https://gdpr.eu/article-5-how-to-process-personal-data/
 - WAI-ARIA APG: https://www.w3.org/WAI/ARIA/apg/
