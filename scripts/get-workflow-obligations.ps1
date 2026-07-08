@@ -84,7 +84,13 @@ if (-not $ChangedFiles -or $ChangedFiles.Count -eq 0) {
   }
 }
 
-$normalizedFiles = @($ChangedFiles | ForEach-Object { Normalize-RelativePath -BasePath $ProjectPath -Candidate $_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+$normalizedFiles = @(
+  $ChangedFiles |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    ForEach-Object { Normalize-RelativePath -BasePath $ProjectPath -Candidate $_ } |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    Select-Object -Unique
+)
 
 $result = [ordered]@{
   projectPath = $ProjectPath
