@@ -157,6 +157,10 @@ function Assert-GeneratedProject {
     if ($LASTEXITCODE -ne 0) {
       Write-Error "check-spec-artifacts.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
     }
+    & (Join-Path $root "scripts/analyze-spec.ps1") -ProjectPath "."
+    if ($LASTEXITCODE -ne 0) {
+      Write-Error "analyze-spec.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
+    }
     & (Join-Path $root "scripts/validate-workflow-receipts.ps1") -ProjectPath "."
     if ($LASTEXITCODE -ne 0) {
       Write-Error "validate-workflow-receipts.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
@@ -166,14 +170,14 @@ function Assert-GeneratedProject {
   }
 }
 
-function Assert-IgnoredByRootGitignore {
+function Assert-TrackedByRootGitignore {
   param([Parameter(Mandatory=$true)][string]$RelativePath)
 
   Push-Location $root
   try {
-    & git check-ignore -v $RelativePath | Out-Host
-    if ($LASTEXITCODE -ne 0) {
-      Write-Error "Expected $RelativePath to be ignored by the root .gitignore projects/* rule."
+    & git check-ignore -v $RelativePath *> $null
+    if ($LASTEXITCODE -eq 0) {
+      Write-Error "Expected $RelativePath to remain trackable by the root repository."
     }
   } finally {
     Pop-Location
@@ -185,6 +189,7 @@ try {
   & (Join-Path $root "scripts/validate-codex-assets.ps1") -RequirePythonToml:$true
   & (Join-Path $root "scripts/test-hooks.ps1")
   & (Join-Path $root "scripts/test-workflow-enforcement.ps1")
+  & (Join-Path $root "scripts/test-analyze-spec.ps1")
 
   foreach ($project in $projectMatrix) {
     $projectPath = Join-Path $root "projects/$($project.Name)"
@@ -193,7 +198,7 @@ try {
     Assert-GeneratedProject -Project $project
   }
 
-  Assert-IgnoredByRootGitignore -RelativePath "projects/__verify-react-vite-capacitor/package.json"
+  Assert-TrackedByRootGitignore -RelativePath "projects/__verify-react-vite-capacitor/package.json"
 
   Write-Host "Workspace tests passed."
 } finally {

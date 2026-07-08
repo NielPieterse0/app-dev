@@ -44,7 +44,7 @@ describe("module boundary lint rule", () => {
       expect.objectContaining({
         ruleId: "app-dev/enforce-module-boundaries",
         message:
-          "Import from the module public API (`@/modules/auth`) instead of another module’s internal files.",
+          "Import from the module public API (`@/modules/dashboard`) instead of another module’s internal files.",
       }),
     ]);
   });

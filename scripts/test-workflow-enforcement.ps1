@@ -1,8 +1,11 @@
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
+$common = Join-Path $root "scripts\common.ps1"
 $validator = Join-Path $root "scripts\validate-workflow-receipts.ps1"
 $tmpRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-workflow-test-" + [guid]::NewGuid().ToString("N"))
+
+. $common
 
 function Write-TextFile {
   param(
@@ -127,7 +130,7 @@ function Assert-Fails {
   )
 
   try {
-    & $validator -ProjectPath $ProjectPath -ChangedFilesJson $ChangedFilesJson -RequireVerificationEvidence:$true *> $null
+    & $validator -ProjectPath $ProjectPath -ChangedFilesJson $ChangedFilesJson -RequireVerificationEvidence *> $null
     throw "Expected validator failure for $ProjectPath"
   } catch {
     if ($_.Exception.Message -like "Expected validator failure*") {
@@ -142,11 +145,24 @@ function Assert-Passes {
     [Parameter(Mandatory=$true)][string]$ChangedFilesJson
   )
 
-  & $validator -ProjectPath $ProjectPath -ChangedFilesJson $ChangedFilesJson -RequireVerificationEvidence:$true *> $null
+  & $validator -ProjectPath $ProjectPath -ChangedFilesJson $ChangedFilesJson -RequireVerificationEvidence *> $null
 }
 
 try {
   New-Item -ItemType Directory -Force -Path $tmpRoot | Out-Null
+
+  foreach ($risk in @("gated", "sensitive")) {
+    if (-not (Test-GatedRiskLevel -RiskLevel $risk)) {
+      throw "Expected '$risk' to require gated artifacts."
+    }
+  }
+
+  $bareSwitchProject = New-FixtureProject -Name "bare-switch" -IncludeChecklist
+  try {
+    & $validator -ProjectPath $bareSwitchProject -ChangedFilesJson '{"uiChange":{"required":false},"dataChange":{"required":true},"mobileValidation":{"required":false},"releaseReadiness":{"required":false}}' -RequireVerificationEvidence *> $null
+  } catch {
+    throw "Bare -RequireVerificationEvidence must be accepted."
+  }
 
   $uiProject = New-FixtureProject -Name "ui-missing-receipt" -UiNotRun
   Assert-Fails -ProjectPath $uiProject -ChangedFilesJson '{"uiChange":{"required":true},"dataChange":{"required":false},"mobileValidation":{"required":false},"releaseReadiness":{"required":false}}'

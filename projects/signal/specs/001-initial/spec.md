@@ -1,6 +1,6 @@
 # 001 Signal Foundation Specification
 
-- Status: in-progress
+- Status: completed
 - Risk level: gated
 - App: signal
 - Created: 2026-07-08

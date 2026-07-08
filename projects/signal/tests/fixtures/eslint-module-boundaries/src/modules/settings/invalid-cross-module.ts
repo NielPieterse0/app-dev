@@ -1,3 +1,3 @@
-import { requireAuthSession } from "../auth/loaders/requireAuthSession";
+import { buildTrendSummary } from "../dashboard/services/dashboard-service";
 
-export const loader = requireAuthSession;
+export const loader = buildTrendSummary;

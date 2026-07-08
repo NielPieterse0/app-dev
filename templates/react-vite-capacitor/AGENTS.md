@@ -21,6 +21,7 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Template modules: App shell, navigation shell, page header, list/detail layouts, form layout, data table layout, state primitives, and template reference surfaces.
 - Platforms: desktop web, mobile web, Android, and iOS unless a generated app narrows the target set.
 - Native requirements: Capacitor shell only; generated apps add platform folders and native APIs when the product requires them. Do not keep `android/` or `ios/` under this shared template.
+- Repository model: generated apps remain tracked in the root `app-dev` repository unless a later recorded decision splits them out.
 
 ## Required Before Feature Work
 

@@ -54,6 +54,10 @@ jobs:
         shell: pwsh
         run: ./scripts/test-workflow-enforcement.ps1
 
+      - name: Test spec analysis
+        shell: pwsh
+        run: ./scripts/test-analyze-spec.ps1
+
       - name: Scan for secrets
         shell: pwsh
         run: ./scripts/scan-secrets.ps1
@@ -61,3 +65,41 @@ jobs:
       - name: Test project generation
         shell: pwsh
         run: ./scripts/test-workspace.ps1
+
+  signal-validation:
+    name: Signal validation
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: projects/signal
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: E2E
+        run: npm run e2e

@@ -1,8 +1,8 @@
 param(
   [string]$ProjectPath = (Get-Location).Path,
-  [bool]$RequireAnyCheck = $true,
-  [bool]$IncludeE2E = $true,
-  [bool]$JsonSummary = $false
+  [switch]$RequireAnyCheck = $true,
+  [switch]$IncludeE2E = $true,
+  [switch]$JsonSummary
 )
 
 $ErrorActionPreference = "Stop"

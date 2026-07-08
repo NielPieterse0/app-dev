@@ -4,7 +4,7 @@ This workspace uses a translated local spec-driven workflow inspired by `spec-ki
 
 ## Constitution
 
-Root `AGENTS.md` is the only constitution for this workspace. Do not create a second source of truth for project principles.
+`standards/constitution.md` is the stable principle set for this workspace. Keep operational mechanics in this workflow standard and other delegated standards instead of duplicating them in the constitution.
 
 ## Artifact Roles
 

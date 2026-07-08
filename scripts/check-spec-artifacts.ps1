@@ -3,11 +3,13 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$commonPath = Join-Path $PSScriptRoot "common.ps1"
+. $commonPath
 $failures = New-Object System.Collections.Generic.List[string]
 
 function Add-Failure {
   param([Parameter(Mandatory=$true)][string]$Message)
-  $failures.Add($Message) | Out-Null
+  Add-HarnessFailure -Failures $failures -Message $Message
 }
 
 function Assert-Contains {
@@ -25,11 +27,7 @@ function Assert-Contains {
   return $content
 }
 
-if (-not (Test-Path -LiteralPath $ProjectPath)) {
-  Write-Error "Project path does not exist: $ProjectPath"
-}
-
-$ProjectPath = (Resolve-Path -LiteralPath $ProjectPath).Path
+$ProjectPath = Resolve-ProjectPath -ProjectPath $ProjectPath
 $agentsPath = Join-Path $ProjectPath "AGENTS.md"
 $planPath = Join-Path $ProjectPath "PLAN.md"
 $specsPath = Join-Path $ProjectPath "specs"
@@ -55,7 +53,7 @@ if (Test-Path -LiteralPath $agentsPath) {
   $agentsContent = Assert-Contains -Path $agentsPath -Needles @("Active Specification", "specs/")
   $match = [regex]::Match($agentsContent, "specs/\d{3}-[a-z0-9-]+/spec\.md")
   if (-not $match.Success) {
-    Add-Failure "AGENTS.md must reference an active numbered spec path."
+    Add-Failure "Missing active spec. Run ./scripts/new-spec.ps1 -ProjectPath <path> -Slug <slug> first."
   } else {
     $activeSpecRelative = $match.Value.Replace("/", "\")
   }
@@ -124,17 +122,18 @@ foreach ($dir in $specDirs) {
     }
   }
 
-  $isSensitive = $false
+  $requiresChecklist = $false
   if (Test-Path -LiteralPath $specPath) {
     $specRaw = Get-Content -LiteralPath $specPath -Raw
-    if ($specRaw -match "Risk level:\s*sensitive") {
-      $isSensitive = $true
+    $riskMatch = [regex]::Match($specRaw, "(?im)^-\s*Risk level:\s*(.+)$")
+    if ($riskMatch.Success -and (Test-GatedRiskLevel -RiskLevel $riskMatch.Groups[1].Value)) {
+      $requiresChecklist = $true
     }
   }
 
-  if ($isSensitive) {
+  if ($requiresChecklist) {
     if (-not (Test-Path -LiteralPath $checklistPath)) {
-      Add-Failure "Sensitive spec requires checklist.md: $checklistPath"
+      Add-Failure "Gated spec requires checklist.md. Create it from templates/spec-workflow/checklist.template.md."
     } else {
       $checklistContent = Assert-Contains -Path $checklistPath -Needles @("## Clarify", "## Security And Data Review", "## Implementation Readiness")
       if ($checklistContent -match "{{|Replace with") {
@@ -152,7 +151,7 @@ if ($activeSpecRelative) {
 }
 
 if ($failures.Count -gt 0) {
-  Write-Error ("Spec artifact validation failed:`n" + ($failures -join "`n"))
+  Write-CorrectiveFailure -Summary "Spec artifact validation failed:" -Failures $failures
 }
 
 Write-Host "Spec artifact validation passed for $ProjectPath"

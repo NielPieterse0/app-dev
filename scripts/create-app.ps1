@@ -6,9 +6,9 @@ param(
   [ValidateSet("react-vite-capacitor", "next-web-app", "expo-native-app")]
   [string]$Template = "react-vite-capacitor",
 
-  [bool]$NoInstall = $true,
+  [switch]$NoInstall = $true,
 
-  [bool]$InitializeGit = $false
+  [switch]$InitializeGit
 )
 
 $ErrorActionPreference = "Stop"

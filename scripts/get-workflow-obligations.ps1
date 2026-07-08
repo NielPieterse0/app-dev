@@ -1,10 +1,12 @@
 param(
   [string]$ProjectPath = (Get-Location).Path,
   [string[]]$ChangedFiles,
-  [bool]$JsonSummary = $false
+  [switch]$JsonSummary
 )
 
 $ErrorActionPreference = "Stop"
+$commonPath = Join-Path $PSScriptRoot "common.ps1"
+. $commonPath
 
 function Get-GitChangedFiles {
   param(
@@ -73,7 +75,7 @@ function Add-Match {
   }
 }
 
-$ProjectPath = (Resolve-Path -LiteralPath $ProjectPath).Path
+$ProjectPath = Resolve-ProjectPath -ProjectPath $ProjectPath
 
 if (-not $ChangedFiles -or $ChangedFiles.Count -eq 0) {
   Push-Location $ProjectPath

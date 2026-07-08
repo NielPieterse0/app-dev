@@ -151,9 +151,9 @@ When CircleCI is used, its config must follow the CircleCI config workflow: esta
 
 ### Project GitHub Routine
 
-Each real app under `projects/<app>` should normally become its own repository once it is more than a local scaffold. Before that split, app-dev owns its assembly evidence.
+Each real app under `projects/<app>` remains tracked in the app-dev root repository by default. A project may move to a separate repository only through a recorded decision justified by ownership, release, access-control, scale, or lifecycle needs.
 
-Project repos should preserve:
+Each tracked project should preserve:
 
 - project `AGENTS.md`
 - `PLAN.md`
@@ -267,6 +267,49 @@ The first implementation slice should produce both product value and harness evi
 8. Run app-dev project artifact checks and app verification.
 9. Record every harness gap as either fixed immediately, deferred, or rejected as not general enough.
 10. Record plugin accelerators used or unavailable in the relevant receipts.
+
+## Second Implementation Slice
+
+Slice 2 is a convergence slice. It must remove defects and contradictions exposed by Slice 1 before widening Signal to more sources, scheduled ingestion, auth, or public launch.
+
+### Slice 2A: Harness Convergence
+
+Slice 2A hardens the app-dev control surface:
+
+1. Replace command-line Boolean toggles in `scripts/*.ps1` with PowerShell switches while retaining ordinary Boolean parameters inside helper functions.
+2. Extract shared failure collection, path resolution, and risk vocabulary into `scripts/common.ps1`.
+3. Add `scripts/analyze-spec.ps1` to detect contradictions among `spec.md`, `PLAN.md`, `tasks.md`, gated review artifacts, and the live file tree.
+4. Treat `sensitive` and `gated` as equivalent gated-path risk terms until the repository adopts one canonical term.
+5. Add focused harness regression tests for switch invocation, risk classification, stale status, false-complete removal tasks, and missing verification evidence.
+6. Make script failures identify the exact corrective command or artifact.
+7. Add explicit `NEEDS CLARIFICATION` and complexity/deviation fields to the planning template.
+8. Add a versioned `standards/constitution.md` that delegates detailed rules to existing standards rather than duplicating them.
+9. Move Signal CI responsibility to the root GitHub Actions workflow and validate the tracked `projects/signal` app from the root repository.
+10. Reconcile stale same-repo versus nested-repo guidance, obsolete ignore assumptions, and broken command examples across root and Signal documentation.
+
+Renaming gated `checklist.md` files is deferred unless it can be completed atomically across scripts, templates, tests, generated apps, and documentation. The existing filename remains a contract during Slice 2A.
+
+### Slice 2B: Signal Live Settings Persistence
+
+Slice 2B proves the hardened harness through one narrow product path:
+
+1. Remove orphaned auth module files and remaining template identity.
+2. Add a browser-safe Supabase repository for source settings and keyword filters.
+3. Keep a deterministic fixture/local fallback for missing, paused, or unavailable free-tier Supabase.
+4. Add deliberate RLS policies before browser reads or writes are enabled.
+5. Hydrate settings through TanStack Query and persist mutations with explicit pending, success, and error states.
+6. Verify persistence behavior, fallback behavior, no-auth security assumptions, and desktop/mobile settings flows.
+7. Record whether the settings repository is reusable enough to backport; do not promote it based on one use without evidence.
+
+### Slice 2 Exit Criteria
+
+- Root governance and workflow gates pass.
+- `analyze-spec.ps1` passes for Signal spec 002 and fails its contradiction fixtures.
+- Root GitHub Actions validates both app-dev and Signal.
+- Signal source settings persist through Supabase when configured and degrade explicitly when unavailable.
+- No auth module or template package identity remains in Signal.
+- Signal typecheck, lint, tests, build, e2e, rendered desktop/mobile checks, workflow receipts, secret scan, and migration/RLS review are complete.
+- Every audit finding in scope is closed, deferred with a reason, or rejected with evidence.
 
 ## Non-Goals
 

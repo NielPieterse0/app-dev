@@ -1,3 +1,3 @@
-# modules
+# Signal modules
 
-Create one folder per functional module. Each module should own its schemas, hooks, services, routes, UI components, tests, and public exports.
+Each module owns its schemas, hooks, services, routes, state, tests, and public exports. Cross-module imports must go through `@/modules/<module>` instead of another module's internals.

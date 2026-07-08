@@ -2,7 +2,7 @@
 
 Use `app-dev` as a control workspace. Keep applications under `projects/`.
 
-Start with independent app repositories. Move to a pnpm/Turborepo monorepo only when shared packages are real and stable enough to justify coordination overhead.
+Generated apps stay tracked in the root repository by default. Move an app into its own repository only after a recorded decision explains why release, ownership, or access-control needs justify the split.
 
 ## Default Shape
 
@@ -26,7 +26,7 @@ app-dev/
 
 The root workspace owns governance, planning, audit, and template assets in addition to project generators. Keep workspace-level audit notes under `docs/audit/`, implementation plans and execution records under `docs/superpowers/`, the shared planning protocol in `PLANS.md`, and the reusable per-app plan scaffold in `templates/PLAN.template.md`.
 
-## When To Use A Monorepo
+## When To Use Shared Packages
 
 Use a monorepo when two or more apps need versioned shared source packages such as:
 
@@ -36,8 +36,8 @@ Use a monorepo when two or more apps need versioned shared source packages such 
 - `packages/config`
 - `packages/test-utils`
 
-Use `apps/*` for applications and `packages/*` for shared packages.
+If shared packages become real, adopt a monorepo shape intentionally and record the migration decision in the affected app plans.
 
-## When To Keep Separate Repos
+## When To Split A Project Out
 
 Keep separate repos when apps have independent release schedules, independent client ownership, different access-control needs, or little shared source code.

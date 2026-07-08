@@ -21,6 +21,19 @@ Replace this line with explicit exclusions that prevent scope drift.
 - Workflow receipts path: `specs/001-initial/workflow-receipts.md`
 - Checklist path: `specs/001-initial/checklist.md` when the feature follows the gated path.
 
+## Constitution Check
+
+- Constitution path: `../../standards/constitution.md`
+- Free-tier-first impact: Replace with how the feature stays within current cost posture or why an exception is needed.
+- Same-repo impact: Replace with whether the work stays inside the root-tracked `projects/<app>` model.
+- Evidence requirement: Replace with the artifacts and checks that must exist before completion.
+
+## Clarifications
+
+| Question | Resolution | Status |
+| --- | --- | --- |
+| Replace with a concrete unknown | `NEEDS CLARIFICATION` | open |
+
 ## Architecture Decision
 
 - App type: Replace with React/Vite/Capacitor, Next.js, Expo, or the documented project-specific choice.
@@ -50,6 +63,12 @@ Replace this line with explicit exclusions that prevent scope drift.
 | Item | Type | Impact | Mitigation |
 | --- | --- | --- | --- |
 | Replace with risk or assumption | assumption | Replace with impact | Replace with mitigation or owner |
+
+## Complexity And Deviations
+
+| Deviation | Why Needed | Simpler Alternative Rejected | Review Status |
+| --- | --- | --- | --- |
+| None | Not applicable | Not applicable | accepted |
 
 ## Verification
 

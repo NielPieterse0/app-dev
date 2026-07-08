@@ -1,7 +1,7 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
   [object]$RequirePythonToml = $false,
-  [bool]$JsonSummary = $false
+  [switch]$JsonSummary
 )
 
 $ErrorActionPreference = "Stop"
@@ -321,7 +321,8 @@ function Test-CapabilityRouting {
 function Test-PlanAssets {
   param(
     [Parameter(Mandatory=$true)][string]$PlansPath,
-    [Parameter(Mandatory=$true)][string]$PlanTemplatePath
+    [Parameter(Mandatory=$true)][string]$PlanTemplatePath,
+    [Parameter(Mandatory=$true)][string]$ConstitutionPath
   )
 
   if (-not (Test-Path -LiteralPath $PlansPath)) {
@@ -339,13 +340,24 @@ function Test-PlanAssets {
     Add-Failure "Missing templates/PLAN.template.md."
   } else {
     $template = Get-Content -LiteralPath $PlanTemplatePath -Raw
-    foreach ($required in @("{{APP_NAME}}", "{{TEMPLATE}}", "{{DATE}}", "Active spec:", "Spec path:", "Verification", "Risks and Assumptions")) {
+    foreach ($required in @("{{APP_NAME}}", "{{TEMPLATE}}", "{{DATE}}", "Active spec:", "Spec path:", "Verification", "Risks and Assumptions", "Constitution Check", "Clarifications", "Complexity And Deviations")) {
       if ($template -notmatch [regex]::Escape($required)) {
         Add-Failure "templates/PLAN.template.md is missing required content: $required"
       }
     }
     if ($template -match "\bTBD\b") {
       Add-Failure "templates/PLAN.template.md must not contain unresolved TBD placeholders."
+    }
+  }
+
+  if (-not (Test-Path -LiteralPath $ConstitutionPath)) {
+    Add-Failure "Missing standards/constitution.md."
+  } else {
+    $constitution = Get-Content -LiteralPath $ConstitutionPath -Raw
+    foreach ($required in @("Version:", "Ratified:", "Last amended:", "Free-tier first", "Modular assembly first", "Evidence before completion", "Security and compliance by risk", "Same-repo project model by default", "Recorded deviations")) {
+      if ($constitution -notmatch [regex]::Escape($required)) {
+        Add-Failure "standards/constitution.md is missing required content: $required"
+      }
     }
   }
 }
@@ -408,6 +420,7 @@ function Test-TemplateAgents {
 
 function Test-SpecWorkflowAssets {
   foreach ($relativePath in @(
+    "standards/constitution.md",
     "standards/spec-driven-workflow.md",
     "standards/command-workflow-contract.md",
     "templates/spec-workflow/spec.template.md",
@@ -602,7 +615,7 @@ function Test-CiWorkflow {
   }
 
   $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
-  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/test-workflow-enforcement.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1")) {
+  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/test-workflow-enforcement.ps1", "scripts/test-analyze-spec.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1", "Signal validation", "working-directory: projects/signal")) {
     if ($workflow -notmatch [regex]::Escape($required)) {
       Add-Failure ".github/workflows/app-dev-validation.yml is missing required CI content: $required"
     }
@@ -702,6 +715,7 @@ $auditLedgerPath = Resolve-WorkspacePath "docs/audit/app-dev-audit-closeout.md"
   ".agents/skills/cross-platform-app-workflow/references/qa-gates.md",
   ".agents/skills/cross-platform-app-workflow/references/spec-driven-workflow.md",
   "standards/command-workflow-contract.md",
+  "standards/constitution.md",
   "standards/codex-capabilities.md",
   "standards/spec-driven-workflow.md",
   "templates/PLAN.template.md",
@@ -714,6 +728,9 @@ $auditLedgerPath = Resolve-WorkspacePath "docs/audit/app-dev-audit-closeout.md"
   "templates/react-vite-capacitor/.github/workflows/verify.yml",
   "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
   "scripts/validate-codex-assets.ps1",
+  "scripts/common.ps1",
+  "scripts/analyze-spec.ps1",
+  "scripts/test-analyze-spec.ps1",
   "scripts/get-workflow-obligations.ps1",
   "scripts/validate-workflow-receipts.ps1",
   "scripts/test-workflow-enforcement.ps1",
@@ -740,7 +757,7 @@ Test-MarkdownReferences -MarkdownPath $skillPath
 Test-AgentsSize -AgentsPath (Join-Path $Root "AGENTS.md")
 Test-NoDisposableVerificationFolders
 Test-CapabilityRouting -CapabilityPath $capabilityPath
-Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath
+Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath -ConstitutionPath (Resolve-WorkspacePath "standards/constitution.md")
 Test-SpecWorkflowAssets
 Test-WorkflowWrapperAssets
 Test-SkillReferenceDelegation

@@ -1,6 +1,6 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
-  [bool]$JsonSummary = $false
+  [switch]$JsonSummary
 )
 
 $ErrorActionPreference = "Stop"
@@ -110,6 +110,40 @@ function Test-IsTextFile {
     return $true
   }
   return $false
+}
+
+function Get-ScannableFiles {
+  $result = New-Object System.Collections.Generic.List[System.IO.FileInfo]
+  $pending = New-Object System.Collections.Generic.Stack[System.IO.DirectoryInfo]
+  $pending.Push((Get-Item -LiteralPath $Root))
+
+  while ($pending.Count -gt 0) {
+    $directory = $pending.Pop()
+
+    try {
+      $children = Get-ChildItem -LiteralPath $directory.FullName -Force -ErrorAction Stop
+    } catch {
+      $warnings.Add("Skipped unreadable path during secret scan: $($directory.FullName)") | Out-Null
+      continue
+    }
+
+    foreach ($child in $children) {
+      if ($child.PSIsContainer) {
+        if ($excludedDirectoryNames -contains $child.Name) {
+          continue
+        }
+
+        $pending.Push($child)
+        continue
+      }
+
+      if (-not (Test-IsExcludedPath -File $child) -and (Test-IsTextFile -File $child)) {
+        $result.Add($child) | Out-Null
+      }
+    }
+  }
+
+  return $result
 }
 
 function Get-LineText {
@@ -322,9 +356,7 @@ if ($null -ne $gitleaks) {
   $warnings.Add("gitleaks not found; using local regex fallback scan.") | Out-Null
 }
 
-$files = Get-ChildItem -LiteralPath $Root -Recurse -File -Force -ErrorAction SilentlyContinue | Where-Object {
-  -not (Test-IsExcludedPath -File $_) -and (Test-IsTextFile -File $_)
-}
+$files = Get-ScannableFiles
 
 foreach ($file in $files) {
   $relativePath = Get-RelativePath -Path $file.FullName

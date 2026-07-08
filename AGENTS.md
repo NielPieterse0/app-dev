@@ -29,9 +29,9 @@ Use this stack unless a project-level `AGENTS.md` documents a different decision
 
 ## Repository Shape
 
-This root workspace contains standards, templates, skills, scripts, and project folders. Each real application under `projects/` should normally be its own git repository unless shared packages prove that a monorepo is needed.
+This root workspace contains standards, templates, skills, scripts, and project folders. Real applications under `projects/` stay tracked in this root repository by default unless a later recorded decision splits one out.
 
-Promote to a pnpm/Turborepo monorepo only after at least two apps share real code such as `ui`, `auth`, `api-client`, or `config`.
+Promote to a pnpm/Turborepo monorepo only after at least two apps share real code such as `ui`, `auth`, `api-client`, or `config`, or explicitly record why a repo split is the better fit.
 
 ## Codex Surface Rules
 

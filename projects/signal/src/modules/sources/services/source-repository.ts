@@ -1,22 +1,16 @@
 import {
   normalizedSourceItemsSchema,
   normalizeKeywordInput,
-  sourceSettingsSchema,
   type NormalizedSourceItem,
   type SourceKind,
-  type SourceSettings,
 } from "../schemas/source-item.schema";
+import { defaultSourceSettings } from "./source-settings-repository";
 import { getGithubFixtures, getHackerNewsFixtures } from "./source-fixtures";
 import {
   normalizeGithubRepository,
   normalizeHackerNewsItem,
   orderRankedItems,
 } from "./source-normalizer";
-
-export const defaultSourceSettings: SourceSettings = sourceSettingsSchema.parse({
-  enabledSources: ["github", "hacker_news"],
-  includeKeywords: [],
-});
 
 export type SourceItemFilters = {
   enabledSources?: SourceKind[];
@@ -49,8 +43,4 @@ export async function listSourceItems(filters: SourceItemFilters = {}) {
       return enabledSources.includes(item.source) && keywordMatches(item, includeKeywords);
     })
   );
-}
-
-export async function listSourceSettings() {
-  return sourceSettingsSchema.parse(defaultSourceSettings);
 }

@@ -6,7 +6,7 @@ Use this project's `PLAN.md` for architecture, module, risk, and verification de
 
 ## Active Specification
 
-- Start with `specs/001-initial/spec.md`.
+- Active spec: `specs/002-live-settings/spec.md`.
 - Create later feature specs under `specs/NNN-<slug>/`.
 - Keep `PLAN.md`, `tasks.md`, and `workflow-receipts.md` aligned to the active spec before implementation starts.
 
@@ -22,12 +22,13 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 - Current v1 scope: GitHub + Hacker News source ingestion, ranked dashboard, source filters, and source settings.
 - Platforms: desktop web and mobile web first; Capacitor stays available for later Android and iOS packaging if product validation justifies it.
 - Native requirements: none for the first slice beyond the existing Capacitor-ready shell.
+- Repository model: Signal stays tracked in the root `app-dev` repository unless a later recorded decision changes that ownership model.
 
 ## Required Before Feature Work
 
-- Complete `specs/001-initial/spec.md` before feature work.
+- Complete `specs/002-live-settings/spec.md` before feature work.
 - Update `PLAN.md` for architecture-sensitive or multi-module work.
-- Update `specs/001-initial/tasks.md` before material implementation.
+- Update `specs/002-live-settings/tasks.md` before material implementation.
 - Review the starter `AppShell`, `NavigationShell`, and base route structure.
 - Keep module boundaries explicit: import other modules only through `@/modules/<module>`, and treat deep imports into another module's internals as lint failures.
 - Add `.env.example` for required public environment variables.

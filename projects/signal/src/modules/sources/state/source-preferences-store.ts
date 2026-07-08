@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import { normalizeKeywordInput, type SourceKind } from "../schemas/source-item.schema";
-import { defaultSourceSettings } from "../services/source-repository";
+import type { SourceSettings } from "../schemas/source-item.schema";
+import { defaultSourceSettings } from "../services/source-settings-repository";
 
 type SourcePreferencesStore = {
   enabledSources: SourceKind[];
   includeKeywordsText: string;
+  hydrateFromSettings: (settings: SourceSettings) => void;
   setSourceEnabled: (source: SourceKind, enabled: boolean) => void;
   setIncludeKeywordsText: (value: string) => void;
 };
@@ -12,6 +14,11 @@ type SourcePreferencesStore = {
 export const useSourcePreferencesStore = create<SourcePreferencesStore>((set) => ({
   enabledSources: defaultSourceSettings.enabledSources,
   includeKeywordsText: "",
+  hydrateFromSettings: (settings) =>
+    set({
+      enabledSources: settings.enabledSources,
+      includeKeywordsText: settings.includeKeywords.join(", "),
+    }),
   setSourceEnabled: (source, enabled) =>
     set((state) => {
       const nextEnabledSources = enabled

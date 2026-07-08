@@ -2,16 +2,18 @@ param(
   [string]$ProjectPath = (Get-Location).Path,
   [string]$SpecPath,
   [string]$ChangedFilesJson,
-  [bool]$RequireVerificationEvidence = $false,
-  [bool]$JsonSummary = $false
+  [switch]$RequireVerificationEvidence,
+  [switch]$JsonSummary
 )
 
 $ErrorActionPreference = "Stop"
+$commonPath = Join-Path $PSScriptRoot "common.ps1"
+. $commonPath
 $failures = New-Object System.Collections.Generic.List[string]
 
 function Add-Failure {
   param([Parameter(Mandatory=$true)][string]$Message)
-  $failures.Add($Message) | Out-Null
+  Add-HarnessFailure -Failures $failures -Message $Message
 }
 
 function Get-ActiveSpecRelativePath {
@@ -93,7 +95,7 @@ function Test-ReceiptSection {
   }
 }
 
-$ProjectPath = (Resolve-Path -LiteralPath $ProjectPath).Path
+$ProjectPath = Resolve-ProjectPath -ProjectPath $ProjectPath
 $agentsPath = Join-Path $ProjectPath "AGENTS.md"
 $planPath = Join-Path $ProjectPath "PLAN.md"
 $specsPath = Join-Path $ProjectPath "specs"
@@ -107,7 +109,7 @@ foreach ($path in @($agentsPath, $planPath, $specsPath)) {
 if ([string]::IsNullOrWhiteSpace($SpecPath)) {
   $activeSpecRelative = Get-ActiveSpecRelativePath -AgentsPath $agentsPath
   if ([string]::IsNullOrWhiteSpace($activeSpecRelative)) {
-    Add-Failure "AGENTS.md does not identify an active spec path."
+    Add-Failure "Missing active spec. Run ./scripts/new-spec.ps1 -ProjectPath <path> -Slug <slug> first."
   } else {
     $SpecPath = Join-Path $ProjectPath $activeSpecRelative
   }
@@ -136,7 +138,7 @@ if (-not [string]::IsNullOrWhiteSpace($ChangedFilesJson)) {
   }
 } else {
   $obligationScript = Join-Path (Split-Path -Parent $PSScriptRoot) "scripts\get-workflow-obligations.ps1"
-  $payload = & $obligationScript -ProjectPath $ProjectPath -JsonSummary:$true | ConvertFrom-Json -ErrorAction Stop
+  $payload = & $obligationScript -ProjectPath $ProjectPath -JsonSummary | ConvertFrom-Json -ErrorAction Stop
   $obligations = [ordered]@{
     uiChange = $payload.uiChange
     dataChange = $payload.dataChange
@@ -154,7 +156,7 @@ if (Test-Path -LiteralPath $receiptPath) {
 }
 
 if (([bool]$obligations.dataChange.required -or [bool]$obligations.releaseReadiness.required) -and -not (Test-Path -LiteralPath $checklistPath)) {
-  Add-Failure "Sensitive workflow obligations require checklist.md in the active spec directory."
+  Add-Failure "Gated spec requires checklist.md. Create it from templates/spec-workflow/checklist.template.md."
 }
 
 $summary = [ordered]@{
@@ -171,7 +173,7 @@ if ($JsonSummary) {
 }
 
 if ($failures.Count -gt 0) {
-  Write-Error ("Workflow receipt validation failed:`n" + ($failures -join "`n"))
+  Write-CorrectiveFailure -Summary "Workflow receipt validation failed:" -Failures $failures
 }
 
 Write-Host "Workflow receipt validation passed for $ProjectPath"

@@ -1,20 +1,88 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation, useOutletContext } from "react-router-dom";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { PageHeader } from "../../../app/PageHeader";
 import { SettingsLayout } from "../../../components/layout/SettingsLayout";
-import { isSupabaseConfigured } from "../../../lib/env";
-import { getEnabledKeywordFilters, useSourcePreferencesStore } from "@/modules/sources";
+import {
+  getEnabledKeywordFilters,
+  useSourcePreferencesStore,
+  useSourceSettings,
+  type SettingsBackend,
+} from "@/modules/sources";
 
 const settingsItems = [
   { label: "Sources", href: "/settings" },
   { label: "Keywords", href: "/settings/keywords" },
 ];
 
+type SettingsRouteContext = {
+  backend: SettingsBackend;
+  canSave: boolean;
+  degradedReason: string | null;
+  enabledSources: ("github" | "hacker_news")[];
+  errorMessage: string | null;
+  includeKeywordsText: string;
+  isLoading: boolean;
+  isSaving: boolean;
+  saveMessage: string | null;
+  saveSettings: () => Promise<void>;
+  setIncludeKeywordsText: (value: string) => void;
+  setSourceEnabled: (source: "github" | "hacker_news", enabled: boolean) => void;
+};
+
 export function SettingsRoute() {
   const { pathname } = useLocation();
-  const supabaseConfigured = isSupabaseConfigured();
+  const enabledSources = useSourcePreferencesStore((state) => state.enabledSources);
+  const includeKeywordsText = useSourcePreferencesStore((state) => state.includeKeywordsText);
+  const hydrateFromSettings = useSourcePreferencesStore((state) => state.hydrateFromSettings);
+  const setSourceEnabled = useSourcePreferencesStore((state) => state.setSourceEnabled);
+  const setIncludeKeywordsText = useSourcePreferencesStore((state) => state.setIncludeKeywordsText);
+  const { settings, backend, degradedReason, isLoading, isSaving, error, saveSettings } =
+    useSourceSettings();
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    hydrateFromSettings(settings);
+  }, [hydrateFromSettings, settings]);
+
+  useEffect(() => {
+    if (error) {
+      setSaveMessage(null);
+    }
+  }, [error]);
+
+  const saveErrorMessage = error?.message ?? null;
+
+  async function handleSaveSettings() {
+    setSaveMessage(null);
+    await saveSettings({
+      enabledSources,
+      includeKeywords: getEnabledKeywordFilters(includeKeywordsText),
+    });
+    setSaveMessage(
+      backend === "local-fallback"
+        ? "Saved locally while Supabase is unavailable."
+        : "Settings saved to Supabase."
+    );
+  }
+
+  const canSave = enabledSources.length > 0 && !isLoading && !isSaving;
+  const context: SettingsRouteContext = {
+    backend,
+    canSave,
+    degradedReason,
+    enabledSources,
+    errorMessage: saveErrorMessage,
+    includeKeywordsText,
+    isLoading,
+    isSaving,
+    saveMessage,
+    saveSettings: handleSaveSettings,
+    setIncludeKeywordsText,
+    setSourceEnabled,
+  };
 
   return (
     <section>
@@ -22,24 +90,47 @@ export function SettingsRoute() {
         title="Signal settings"
         description="Control source scope, keyword pressure, and free-tier operating assumptions."
       />
-      <p>
-        Supabase browser client: {supabaseConfigured ? "configured with publishable keys" : "not configured, using fixtures only"}
-      </p>
+      <div className="space-y-2">
+        <p>
+          Settings backend:{" "}
+          {backend === "supabase"
+            ? "Supabase with publishable browser keys"
+            : "local fallback while Supabase is unavailable or unconfigured"}
+        </p>
+        {degradedReason ? (
+          <p className="text-sm text-muted-foreground">
+            Degraded mode reason: {degradedReason}
+          </p>
+        ) : null}
+      </div>
       <SettingsLayout
         items={settingsItems.map((item) => ({
           ...item,
           isActive: pathname === item.href,
         }))}
       >
-        <Outlet />
+        <Outlet context={context} />
       </SettingsLayout>
     </section>
   );
 }
 
+function useSettingsRouteContext() {
+  return useOutletContext<SettingsRouteContext>();
+}
+
 export function SettingsSourcesRoute() {
-  const enabledSources = useSourcePreferencesStore((state) => state.enabledSources);
-  const setSourceEnabled = useSourcePreferencesStore((state) => state.setSourceEnabled);
+  const {
+    backend,
+    canSave,
+    enabledSources,
+    errorMessage,
+    isLoading,
+    isSaving,
+    saveMessage,
+    saveSettings,
+    setSourceEnabled,
+  } = useSettingsRouteContext();
 
   return (
     <div className="space-y-4">
@@ -56,18 +147,36 @@ export function SettingsSourcesRoute() {
           { key: "hacker_news", label: "Hacker News" },
         ].map((source) => {
           const enabled = enabledSources.includes(source.key as "github" | "hacker_news");
+          const disableToggle = enabled && enabledSources.length === 1;
 
           return (
             <Button
               key={source.key}
               type="button"
               variant={enabled ? "default" : "outline"}
+              disabled={isLoading || isSaving || disableToggle}
               onClick={() => setSourceEnabled(source.key as "github" | "hacker_news", !enabled)}
             >
               {enabled ? "Enabled" : "Disabled"} {source.label}
             </Button>
           );
         })}
+      </div>
+
+      <div aria-live="polite" className="space-y-2 text-sm">
+        {saveMessage ? <p>{saveMessage}</p> : null}
+        {errorMessage ? <p className="text-destructive">{errorMessage}</p> : null}
+        {backend === "local-fallback" ? (
+          <p className="text-muted-foreground">
+            Signal is in local fallback mode. Changes stay in this browser until Supabase is reachable again.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex gap-3">
+        <Button type="button" disabled={!canSave} onClick={() => void saveSettings()}>
+          {isSaving ? "Saving settings..." : "Save source settings"}
+        </Button>
       </div>
 
       <div className="rounded-lg border p-4">
@@ -81,8 +190,17 @@ export function SettingsSourcesRoute() {
 }
 
 export function SettingsKeywordsRoute() {
-  const includeKeywordsText = useSourcePreferencesStore((state) => state.includeKeywordsText);
-  const setIncludeKeywordsText = useSourcePreferencesStore((state) => state.setIncludeKeywordsText);
+  const {
+    backend,
+    canSave,
+    errorMessage,
+    includeKeywordsText,
+    isLoading,
+    isSaving,
+    saveMessage,
+    saveSettings,
+    setIncludeKeywordsText,
+  } = useSettingsRouteContext();
   const keywords = getEnabledKeywordFilters(includeKeywordsText);
 
   return (
@@ -98,6 +216,7 @@ export function SettingsKeywordsRoute() {
         aria-label="Keyword filters"
         placeholder="agents, founder-tools, research"
         value={includeKeywordsText}
+        disabled={isLoading || isSaving}
         onChange={(event) => setIncludeKeywordsText(event.target.value)}
       />
 
@@ -113,10 +232,26 @@ export function SettingsKeywordsRoute() {
         )}
       </div>
 
+      <div aria-live="polite" className="space-y-2 text-sm">
+        {saveMessage ? <p>{saveMessage}</p> : null}
+        {errorMessage ? <p className="text-destructive">{errorMessage}</p> : null}
+        {backend === "local-fallback" ? (
+          <p className="text-muted-foreground">
+            Keyword changes are saving to the local fallback store until Supabase is available.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="flex gap-3">
+        <Button type="button" disabled={!canSave} onClick={() => void saveSettings()}>
+          {isSaving ? "Saving settings..." : "Save keyword settings"}
+        </Button>
+      </div>
+
       <div className="rounded-lg border p-4">
         <h3 className="font-medium">Next-step note</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          Keyword filters stay local for this slice. Persisting them through Supabase is a follow-on change once the baseline source model is stable.
+          Keyword filters now persist through the same settings repository boundary as source toggles. Public launch still requires a stricter auth and RLS model.
         </p>
       </div>
     </div>
