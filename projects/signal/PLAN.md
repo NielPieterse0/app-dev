@@ -2,83 +2,79 @@
 
 - Created: 2026-07-09
 - Template: react-vite-capacitor
-- Active spec: `specs/005-signalauditcloseout/spec.md`
-- Status: complete
+- Active spec: `specs/006-harness-consolidation/spec.md`
+- Status: in progress
 
 ## Goal
 
-Close the remaining 2026-07-09 audit findings across Signal and the app-dev workspace so the branch no longer carries avoidable runtime inefficiency, stale governance guidance, weak workflow enforcement drift, or template gaps.
+Implement the harness-consolidation slice so Workspace Standard v2 is fully wired into the executable governance layer, validators, generator, and template references that Signal currently depends on.
 
 ## Non-Goals
 
-- shipping public-launch auth and full multi-user authorization in this slice
-- adding new live sources beyond GitHub and Hacker News
-- replacing Supabase or the current internal-MVP persistence model
-- broad bundle-size optimization or chart-library replacement
-- native Android or iOS packaging work
-- repo-splitting or monorepo restructuring
+- script portability remediation, CI job hygiene, or code-level cleanup deferred to `specs/007-code-script-closeout/`
+- new Signal product features, source ingestion changes, or dashboard UX work
+- repo splitting, matrix auto-discovery before a second tracked app exists, or broader wrapper-skill consolidation beyond thin workflow pointers
+- public-launch auth/RLS hardening
 
 ## Spec Link
 
-- Spec id: `005-signalauditcloseout`
-- Spec path: `specs/005-signalauditcloseout/spec.md`
-- Tasks path: `specs/005-signalauditcloseout/tasks.md`
-- Workflow receipts path: `specs/005-signalauditcloseout/workflow-receipts.md`
-- Checklist path: `specs/005-signalauditcloseout/checklist.md`
+- Spec id: `006-harness-consolidation`
+- Spec path: `specs/006-harness-consolidation/spec.md`
+- Tasks path: `specs/006-harness-consolidation/tasks.md`
+- Workflow receipts path: `specs/006-harness-consolidation/workflow-receipts.md`
+- Checklist path: `specs/006-harness-consolidation/checklist.md`
 - Audit source: `../../docs/audit/2026-07-09-app-dev-signal-review-findings.md`
+- Background source: `../../standards/workspace.md` and the 2026-07-09 harness audit attached to slice creation
 
 ## Architecture Decision
 
-- Dashboard concept promotion must use a mutation-only path so the primary dashboard route does not eagerly query concept drafts on every visit.
-- Concept listing remains a separate query-backed concern for `/concepts`.
-- GitHub ingestion stays browser-based for the internal MVP, but it now needs explicit rate-limit messaging and optional operator-token support rather than opaque refresh failures.
-- The internal no-auth RPC posture remains intentionally not public-launch safe, so this slice adds a dedicated `npm run release:check` gate that fails while anonymous write RPCs remain enabled.
-- Root README, `.codex/README`, CI, template scaffolding, and workflow validators must agree with the current same-repo project model and Windows permission-profile reality.
-- Template improvements must be enforced by workspace checks so generated apps inherit the fixed contract instead of relying on documentation alone.
+- `standards/spec-driven-workflow.md` owns workflow narrative; `.agents/commands/` own executable phase steps.
+- Required-path lists and governed numbers are sourced from `standards/workspace-manifest.psd1` instead of being duplicated across validators.
+- The canonical governance run is `scripts/check-all.ps1`, and docs/CI point to that sequencer instead of maintaining their own script lists.
+- Dormant hook assets are deleted rather than retained as unwired placeholders.
+- Template CI workflow files remain reference-only under `templates/common/ci/`; generated apps must not receive nested executable `.github/` workflows.
 
 ## Module Plan
 
 | Surface | Responsibility | Main files | Verification |
 | --- | --- | --- | --- |
-| `dashboard` | avoid unnecessary concept reads on the primary route while preserving promotion flow | `src/modules/dashboard/**`, `src/modules/concepts/hooks/useConcepts.ts` | route tests and app checks |
-| `sources` | improve GitHub refresh resilience and clean source-label drift | `src/modules/sources/**`, `.env.example`, `README.md` | adapter tests and app checks |
-| `settings` | reuse canonical source labels instead of route-local literals | `src/modules/settings/**`, `src/modules/sources/**` | route tests and lint/typecheck |
-| `release-readiness` | make the anonymous-write deployment blocker explicit and machine-checkable | `scripts/check-public-launch-readiness.ps1`, `package.json`, docs/spec artifacts | direct gate execution plus artifact checks |
-| `workspace/template` | reconcile README and `.codex` truth, add template Supabase scaffold, fix template runtime defaults, remove duplicate skill references, and harden CI/validators | `README.md`, `.codex/README.md`, `.github/workflows/**`, `templates/**`, `scripts/**`, `.agents/**` | root governance checks and project-generation checks |
+| `workflow-owner-docs` | collapse duplicate workflow prose into owner pointers plus command map | `AGENTS.md`, `standards/spec-driven-workflow.md`, `.agents/skills/cross-platform-app-workflow/SKILL.md`, `.agents/commands/*.md` | validator + artifact checks |
+| `manifest-and-validators` | source governed paths/numbers once and enforce pointer-style governance checks | `standards/workspace-manifest.psd1`, `scripts/check-workspace.ps1`, `scripts/validate-codex-assets.ps1` | governance checks |
+| `generator-and-template-ci` | keep generated apps free of nested workflows while preserving CI reference material | `scripts/create-app.ps1`, `scripts/test-workspace.ps1`, `templates/common/ci/verify.reference.yml`, template docs | governance checks + generation test |
+| `codex-policy-layer` | remove dormant hook references and keep hook/rules coverage aligned | `.codex/config.toml`, `.codex/README.md`, `.codex/rules/default.rules`, `scripts/test-hooks.ps1` | governance checks |
+| `workspace-docs` | align README/workspace guidance to the canonical governance entry point and cross-platform command forms | `README.md`, `standards/workspace.md` | governance checks |
 
 ## Implementation Steps
 
-1. Move Signal onto a dedicated audit-closeout spec and keep plan/tasks/receipts/checklist current for the slice.
-2. Split concept writes from concept reads so the dashboard can promote signals without loading concept drafts.
-3. Reuse canonical source labels in Signal and remove the duplicate label/fixture drift surface.
-4. Add clearer GitHub Search rate-limit handling and optional operator token support.
-5. Add the explicit public-launch release gate for anonymous browser-write RPC posture.
-6. Reconcile root README and `.codex/README` with the current repo and permission-profile truth.
-7. Fix template env/query-client/settings-link behavior and add a tracked Supabase scaffold.
-8. Harden workflow validators and CI so receipt evidence, duplicate skill references, template scaffolding, and project validation stay enforced.
-9. Re-run Signal and root verification, then update the audit findings document with fresh dispositions.
+1. Make slice `006` the active Signal spec and keep AGENTS/PLAN/spec artifacts aligned.
+2. Add the workflow phase-to-command map, slim duplicate workflow prose to pointers, and document clarify/convergence at the command layer.
+3. Create the workspace manifest and refactor the workspace validators to consume it for required paths and governed numbers.
+4. Add `scripts/check-all.ps1` and repoint docs plus CI to the canonical governance sequence.
+5. Delete the dormant `verify-before-finish` hook surface and remove every validator/test/doc reference to it.
+6. Move template CI workflow content to `templates/common/ci/verify.reference.yml`, exclude `.github/` from template copies, and assert generated apps stay free of nested workflow folders.
+7. Reconcile workspace-doc drift, hook/rules layering notes, and remaining pending markers in `standards/workspace.md`.
+8. Re-run workspace governance checks, Signal spec artifact checks, and Signal regression checks, then update the slice receipts/tasks/checklist to match the implemented state.
 
 ## Risks And Assumptions
 
 | Item | Type | Impact | Mitigation |
 | --- | --- | --- | --- |
-| Public launch still cannot proceed because auth/RLS hardening is not implemented in this slice | risk | high | make the blocker explicit with `npm run release:check` and keep docs/specs honest |
-| CI and workspace validators can regress if docs-only and template-only expectations drift again | risk | medium | update the validators in the same change as the docs/template fixes |
-| GitHub rate limits can still affect a browser-only MVP | risk | medium | improve error messaging and support an optional operator token while keeping the trust boundary explicit |
-| Branch-topology findings depend on Git history as well as file content | assumption | medium | verify branch state explicitly before final disposition instead of assuming the older audit text is still current |
+| Validator refactors can accidentally weaken enforcement while reducing duplication | risk | high | keep existing content checks where they still enforce real contracts, and add explicit workflow-pointer assertions |
+| Generated-app verification can silently regress if the template copy/filter and workspace tests diverge | risk | high | update `create-app.ps1` and `test-workspace.ps1` in the same change |
+| Rules/hook layering may still have uncovered escalated-command gaps | risk | medium | re-read `default.rules` against `pre-command.ps1` and keep hook superset direction documented |
+| Hosted CI remains the final referee, but local checks are still useful for fast feedback | assumption | medium | reproduce the workspace-validation sequence locally through `scripts/check-all.ps1` before handoff |
 
 ## Data Security Posture
 
-- Browser code may use only publishable Supabase keys; service-role or backend-only secrets remain prohibited.
-- The current Signal no-auth RPC paths are internal-MVP only and block any public-launch or production-readiness claim.
-- The optional `VITE_GITHUB_TOKEN` path is internal operator convenience only and is still browser-exposed.
-- The release gate must fail while anonymous write RPC grants remain active.
+- No secrets, tokens, or private-key reads are introduced by this slice.
+- Hook/rules coverage must continue to block `.env` and private-key reads plus escalation-capable destructive/deploy/database commands.
+- Generated apps must continue to use only documented public env contracts.
 
 ## Failure And Rollback
 
-- If the concept-hook split regresses route behavior, restore the previous hook shape only after preserving the new dashboard/query separation requirement.
-- If template or validator changes break generated-app verification, fix the generator contract before changing the checks back.
-- If the release gate misidentifies the anonymous-write posture, tighten the detection logic rather than weakening the guardrail.
+- If validator refactors introduce false positives, fix the manifest or pointer assertions rather than restoring duplicated truth.
+- If generated-app checks fail because template references moved, fix the generator/test contract before weakening the expectation.
+- If a deleted dormant hook turns out to have a real consumer, restore it only with an actual config event registration and test coverage.
 
 ## Verification
 
@@ -86,16 +82,6 @@ Run available checks through:
 
 ```powershell
 ../../scripts/verify-app.ps1 -ProjectPath .
-```
-
-Expected project checks:
-
-```text
-npm run typecheck
-npm run lint
-npm run test
-npm run build
-npm run e2e
 ```
 
 Pre-completion artifact checks:
@@ -106,23 +92,17 @@ Pre-completion artifact checks:
 
 Additional closeout checks:
 
-- `npm run release:check`
-- `./scripts/check-workspace.ps1`
-- `./scripts/validate-codex-assets.ps1 -RequirePythonToml:$true`
-- `./scripts/test-hooks.ps1`
-- `./scripts/test-workflow-enforcement.ps1`
-- `./scripts/test-analyze-spec.ps1`
-- `./scripts/test-workspace.ps1`
-- `./scripts/scan-secrets.ps1`
+- `./scripts/check-all.ps1`
+- `../../scripts/verify-app.ps1 -ProjectPath .`
 
 Verification result:
 
-- Completed on 2026-07-09.
-- Signal checks passed: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`, `npm run e2e`, and `../../scripts/verify-app.ps1 -ProjectPath .`.
-- Signal artifact checks passed: `../../scripts/analyze-spec.ps1 -ProjectPath .`, `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`, and `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`.
-- Root governance checks passed: `./scripts/check-workspace.ps1`, `./scripts/validate-codex-assets.ps1 -RequirePythonToml:$true`, `./scripts/test-hooks.ps1`, `./scripts/test-workflow-enforcement.ps1`, `./scripts/test-analyze-spec.ps1`, `./scripts/test-workspace.ps1`, and `./scripts/scan-secrets.ps1`.
-- Public-launch gate failed as designed: `npm run release:check` correctly reported the remaining anonymous browser-write RPC posture as a blocker for broader deployment.
+- `../../scripts/analyze-spec.ps1 -ProjectPath .` passed on 2026-07-09.
+- `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` passed on 2026-07-09.
+- `./scripts/check-all.ps1` passed on 2026-07-09.
+- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` passed on 2026-07-09.
+- `../../scripts/verify-app.ps1 -ProjectPath .` passed on 2026-07-09: `typecheck`, `lint`, `test`, `build`, and `e2e` all passed. The earlier transient `mobile-390` WebKit launch failure did not reproduce on rerun.
 
 ## Handoff Notes
 
-Record deviations from this plan, any expected failing gates, and any branch-state findings that are closed by refreshed Git evidence rather than by file edits alone.
+Record the verify-before-finish deletion decision, manifest adoption, template CI relocation, and any remaining policy-layer follow-up that moves to slice `007`.

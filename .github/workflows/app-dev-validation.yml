@@ -60,37 +60,9 @@ jobs:
           npm --version
           python --version
 
-      - name: Check workspace structure
+      - name: Run canonical governance check
         shell: pwsh
-        run: ./scripts/check-workspace.ps1
-
-      - name: Validate Codex assets
-        shell: pwsh
-        run: ./scripts/validate-codex-assets.ps1 -RequirePythonToml $true
-
-      - name: Test hook policy
-        shell: pwsh
-        run: ./scripts/test-hooks.ps1
-
-      - name: Test workflow enforcement
-        shell: pwsh
-        run: ./scripts/test-workflow-enforcement.ps1
-
-      - name: Test spec analysis
-        shell: pwsh
-        run: ./scripts/test-analyze-spec.ps1
-
-      - name: Check template parity
-        shell: pwsh
-        run: ./scripts/check-template-parity.ps1
-
-      - name: Scan for secrets
-        shell: pwsh
-        run: ./scripts/scan-secrets.ps1
-
-      - name: Test project generation
-        shell: pwsh
-        run: ./scripts/test-workspace.ps1
+        run: ./scripts/check-all.ps1
 
   app-validation:
     needs: discover-apps

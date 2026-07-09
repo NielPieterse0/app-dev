@@ -3,7 +3,7 @@
 - Document: standards/workspace.md
 - Version: 2.0.0
 - Date: 2026-07-09
-- Status: Adopted. Implementation of pending items (4.2 manifest, 4.3 check-all, 5.3 template CI relocation, workflow spine edits) is tracked in `projects/signal/specs/006-harness-consolidation/`.
+- Status: Adopted and implemented.
 - Owner: app-dev
 - Related: standards/spec-driven-workflow.md, standards/scripting.md, standards/constitution.md, standards/codex-capabilities.md
 
@@ -35,7 +35,7 @@ app-dev/
   templates/
     PLAN.template.md
     spec-workflow/          # spec/tasks/checklist/receipts/converge templates
-    common/                 # shared template assets; CI reference snippets move to common/ci/ (pending, spec 006)
+    common/ci/              # non-executable CI reference snippets
     react-vite-capacitor/
     next-web-app/
     expo-native-app/
@@ -82,11 +82,11 @@ A change that duplicates an owned fact into a second file is a review-blocking d
 - `.codex/` - runtime enforcement: `config.toml` (inline hooks only; never alongside `hooks.json`), `rules/default.rules`, `hooks/`. Every hook file that exists is wired to an event in `config.toml`; a hook file with no event registration is deleted, not kept for later.
 - `standards/` - canonical prose. `scripts/` - mechanical enforcement of the standards. A standard without an enforcing script is a preference; label it as such or build the script.
 
-### 4.2 Workspace Manifest (pending, spec 006)
+### 4.2 Workspace Manifest
 
 Required paths, content rules, CI-content rules, and governed numbers live in one declarative manifest (`standards/workspace-manifest.psd1`) consumed by `check-workspace.ps1` and `validate-codex-assets.ps1`. Content rules assert structure and patterns (headings, fields, tokens), never exact prose, per `standards/scripting.md` section 5. Historical records under `docs/audit/` are validated as path-exists only.
 
-### 4.3 Canonical Governance Check (pending, spec 006)
+### 4.3 Canonical Governance Check
 
 `scripts/check-all.ps1` is the single entry point that runs the full governance sequence (workspace structure, codex assets, hooks, workflow enforcement, spec analysis, secret scan, generation test) in CI order. Humans, README, AGENTS.md, and CI all invoke the same sequence; none maintains its own list.
 
@@ -94,7 +94,7 @@ Required paths, content rules, CI-content rules, and governed numbers live in on
 
 - 5.1 CI workflows execute only from `.github/workflows/` at the repository root. GitHub Actions does not discover nested workflow files; `projects/<app>/.github/workflows/` must not exist.
 - 5.2 One validation workflow with two job families: workspace-validation (governance scripts, portability lint first) and app-validation via a project matrix with `working-directory: ${{ matrix.project.path }}`. Matrix entries are hand-listed while one app exists; when the second app lands under `projects/`, the list is replaced by a discovery job that emits the matrix from `projects/*/package.json`. That trigger condition is the recorded decision - do not build discovery speculatively.
-- 5.3 Templates do not ship executable workflow files (pending, spec 006). CI reference snippets live in `templates/common/ci/` with non-executable names such as `verify.reference.yml`, and `create-app.ps1` excludes `.github/` from template copies. This supersedes the previous state where templates carried `.github/workflows/verify.yml` into generated apps as inert files.
+- 5.3 Templates do not ship executable workflow files. CI reference snippets live in `templates/common/ci/` with non-executable names such as `verify.reference.yml`, and `create-app.ps1` excludes `.github/` from template copies. This supersedes the previous state where templates carried `.github/workflows/verify.yml` into generated apps as inert files.
 - 5.4 Workflow hygiene requirements: `concurrency` group with cancel-in-progress per ref, `timeout-minutes` on every job, `setup-node` npm caching keyed to each app's lockfile, Playwright browser caching, and upload of `playwright-report/` and `test-results/` as artifacts on failure.
 - 5.5 CI runs on `ubuntu-latest`; Linux execution is the portability contract (`standards/scripting.md` section 1). App e2e in CI runs in the unconfigured-env state by default: no backend secrets in CI, and e2e specs must pass against the app's degraded and empty states.
 - 5.6 Lockfiles are proven by `npm ci` on Linux in CI; a lockfile that installs locally but not in CI is defective.
@@ -114,7 +114,7 @@ Required paths, content rules, CI-content rules, and governed numbers live in on
 ## 8. Documentation Hygiene
 
 - All committed docs, ledgers, configs, and generated artifacts use repo-relative forward-slash paths. Absolute local paths are defects, including inside comments.
-- README command examples use cross-platform pwsh forms (`./scripts/check-workspace.ps1`, `cd projects/my-app`).
+- README command examples use cross-platform pwsh forms (`./scripts/check-all.ps1`, `cd projects/my-app`).
 - Audit records under `docs/audit/` are immutable once their slice closes; corrections append, never rewrite.
 - When reality and a standard diverge, the same commit updates whichever one is wrong - never neither, never later.
 

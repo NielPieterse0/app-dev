@@ -2,6 +2,8 @@
 
 Use this command to refine the ordered implementation checklist for the active numbered spec.
 
+Working directory: `projects/<app>/`.
+
 ## Required workflow
 
 1. Update the active `tasks.md`.

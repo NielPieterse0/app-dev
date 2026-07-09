@@ -6,7 +6,7 @@ Use this project's `PLAN.md` for architecture, module, risk, and verification de
 
 ## Active Specification
 
-- Active spec: `specs/005-signalauditcloseout/spec.md`.
+- Active spec: `specs/006-harness-consolidation/spec.md`.
 - Create later feature specs under `specs/NNN-<slug>/`.
 - Keep `PLAN.md`, `tasks.md`, and `workflow-receipts.md` aligned to the active spec before implementation starts.
 
@@ -26,9 +26,9 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 
 ## Required Before Feature Work
 
-- Complete `specs/005-signalauditcloseout/spec.md` before feature work.
+- Complete `specs/006-harness-consolidation/spec.md` before feature work.
 - Update `PLAN.md` for architecture-sensitive or multi-module work.
-- Update `specs/005-signalauditcloseout/tasks.md` before material implementation.
+- Update `specs/006-harness-consolidation/tasks.md` before material implementation.
 - Review the starter `AppShell`, `NavigationShell`, and base route structure.
 - Keep module boundaries explicit: import other modules only through `@/modules/<module>`, and treat deep imports into another module's internals as lint failures.
 - Add `.env.example` for required public environment variables.

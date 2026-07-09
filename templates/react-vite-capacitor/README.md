@@ -77,7 +77,7 @@ Reference surfaces included in the template:
 
 ## CI workflow
 
-Generated apps inherit `.github/workflows/verify.yml`, which runs install, dependency review on pull requests, secret scanning, Playwright browser setup, and the full `typecheck`, `lint`, `test`, `build`, and `e2e` script set.
+Generated apps do not inherit executable workflow files. Use `templates/common/ci/verify.reference.yml` as the reference snippet when a generated app later needs its own CI workflow.
 
 ## Native platforms
 

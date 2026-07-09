@@ -49,20 +49,17 @@ Promote to a pnpm/Turborepo monorepo only after at least two apps share real cod
 
 ## Development Workflow
 
-1. Start every material app task by selecting or creating a numbered feature spec under `projects/<app>/specs/NNN-<slug>/`.
-2. Keep app identity and durable rules in `projects/<app>/AGENTS.md`, and keep feature intent, acceptance criteria, and risk in the active `spec.md`.
-3. Create or update `projects/<app>/PLAN.md` for architectural, data model, auth, routing, deployment, migration, or multi-module work. Use `templates/PLAN.template.md` when creating a new app plan.
-4. Create or update `projects/<app>/specs/NNN-<slug>/workflow-receipts.md` before material implementation and keep the relevant receipt sections current through handoff.
-5. Choose the simplest app type that satisfies requirements:
-   - React + Vite + Capacitor for most cross-platform business apps.
-   - Next.js for SSR/SEO/server-rendered public apps.
-   - Expo for native-first mobile apps.
-6. Create or update `specs/NNN-<slug>/tasks.md` before material implementation, and add `checklist.md` for auth, payments, secrets, public APIs, data access, file uploads, RLS, AI tool actions, deployment, or live migrations.
-7. Build vertical modules, not page dumps. Each module owns schema, API/data hooks, UI components, routes, tests, and empty/loading/error states.
-8. Reuse existing components and templates before creating new abstractions.
-9. Install dependencies where they are used. Keep root dependencies minimal.
-10. Keep adaptive layout explicit: desktop, tablet, and mobile view states must be designed and checked.
-11. Before completion, run the app's verification commands, run `scripts/validate-workflow-receipts.ps1` for the app, and check rendered UI at desktop and mobile sizes when UI changed.
+Workflow owner: `standards/spec-driven-workflow.md`.
+
+Execution surface: `.agents/commands/`.
+
+Lean path: `spec -> plan -> tasks -> implement -> analyze -> verify -> handoff`.
+
+Gated path: `clarify -> spec -> checklist -> plan -> tasks -> implement -> converge -> analyze -> verify -> handoff`.
+
+Use the canonical workflow standard for phase requirements and use the command docs for exact commands, working directories, and receipt obligations.
+
+During implementation, build vertical modules, reuse existing components/templates, keep dependencies scoped to the app that uses them, and verify rendered desktop/mobile states when UI changes.
 
 ## Module Contract
 
@@ -131,12 +128,10 @@ For app-dev workflow enforcement, `projects/<app>/specs/NNN-<slug>/workflow-rece
 
 ## Codex Governance Checks
 
-When changing `.codex/`, `.agents/skills/`, root `AGENTS.md`, planning templates, CI, or workspace scripts, run:
+When changing `.codex/`, `.agents/skills/`, root `AGENTS.md`, planning templates, CI, or workspace scripts, run the canonical governance check:
 
 ```text
-scripts/check-workspace.ps1
-scripts/validate-codex-assets.ps1
-scripts/test-hooks.ps1
+scripts/check-all.ps1
 ```
 
 Project-local Codex hooks and rules are active only after the repository `.codex/` layer is trusted in Codex. Do not add `.codex/hooks.json` while inline hooks remain configured in `.codex/config.toml`.

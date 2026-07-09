@@ -3,7 +3,6 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $hook = Join-Path $root ".codex/hooks/pre-command.ps1"
 $postEditHook = Join-Path $root ".codex/hooks/post-edit.ps1"
-$finishHook = Join-Path $root ".codex/hooks/verify-before-finish.ps1"
 
 function Get-PowerShellRuntime {
   $currentProcessPath = (Get-Process -Id $PID).Path
@@ -39,7 +38,7 @@ if (-not (Test-Path $hook)) {
   Write-Error "pre-command hook not found: $hook"
 }
 
-foreach ($requiredHook in @($postEditHook, $finishHook)) {
+foreach ($requiredHook in @($postEditHook)) {
   if (-not (Test-Path $requiredHook)) {
     Write-Error "Expected hook not found: $requiredHook"
   }

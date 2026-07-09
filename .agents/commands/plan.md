@@ -2,6 +2,8 @@
 
 Use this command only after an active numbered spec exists.
 
+Working directory: `projects/<app>/`.
+
 ## Required workflow
 
 1. Confirm `projects/<app>/AGENTS.md` points to the active spec.

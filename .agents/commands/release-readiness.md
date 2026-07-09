@@ -2,6 +2,8 @@
 
 Use this command for completion claims, PR readiness, or risky deploy-adjacent work.
 
+Working directory: `projects/<app>/`.
+
 ## Required workflow
 
 1. Confirm the `Release Readiness Workflow Receipt` is complete.

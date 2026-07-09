@@ -2,9 +2,9 @@
 
 ## Clarify
 
-- [ ] Confirm verify-before-finish decision: wire to a finish-stage hook event or delete (R5)
-- [ ] Confirm 32768 as the adopted AGENTS.md byte limit before aligning config.toml (R3)
-- [ ] Confirm the template CI reference filename convention (verify.reference.yml) before relocation (R6)
+- [x] Confirm verify-before-finish decision: delete the dormant helper and remove all required-path/test/doc references (R5)
+- [x] Confirm 32768 as the adopted AGENTS.md byte limit before aligning config.toml and the manifest (R3)
+- [x] Confirm the template CI reference filename convention (`verify.reference.yml`) before relocation (R6)
 
 ## Security And Data Review
 
@@ -14,6 +14,6 @@
 
 ## Implementation Readiness
 
-- [ ] Spec, tasks, and receipts reviewed and consistent
-- [ ] Execution ordering per tasks Notes accepted
-- [ ] Hosted CI green criterion acknowledged as the completion referee
+- [x] Spec, tasks, and receipts reviewed and consistent
+- [x] Execution ordering per tasks Notes accepted
+- [x] Hosted CI green criterion acknowledged as the completion referee

@@ -67,31 +67,31 @@ The `.codex/config.toml` file is active. It enables project hooks and relies on 
 Run Codex asset validation after changing `.codex/`, `.agents/skills/`, `AGENTS.md`, planning templates, CI, or workspace scripts:
 
 ```powershell
-.\scripts\validate-codex-assets.ps1
+./scripts/validate-codex-assets.ps1
 ```
 
 Run workflow receipt validation inside a generated app before claiming work is complete:
 
 ```powershell
-..\..\scripts\validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence
+../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence
 ```
 
-Run hook policy tests separately:
+Run the full governance check sequence:
 
 ```powershell
-.\scripts\test-hooks.ps1
+./scripts/check-all.ps1
 ```
 
 Run the local secret scan before distributing or pushing workspace changes:
 
 ```powershell
-.\scripts\scan-secrets.ps1
+./scripts/scan-secrets.ps1
 ```
 
 Create a distributable workspace archive without `.git/`, generated projects, dependencies, logs, or reports:
 
 ```powershell
-.\scripts\export-workspace.ps1
+./scripts/export-workspace.ps1
 ```
 
 ## First Commands
@@ -99,30 +99,28 @@ Create a distributable workspace archive without `.git/`, generated projects, de
 From this folder:
 
 ```powershell
-.\scripts\check-workspace.ps1
-.\scripts\validate-codex-assets.ps1
-.\scripts\test-hooks.ps1
-.\scripts\scan-secrets.ps1
+./scripts/check-all.ps1
+./scripts/scan-secrets.ps1
 ```
 
 To create a project folder from the React/Vite/Capacitor template:
 
 ```powershell
-.\scripts\create-app.ps1 -Name my-app -Template react-vite-capacitor
+./scripts/create-app.ps1 -Name my-app -Template react-vite-capacitor
 ```
 
 Then open `projects/my-app/AGENTS.md` and `projects/my-app/PLAN.md` and define the app-specific modules, decisions, and verification commands. Install dependencies inside the generated project, not at the `app-dev` root:
 
 ```powershell
-cd projects\my-app
+cd projects/my-app
 npm install
-..\..\scripts\verify-app.ps1 -ProjectPath .
+../../scripts/verify-app.ps1 -ProjectPath .
 ```
 
 To run control-workspace checks:
 
 ```powershell
-.\scripts\test-workspace.ps1
+./scripts/test-workspace.ps1
 ```
 
 ## CI

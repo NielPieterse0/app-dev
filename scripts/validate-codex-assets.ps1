@@ -37,6 +37,16 @@ function Assert-PathExists {
   }
 }
 
+function Load-WorkspaceManifest {
+  $manifestPath = Resolve-WorkspacePath "standards/workspace-manifest.psd1"
+  if (-not (Test-Path -LiteralPath $manifestPath)) {
+    Add-Failure "Missing workspace manifest: standards/workspace-manifest.psd1"
+    return $null
+  }
+
+  return Import-PowerShellDataFile -Path $manifestPath
+}
+
 function Get-FirstCommand {
   param([string[]]$Names)
   foreach ($name in $Names) {
@@ -213,7 +223,10 @@ function Test-MarkdownReferences {
 }
 
 function Test-AgentsSize {
-  param([Parameter(Mandatory=$true)][string]$AgentsPath)
+  param(
+    [Parameter(Mandatory=$true)][string]$AgentsPath,
+    [Parameter(Mandatory=$true)][int]$MaxBytes
+  )
 
   if (-not (Test-Path -LiteralPath $AgentsPath)) {
     Add-Failure "Missing AGENTS.md."
@@ -221,8 +234,8 @@ function Test-AgentsSize {
   }
 
   $bytes = (Get-Item -LiteralPath $AgentsPath).Length
-  if ($bytes -gt 32768) {
-    Add-Failure "AGENTS.md is $bytes bytes, above the default Codex project_doc_max_bytes of 32768."
+  if ($bytes -gt $MaxBytes) {
+    Add-Failure "AGENTS.md is $bytes bytes, above the governed project_doc_max_bytes of $MaxBytes."
   }
 }
 
@@ -247,7 +260,10 @@ function Test-HookReferences {
 }
 
 function Test-ConfigTextChecks {
-  param([Parameter(Mandatory=$true)][string]$ConfigPath)
+  param(
+    [Parameter(Mandatory=$true)][string]$ConfigPath,
+    [Parameter(Mandatory=$true)][int]$ExpectedAgentsMaxBytes
+  )
 
   $config = Get-Content -LiteralPath $ConfigPath -Raw
   foreach ($required in @("[features]", "hooks = true", "[[hooks.PreToolUse]]", "[[hooks.PermissionRequest]]", "[[hooks.PostToolUse]]")) {
@@ -260,6 +276,13 @@ function Test-ConfigTextChecks {
     if ($config -match $forbidden) {
       Add-Failure ".codex/config.toml contains forbidden or conflicting setting/text: $forbidden"
     }
+  }
+
+  $projectDocBytes = [regex]::Match($config, '(?m)^project_doc_max_bytes\s*=\s*(\d+)\s*$')
+  if (-not $projectDocBytes.Success) {
+    Add-Failure ".codex/config.toml is missing project_doc_max_bytes."
+  } elseif ([int]$projectDocBytes.Groups[1].Value -ne $ExpectedAgentsMaxBytes) {
+    Add-Failure ".codex/config.toml project_doc_max_bytes does not match the workspace manifest value of $ExpectedAgentsMaxBytes."
   }
 }
 
@@ -467,6 +490,7 @@ function Test-WorkflowWrapperAssets {
     ".agents/commands/plan.md",
     ".agents/commands/tasks.md",
     ".agents/commands/implement.md",
+    ".agents/commands/analyze.md",
     ".agents/commands/verify.md",
     ".agents/commands/release-readiness.md",
     "scripts/get-workflow-obligations.ps1",
@@ -477,7 +501,7 @@ function Test-WorkflowWrapperAssets {
   }
 
   $skill = Get-Content -LiteralPath (Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/SKILL.md") -Raw
-  foreach ($required in @("ui-change-workflow", "data-change-workflow", "mobile-validation-workflow", "release-readiness-workflow", "workflow-receipts.md", "validate-workflow-receipts.ps1")) {
+  foreach ($required in @("standards/spec-driven-workflow.md", ".agents/commands/", "ui-change-workflow", "data-change-workflow", "mobile-validation-workflow", "release-readiness-workflow", "workflow-receipts.md")) {
     if ($skill -notmatch [regex]::Escape($required)) {
       Add-Failure "cross-platform-app-workflow is missing required workflow-enforcement wording: $required"
     }
@@ -487,6 +511,27 @@ function Test-WorkflowWrapperAssets {
   foreach ($required in @("workflow-receipts.md", "UI", "Data", "Mobile", "Release readiness")) {
     if ($commandContract -notmatch [regex]::Escape($required)) {
       Add-Failure "standards/command-workflow-contract.md is missing required workflow contract content: $required"
+    }
+  }
+}
+
+function Test-WorkflowPointers {
+  param(
+    [Parameter(Mandatory=$true)][string]$AgentsPath,
+    [Parameter(Mandatory=$true)][string]$SkillPath
+  )
+
+  $agents = Get-Content -LiteralPath $AgentsPath -Raw
+  foreach ($required in @("## Development Workflow", "standards/spec-driven-workflow.md", ".agents/commands/", "Lean path", "Gated path", "scripts/check-all.ps1")) {
+    if ($agents -notmatch [regex]::Escape($required)) {
+      Add-Failure "Root AGENTS.md is missing workflow-pointer content: $required"
+    }
+  }
+
+  $skill = Get-Content -LiteralPath $SkillPath -Raw
+  foreach ($required in @("## Workflow", "standards/spec-driven-workflow.md", ".agents/commands/", "base shell", "wrapper workflows")) {
+    if ($skill -notmatch [regex]::Escape($required)) {
+      Add-Failure "cross-platform-app-workflow SKILL.md is missing pointer-based workflow content: $required"
     }
   }
 }
@@ -556,8 +601,7 @@ function Test-SkillReferenceDelegation {
 
 function Test-TemplateReadiness {
   $requiredPaths = @(
-    "templates/common/.github/workflows/verify.yml",
-    "templates/react-vite-capacitor/.github/workflows/verify.yml",
+    "templates/common/ci/verify.reference.yml",
     "templates/react-vite-capacitor/eslint/index.js",
     "templates/react-vite-capacitor/eslint/rules/enforce-module-boundaries.js",
     "templates/react-vite-capacitor/capacitor.config.ts",
@@ -632,25 +676,9 @@ function Test-CiWorkflow {
   }
 
   $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
-  foreach ($required in @("pull_request", "workflow_dispatch", "Discover app projects", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/get-app-validation-matrix.mjs", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/check-template-parity.ps1", "scripts/test-hooks.ps1", "scripts/test-workflow-enforcement.ps1", "scripts/test-analyze-spec.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1", "check-spec-artifacts.ps1", "validate-workflow-receipts.ps1", "App validation", "strategy:", "matrix:", "fromJson(needs.discover-apps.outputs.matrix)", 'working-directory: ${{ matrix.project.path }}')) {
+  foreach ($required in @("pull_request", "workflow_dispatch", "Discover app projects", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/get-app-validation-matrix.mjs", "scripts/check-all.ps1", "check-spec-artifacts.ps1", "validate-workflow-receipts.ps1", "App validation", "strategy:", "matrix:", "fromJson(needs.discover-apps.outputs.matrix)", 'working-directory: ${{ matrix.project.path }}')) {
     if ($workflow -notmatch [regex]::Escape($required)) {
       Add-Failure ".github/workflows/app-dev-validation.yml is missing required CI content: $required"
-    }
-  }
-}
-
-function Test-AuditCloseoutLedger {
-  param([Parameter(Mandatory=$true)][string]$LedgerPath)
-
-  if (-not (Test-Path -LiteralPath $LedgerPath)) {
-    Add-Failure "Missing audit closeout ledger: $LedgerPath"
-    return
-  }
-
-  $ledger = Get-Content -LiteralPath $LedgerPath -Raw
-  foreach ($required in @("P0 Findings", "P1 Findings", "P2 Findings", "Other Findings", "accepted-decision", "open-fixed-by-this-plan", "MCP", "export-workspace.ps1", "scan-secrets.ps1")) {
-    if ($ledger -notmatch [regex]::Escape($required)) {
-      Add-Failure "Audit closeout ledger is missing required content: $required"
     }
   }
 }
@@ -692,6 +720,7 @@ function Test-OpenAiAgentMetadata {
 }
 
 $Root = (Resolve-Path -LiteralPath $Root).Path
+$workspaceManifest = Load-WorkspaceManifest
 $configPath = Resolve-WorkspacePath ".codex/config.toml"
 $skillPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/SKILL.md"
 $rulesPath = Resolve-WorkspacePath ".codex/rules/default.rules"
@@ -700,88 +729,32 @@ $plansPath = Resolve-WorkspacePath "PLANS.md"
 $planTemplatePath = Resolve-WorkspacePath "templates/PLAN.template.md"
 $workflowPath = Resolve-WorkspacePath ".github/workflows/app-dev-validation.yml"
 $openAiAgentMetadataPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/agents/openai.yaml"
-$auditLedgerPath = Resolve-WorkspacePath "docs/audit/app-dev-audit-closeout.md"
 
-  foreach ($path in @(
-  "AGENTS.md",
-  "PLANS.md",
-  "docs/audit/app-dev-audit-closeout.md",
-  ".github/workflows/app-dev-validation.yml",
-  ".github/dependabot.yml",
-  ".codex/config.toml",
-  ".codex/rules/default.rules",
-  ".codex/hooks/pre-command.ps1",
-  ".codex/hooks/post-edit.ps1",
-  ".codex/hooks/verify-before-finish.ps1",
-  ".agents/commands/specify.md",
-  ".agents/commands/plan.md",
-  ".agents/commands/tasks.md",
-  ".agents/commands/implement.md",
-  ".agents/commands/verify.md",
-  ".agents/commands/release-readiness.md",
-  ".agents/README.md",
-  ".agents/skills/README.md",
-  ".agents/skills/cross-platform-app-workflow/SKILL.md",
-  ".agents/skills/ui-change-workflow/SKILL.md",
-  ".agents/skills/data-change-workflow/SKILL.md",
-  ".agents/skills/mobile-validation-workflow/SKILL.md",
-  ".agents/skills/release-readiness-workflow/SKILL.md",
-  ".agents/skills/cross-platform-app-workflow/agents/openai.yaml",
-  ".agents/skills/cross-platform-app-workflow/references/stack.md",
-  ".agents/skills/cross-platform-app-workflow/references/module-contract.md",
-  ".agents/skills/cross-platform-app-workflow/references/adaptive-layouts.md",
-  ".agents/skills/cross-platform-app-workflow/references/qa-gates.md",
-  ".agents/skills/cross-platform-app-workflow/references/spec-driven-workflow.md",
-  "standards/command-workflow-contract.md",
-  "standards/constitution.md",
-  "standards/codex-capabilities.md",
-  "standards/spec-driven-workflow.md",
-  "templates/PLAN.template.md",
-  "templates/spec-workflow/spec.template.md",
-  "templates/spec-workflow/tasks.template.md",
-  "templates/spec-workflow/checklist.template.md",
-  "templates/spec-workflow/workflow-receipts.template.md",
-  "templates/spec-workflow/converge.template.md",
-  "templates/common/.github/workflows/verify.yml",
-  "templates/react-vite-capacitor/.github/workflows/verify.yml",
-  "templates/react-vite-capacitor/template-parity.manifest.json",
-  "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
-  "scripts/validate-codex-assets.ps1",
-  "scripts/check-template-parity.ps1",
-  "scripts/common.ps1",
-  "scripts/analyze-spec.ps1",
-  "scripts/test-analyze-spec.ps1",
-  "scripts/get-app-validation-matrix.mjs",
-  "scripts/get-workflow-obligations.ps1",
-  "scripts/validate-workflow-receipts.ps1",
-  "scripts/test-workflow-enforcement.ps1",
-  "scripts/new-spec.ps1",
-  "scripts/check-spec-artifacts.ps1",
-  "scripts/scan-secrets.ps1",
-  "scripts/export-workspace.ps1"
-)) {
+if ($null -eq $workspaceManifest) {
+  Write-Error "Codex asset validation failed:`nMissing workspace manifest."
+}
+
+foreach ($path in @($workspaceManifest.ValidateCodexAssets.RequiredPaths)) {
   Assert-PathExists $path
 }
 
 if (Test-Path -LiteralPath $configPath) {
-  Test-ConfigTextChecks -ConfigPath $configPath
+  Test-ConfigTextChecks -ConfigPath $configPath -ExpectedAgentsMaxBytes $workspaceManifest.GovernedNumbers.AgentsMaxBytes
   Test-TomlWithPython -ConfigPath $configPath
-  Test-HookReferences -ConfigPath $configPath -HookFiles @(
-    ".codex/hooks/pre-command.ps1",
-    ".codex/hooks/post-edit.ps1"
-  )
+  Test-HookReferences -ConfigPath $configPath -HookFiles @($workspaceManifest.ValidateCodexAssets.HookFiles)
 }
 
 Test-RulesFile -RulesPath $rulesPath
 Test-SkillFrontmatter -SkillPath $skillPath
 Test-MarkdownReferences -MarkdownPath $skillPath
 Test-NoDuplicateSkillReferenceCopies
-Test-AgentsSize -AgentsPath (Join-Path $Root "AGENTS.md")
+Test-AgentsSize -AgentsPath (Join-Path $Root "AGENTS.md") -MaxBytes $workspaceManifest.GovernedNumbers.AgentsMaxBytes
 Test-NoDisposableVerificationFolders
 Test-CapabilityRouting -CapabilityPath $capabilityPath
 Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath -ConstitutionPath (Resolve-WorkspacePath "standards/constitution.md")
 Test-SpecWorkflowAssets
 Test-WorkflowWrapperAssets
+Test-WorkflowPointers -AgentsPath (Resolve-WorkspacePath "AGENTS.md") -SkillPath $skillPath
 Test-SkillReferenceDelegation
 Test-TemplateAgents -AgentPaths @(
   "templates/react-vite-capacitor/AGENTS.md",
@@ -799,7 +772,6 @@ foreach ($packagePath in @(
 Test-ReactTemplatePackageJson
 Test-CiWorkflow -WorkflowPath $workflowPath
 Test-OpenAiAgentMetadata -MetadataPath $openAiAgentMetadataPath
-Test-AuditCloseoutLedger -LedgerPath $auditLedgerPath
 Test-ScriptAssets
 
 $summary = [ordered]@{

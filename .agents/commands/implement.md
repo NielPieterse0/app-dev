@@ -2,6 +2,8 @@
 
 Use this command only when the active spec, current tasks, and workflow receipts are ready.
 
+Working directory: `projects/<app>/`.
+
 ## Required workflow
 
 1. Confirm `spec.md`, `tasks.md`, and `workflow-receipts.md` exist.

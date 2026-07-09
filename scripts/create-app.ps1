@@ -31,6 +31,7 @@ if (Test-Path -LiteralPath $target) {
 
 New-Item -ItemType Directory -Force -Path $target | Out-Null
 $excludedTemplateEntries = @(
+  ".github",
   "node_modules",
   "dist",
   "coverage",
@@ -67,7 +68,7 @@ Use this project's `PLAN.md` for architecture, module, risk, and verification de
 Use the scripts in package.json. Before completion, run available checks through:
 
 ````powershell
-..\..\scripts\verify-app.ps1 -ProjectPath .
+../../scripts/verify-app.ps1 -ProjectPath .
 ````
 
 ## Done When
@@ -75,9 +76,9 @@ Use the scripts in package.json. Before completion, run available checks through
 - Active specification and task artifacts are current for the feature being built.
 - `workflow-receipts.md` is current for any UI, data, mobile, or release-readiness work.
 - `PLAN.md` is current for architecture, data model, auth, routing, deployment, migration, or multi-module work.
-- `..\..\scripts\check-spec-artifacts.ps1 -ProjectPath .` passes before completion.
-- `..\..\scripts\validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` passes before completion.
-- Available checks pass through `..\..\scripts\verify-app.ps1 -ProjectPath .`.
+- `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` passes before completion.
+- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` passes before completion.
+- Available checks pass through `../../scripts/verify-app.ps1 -ProjectPath .`.
 - Missing scripts are reported instead of invented.
 - UI changes include rendered desktop and mobile checks.
 - Handoff notes record deviations, skipped checks, and unresolved decisions.

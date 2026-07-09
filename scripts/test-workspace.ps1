@@ -1,9 +1,10 @@
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
+$runSuffix = ([guid]::NewGuid().ToString("N")).Substring(0, 8)
 $projectMatrix = @(
   @{
-    Name = "__verify-react-vite-capacitor"
+    Name = "__verify-react-vite-capacitor-$runSuffix"
     Template = "react-vite-capacitor"
     Required = @(
       "package.json",
@@ -14,7 +15,6 @@ $projectMatrix = @(
       "specs/001-initial/workflow-receipts.md",
       "specs/001-initial/checklist.md",
       ".env.example",
-      ".github/workflows/verify.yml",
       "index.html",
       "playwright.config.ts",
       "scripts/add-native-platforms.ps1",
@@ -52,7 +52,7 @@ $projectMatrix = @(
     Scripts = @("typecheck", "lint", "test", "build", "e2e")
   },
   @{
-    Name = "__verify-next"
+    Name = "__verify-next-$runSuffix"
     Template = "next-web-app"
     Required = @(
       "package.json",
@@ -73,7 +73,7 @@ $projectMatrix = @(
     Scripts = @("typecheck", "lint", "test", "build")
   },
   @{
-    Name = "__verify-expo"
+    Name = "__verify-expo-$runSuffix"
     Template = "expo-native-app"
     Required = @(
       "package.json",
@@ -153,6 +153,9 @@ function Assert-GeneratedProject {
       Write-Error "Generated package.json for $($Project.Name) is missing script: $scriptName"
     }
   }
+  if (Test-Path -LiteralPath (Join-Path $projectPath ".github")) {
+    Write-Error "Generated project must not contain a nested .github directory: $($Project.Name)"
+  }
   Push-Location $projectPath
   try {
     & (Join-Path $root "scripts/check-spec-artifacts.ps1") -ProjectPath "."
@@ -192,6 +195,8 @@ try {
   & (Join-Path $root "scripts/test-hooks.ps1")
   & (Join-Path $root "scripts/test-workflow-enforcement.ps1")
   & (Join-Path $root "scripts/test-analyze-spec.ps1")
+  & (Join-Path $root "scripts/check-template-parity.ps1")
+  & (Join-Path $root "scripts/scan-secrets.ps1")
 
   foreach ($project in $projectMatrix) {
     $projectPath = Join-Path $root "projects/$($project.Name)"
@@ -200,7 +205,7 @@ try {
     Assert-GeneratedProject -Project $project
   }
 
-  Assert-TrackedByRootGitignore -RelativePath "projects/__verify-react-vite-capacitor/package.json"
+  Assert-TrackedByRootGitignore -RelativePath "projects/$($projectMatrix[0].Name)/package.json"
 
   Write-Host "Workspace tests passed."
 } finally {

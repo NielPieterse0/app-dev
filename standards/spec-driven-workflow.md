@@ -22,11 +22,26 @@ This workspace uses a translated local spec-driven workflow inspired by `spec-ki
 - Numbers are zero-padded to three digits and increase monotonically.
 - `AGENTS.md` and `PLAN.md` must both point to the active spec path before material implementation begins.
 
+## Phase To Command Map
+
+| Phase | Command owner | Main enforcement |
+|---|---|---|
+| Clarify (gated only) | `.agents/commands/specify.md` gated branch | `check-spec-artifacts.ps1` plus checklist completion |
+| Spec | `.agents/commands/specify.md` | `check-spec-artifacts.ps1` |
+| Plan | `.agents/commands/plan.md` | `check-spec-artifacts.ps1`, `analyze-spec.ps1` |
+| Tasks | `.agents/commands/tasks.md` | `check-spec-artifacts.ps1`, `validate-workflow-receipts.ps1` |
+| Implement | `.agents/commands/implement.md` | `check-spec-artifacts.ps1` before handoff |
+| Analyze | `.agents/commands/analyze.md` | `analyze-spec.ps1` |
+| Verify | `.agents/commands/verify.md` | `check-spec-artifacts.ps1`, `validate-workflow-receipts.ps1 -RequireVerificationEvidence`, `verify-app.ps1` |
+| Release readiness | `.agents/commands/release-readiness.md` | `validate-workflow-receipts.ps1`, `verify-app.ps1`, any slice-specific release gate |
+
+The standards document owns the phase narrative. Command files own the exact execution steps, working directory, and receipt obligations.
+
 ## Lean Path
 
 Use the lean path for ordinary app and module work:
 
-`spec -> plan -> tasks -> implement -> verify -> handoff`
+`spec -> plan -> tasks -> implement -> analyze -> verify -> handoff`
 
 Lean-path work still requires:
 
@@ -42,7 +57,7 @@ Lean-path work still requires:
 
 Use the gated path for work involving auth, payments, secrets, public APIs, data access, file uploads, RLS, AI tool actions, deployment, or live migrations:
 
-`clarify -> spec -> checklist -> plan -> tasks -> implement -> converge -> verify -> handoff`
+`clarify -> spec -> checklist -> plan -> tasks -> implement -> converge -> analyze -> verify -> handoff`
 
 Gated-path work requires:
 
@@ -62,3 +77,5 @@ Convergence is artifact-based in this workspace. Before claiming a feature is co
 - handoff notes capture deviations, skipped checks, and follow-up items
 
 Use `templates/spec-workflow/converge.template.md` as the default handoff structure when a feature needs an explicit convergence note.
+
+In command terms, convergence is closed inside `/verify`: artifacts are reconciled first, then verification evidence is recorded against the converged state.
