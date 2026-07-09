@@ -70,13 +70,19 @@ jobs:
         shell: pwsh
         run: ./scripts/test-workspace.ps1
 
-  signal-validation:
-    name: Signal validation
+  app-validation:
+    name: App validation (${{ matrix.project.name }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - name: Signal
+            path: projects/signal
 
     defaults:
       run:
-        working-directory: projects/signal
+        working-directory: ${{ matrix.project.path }}
 
     steps:
       - name: Checkout

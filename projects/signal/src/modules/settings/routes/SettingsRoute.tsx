@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   getEnabledKeywordFilters,
+  sourceLabels,
   useSourcePreferencesStore,
   useSourceSettings,
   type SettingsBackend,
@@ -16,6 +17,11 @@ const settingsItems = [
   { label: "Sources", href: "/settings" },
   { label: "Keywords", href: "/settings/keywords" },
 ];
+
+const sourceToggleItems = [
+  { key: "github", label: sourceLabels.github },
+  { key: "hacker_news", label: sourceLabels.hacker_news },
+] as const;
 
 type SettingsRouteContext = {
   backend: SettingsBackend;
@@ -160,10 +166,7 @@ export function SettingsSourcesRoute() {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        {[
-          { key: "github", label: "GitHub" },
-          { key: "hacker_news", label: "Hacker News" },
-        ].map((source) => {
+        {sourceToggleItems.map((source) => {
           const enabled = enabledSources.includes(source.key as "github" | "hacker_news");
           const disableToggle = enabled && enabledSources.length === 1;
 

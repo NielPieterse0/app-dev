@@ -24,9 +24,10 @@ function Write-TextFile {
 function New-FixtureProject {
   param(
     [Parameter(Mandatory=$true)][string]$Name,
-    [string]$ReceiptOverrides = "",
     [switch]$IncludeChecklist,
-    [switch]$UiNotRun
+    [switch]$UiNotRun,
+    [string]$ReleaseVerification = "verify-app and workflow validation complete",
+    [string]$ReleaseDecision = "complete"
   )
 
   $projectPath = Join-Path $tmpRoot $Name
@@ -99,10 +100,9 @@ Tasks path: specs/001-initial/tasks.md
 - Local workflow used: release-readiness-workflow
 - External skill used or unavailable: unavailable
 - Files/surfaces reviewed: supabase/migrations/001.sql
-- Verification performed: verify-app and workflow validation complete
+- Verification performed: $ReleaseVerification
 - Outstanding gaps: none
-- Decision/closure: complete
-$ReceiptOverrides
+- Decision/closure: $ReleaseDecision
 "@
 
   Write-TextFile -Path (Join-Path $projectPath "specs\001-initial\workflow-receipts.md") -Content $receipts
@@ -212,6 +212,9 @@ try {
 
   $docsOnly = New-FixtureProject -Name "docs-only"
   Assert-Passes -ProjectPath $docsOnly -ChangedFilesJson '{"uiChange":{"required":false},"dataChange":{"required":false},"mobileValidation":{"required":false},"releaseReadiness":{"required":false}}'
+
+  $releasePending = New-FixtureProject -Name "release-pending" -IncludeChecklist -ReleaseVerification "pending" -ReleaseDecision "complete"
+  Assert-Fails -ProjectPath $releasePending -ChangedFilesJson '{"uiChange":{"required":false},"dataChange":{"required":false},"mobileValidation":{"required":false},"releaseReadiness":{"required":true}}'
 
   $gitFixture = Initialize-GitWorkflowFixture
   $obligations = & $obligationsScript -ProjectPath $gitFixture.RepoPath -BaseRef $gitFixture.BaseCommit -JsonSummary | ConvertFrom-Json

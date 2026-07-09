@@ -18,6 +18,12 @@ type ConceptsQueryData = {
   concepts: SignalConcept[];
 };
 
+type SaveConceptResult = {
+  backend: ConceptsBackend;
+  concept: SignalConcept;
+  degradedReason: string | null;
+};
+
 type UseConceptsOptions = {
   fallbackRepository?: SignalConceptRepository;
   primaryRepository?: SignalConceptRepository;
@@ -54,8 +60,7 @@ async function loadConceptsData(
   }
 }
 
-export function useConcepts(options: UseConceptsOptions = {}) {
-  const queryClient = useQueryClient();
+function useConceptRepositories(options: UseConceptsOptions = {}) {
   const supabaseConfigured = options.supabaseConfigured ?? isSupabaseConfigured();
   const fallbackRepository = useMemo(
     () => options.fallbackRepository ?? createLocalConceptRepository(),
@@ -70,40 +75,71 @@ export function useConcepts(options: UseConceptsOptions = {}) {
     [fallbackRepository, options.primaryRepository, supabaseConfigured]
   );
 
+  return {
+    fallbackRepository,
+    primaryRepository,
+    supabaseConfigured,
+  };
+}
+
+export function useConcepts(options: UseConceptsOptions = {}) {
+  const { fallbackRepository, primaryRepository, supabaseConfigured } =
+    useConceptRepositories(options);
+
   const query = useQuery({
     queryKey: conceptsQueryKey,
     queryFn: () => loadConceptsData(supabaseConfigured, primaryRepository, fallbackRepository),
     refetchOnWindowFocus: false,
   });
 
+  return {
+    concepts: query.data?.concepts ?? [],
+    backend: query.data?.backend ?? (supabaseConfigured ? "supabase" : "local-fallback"),
+    degradedReason: query.data?.degradedReason ?? null,
+    isLoading: query.isLoading,
+    error: query.error instanceof Error ? query.error : null,
+  };
+}
+
+export function useSaveConcept(options: UseConceptsOptions = {}) {
+  const queryClient = useQueryClient();
+  const { fallbackRepository, primaryRepository, supabaseConfigured } =
+    useConceptRepositories(options);
+
   const mutation = useMutation({
-    mutationFn: async (concept: SignalConcept) => {
-      if (query.data?.backend === "local-fallback") {
+    mutationFn: async (concept: SignalConcept): Promise<SaveConceptResult> => {
+      const currentData = queryClient.getQueryData<ConceptsQueryData>(conceptsQueryKey);
+      const saveToFallback = !supabaseConfigured || currentData?.backend === "local-fallback";
+
+      if (saveToFallback) {
         return {
           concept: await fallbackRepository.save(concept),
-          backend: "local-fallback" as const,
-          degradedReason: query.data.degradedReason,
+          backend: "local-fallback",
+          degradedReason: currentData?.degradedReason ?? null,
         };
       }
 
       try {
         return {
           concept: await primaryRepository.save(concept),
-          backend: "supabase" as const,
+          backend: "supabase",
           degradedReason: null,
         };
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to save the concept remotely.";
+        const message =
+          error instanceof Error ? error.message : "Failed to save the concept remotely.";
 
         return {
           concept: await fallbackRepository.save(concept),
-          backend: "local-fallback" as const,
+          backend: "local-fallback",
           degradedReason: message,
         };
       }
     },
     onSuccess: (nextData) => {
-      queryClient.setQueryData<ConceptsQueryData | undefined>(conceptsQueryKey, (currentData) => {
+      queryClient.setQueryData<ConceptsQueryData | undefined>(
+        conceptsQueryKey,
+        (currentData: ConceptsQueryData | undefined) => {
         const currentConcepts = currentData?.concepts ?? [];
         return {
           backend: nextData.backend,
@@ -113,23 +149,14 @@ export function useConcepts(options: UseConceptsOptions = {}) {
             ...currentConcepts.filter((concept) => concept.id !== nextData.concept.id),
           ]),
         };
-      });
+        }
+      );
     },
   });
 
   return {
-    concepts: query.data?.concepts ?? [],
-    backend: query.data?.backend ?? (supabaseConfigured ? "supabase" : "local-fallback"),
-    degradedReason: query.data?.degradedReason ?? null,
-    isLoading: query.isLoading,
     isSaving: mutation.isPending,
-    error:
-      mutation.error instanceof Error
-        ? mutation.error
-        : query.error instanceof Error
-          ? query.error
-          : null,
     saveConcept: mutation.mutateAsync,
+    error: mutation.error instanceof Error ? mutation.error : null,
   };
 }
-

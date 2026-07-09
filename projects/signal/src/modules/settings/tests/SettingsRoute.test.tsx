@@ -26,6 +26,10 @@ vi.mock("@/modules/sources", () => ({
       .split(",")
       .map((entry) => entry.trim().toLowerCase())
       .filter(Boolean),
+  sourceLabels: {
+    github: "GitHub",
+    hacker_news: "Hacker News",
+  },
   useSourcePreferencesStore: (selector: (state: typeof sourcesState) => unknown) =>
     selector(sourcesState),
   useSourceSettings: () => useSourceSettingsMock(),

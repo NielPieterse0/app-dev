@@ -30,4 +30,26 @@ describe("github source adapter", () => {
     expect(items[0]?.source).toBe("github");
     expect(items[0]?.keywords).toContain("agents");
   });
+
+  test("surfaces a clear rate-limit error", async () => {
+    const fetcher = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      headers: {
+        get: (name: string) => {
+          const key = name.toLowerCase();
+          if (key === "x-ratelimit-remaining") {
+            return "0";
+          }
+          if (key === "x-ratelimit-reset") {
+            return String(Math.floor(new Date("2026-07-09T12:00:00.000Z").getTime() / 1000));
+          }
+          return null;
+        },
+      },
+    });
+
+    await expect(fetchGithubSourceItems(fetcher as never)).rejects.toThrow(/rate limit/i);
+    await expect(fetchGithubSourceItems(fetcher as never)).rejects.toThrow(/VITE_GITHUB_TOKEN/);
+  });
 });

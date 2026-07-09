@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/app/PageHeader";
 import { sourceLabels } from "@/modules/sources";
-import { useConcepts } from "../hooks/useConcepts";
+import { useConcepts, useSaveConcept } from "../hooks/useConcepts";
 import { buildConceptExportPayload, buildConceptMarkdown } from "../services/concept-export";
 import { normalizeConceptDraft, type SignalConcept } from "../schemas/concept.schema";
 
@@ -31,7 +31,8 @@ function createNextSelectionId(concepts: SignalConcept[], selectedConceptId: str
 }
 
 export function ConceptsRoute() {
-  const { concepts, backend, degradedReason, isLoading, isSaving, error, saveConcept } = useConcepts();
+  const { concepts, backend, degradedReason, isLoading, error: loadError } = useConcepts();
+  const { isSaving, error: saveError, saveConcept } = useSaveConcept();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedConceptId = searchParams.get("concept");
   const nextSelectionId = createNextSelectionId(concepts, selectedConceptId);
@@ -43,6 +44,7 @@ export function ConceptsRoute() {
   const [isDirty, setIsDirty] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const error = saveError ?? loadError;
 
   useEffect(() => {
     if (nextSelectionId && nextSelectionId !== selectedConceptId) {

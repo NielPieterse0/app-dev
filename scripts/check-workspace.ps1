@@ -67,6 +67,8 @@ $required = @(
   "templates/react-vite-capacitor/src/app/routes.tsx",
   "templates/react-vite-capacitor/src/lib/env.ts",
   "templates/react-vite-capacitor/src/lib/supabase.ts",
+  "templates/react-vite-capacitor/supabase/README.md",
+  "templates/react-vite-capacitor/supabase/migrations/001_template_foundation.sql",
   "templates/react-vite-capacitor/src/vite-env.d.ts",
   "templates/react-vite-capacitor/src/components/layout/SettingsLayout.tsx",
   "templates/react-vite-capacitor/src/modules/settings/routes/SettingsRoute.tsx",

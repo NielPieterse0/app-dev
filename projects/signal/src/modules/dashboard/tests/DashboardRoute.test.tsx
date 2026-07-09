@@ -6,7 +6,7 @@ import { DashboardRoute } from "../routes/DashboardRoute";
 const useRankedItemsMock = vi.fn();
 const useDashboardViewStoreMock = vi.fn();
 const useSourcePreferencesStoreMock = vi.fn();
-const useConceptsMock = vi.fn();
+const useSaveConceptMock = vi.fn();
 
 vi.mock("../hooks/useRankedItems", () => ({
   useRankedItems: (options: unknown) => useRankedItemsMock(options),
@@ -16,7 +16,7 @@ vi.mock("@/modules/concepts", () => ({
   SignalDetailCard: ({ item }: { item: { title: string } | null }) =>
     item ? <p>Inspecting {item.title}</p> : <p>Inspect a signal before promotion</p>,
   createConceptDraftFromSourceItem: vi.fn(),
-  useConcepts: () => useConceptsMock(),
+  useSaveConcept: () => useSaveConceptMock(),
 }));
 
 vi.mock("../state/dashboard-view-store", () => ({
@@ -55,7 +55,7 @@ describe("DashboardRoute", () => {
       setSelectedSignalId: vi.fn(),
       setSelectedSource: vi.fn(),
     });
-    useConceptsMock.mockReturnValue({
+    useSaveConceptMock.mockReturnValue({
       saveConcept: vi.fn(),
       isSaving: false,
     });

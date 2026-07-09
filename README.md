@@ -2,7 +2,7 @@
 
 Control workspace for building modular cross-platform apps with Codex.
 
-This folder is not intended to be one giant application. It holds shared development standards, Codex instructions, reusable skills, scripts, starter templates, planning templates, and validation workflow files. Real apps should live under `projects/`, normally as independent git repositories.
+This folder is not intended to be one giant application. It holds shared development standards, Codex instructions, reusable skills, scripts, starter templates, planning templates, and validation workflow files. Real apps live under `projects/` and stay tracked in this root repository by default unless a recorded decision later splits a project into its own repository.
 
 ## Layout
 
@@ -62,7 +62,7 @@ Use the plan for architectural, data model, auth, routing, deployment, migration
 
 ## Codex Governance Checks
 
-The `.codex/config.toml` file is active. It enables project hooks, selects the least-privilege `app-dev-workspace` permission profile, and relies on `.codex/rules/default.rules` for command policy outside the sandbox. Project-local Codex assets load only after the repository is trusted in Codex.
+The `.codex/config.toml` file is active. It enables project hooks and relies on `.codex/rules/default.rules` for command policy outside the sandbox. Project-level `default_permissions` are currently disabled on Windows until the runner is stable, so this repo is not presently selecting the `app-dev-workspace` permission profile from project config. Project-local Codex assets load only after the repository is trusted in Codex.
 
 Run Codex asset validation after changing `.codex/`, `.agents/skills/`, `AGENTS.md`, planning templates, CI, or workspace scripts:
 
@@ -127,4 +127,4 @@ To run control-workspace checks:
 
 ## CI
 
-`.github/workflows/app-dev-validation.yml` runs the control-workspace validation scripts on push, pull request, and manual dispatch. The workflow validates Codex assets, hooks, project generation, and the React template structure without installing template dependencies.
+`.github/workflows/app-dev-validation.yml` runs the control-workspace validation scripts on push, pull request, and manual dispatch. The workflow validates Codex assets, hooks, project generation, and tracked app projects through a project matrix instead of hardcoding a single app working directory.

@@ -4,7 +4,11 @@ import { PageHeader } from "../../../app/PageHeader";
 import { Button } from "../../../components/ui/button";
 import { EmptyState, ErrorState, LoadingState } from "../../../components/state";
 import { getEnabledKeywordFilters, useSourcePreferencesStore } from "@/modules/sources";
-import { createConceptDraftFromSourceItem, SignalDetailCard, useConcepts } from "@/modules/concepts";
+import {
+  createConceptDraftFromSourceItem,
+  SignalDetailCard,
+  useSaveConcept,
+} from "@/modules/concepts";
 import { RankedItemsTable } from "../components/RankedItemsTable";
 import { SourceActivityChart } from "../components/SourceActivityChart";
 import { TrendSummaryCards } from "../components/TrendSummaryCards";
@@ -29,7 +33,7 @@ export function DashboardRoute() {
     enabledSources,
     includeKeywords: getEnabledKeywordFilters(includeKeywordsText),
   });
-  const { saveConcept, isSaving: isPromotingConcept } = useConcepts();
+  const { saveConcept, isSaving: isPromotingConcept } = useSaveConcept();
   const navigate = useNavigate();
   const { selectedSignalId, selectedSource, setSelectedSignalId, setSelectedSource } =
     useDashboardViewStore();

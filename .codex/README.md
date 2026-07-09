@@ -4,7 +4,7 @@ This folder contains active project-level Codex configuration for the `app-dev` 
 
 ## Active Assets
 
-- `config.toml` selects the project permission profile and wires lifecycle hooks.
+- `config.toml` wires lifecycle hooks and keeps project-level `default_permissions` disabled on Windows until the runner is stable.
 - `rules/default.rules` defines command approval/deny policy for commands Codex requests outside the sandbox.
 - `hooks/pre-command.ps1` blocks destructive shell and edit operations through `PreToolUse` and `PermissionRequest`.
 - `hooks/post-edit.ps1` adds verification reminders after edits and verification commands.
@@ -22,14 +22,13 @@ This project uses inline hook tables in `.codex/config.toml`. Do not add `.codex
 
 ## Permission Model
 
-The active profile is `app-dev-workspace`.
+Project-level `default_permissions` are currently disabled in `.codex/config.toml`.
 
 Default behavior:
 
-- Workspace files are writable for normal app/template/script work.
-- `.codex/` and `.git/` are read-only under the default profile.
-- Common secret-bearing files and key material are denied.
-- Outbound network access is disabled by default.
+- Hooks and rules remain active from project config.
+- The documented `app-dev-workspace` profile stays as the intended least-privilege profile for a future re-enable.
+- Until that re-enable happens, effective file/network permissions come from the active Codex runner and trusted workspace session rather than this repo selecting `default_permissions`.
 
 For deliberate governance edits under `.codex/`, temporarily use a profile that permits those edits, then restore this profile.
 

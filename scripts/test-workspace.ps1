@@ -18,6 +18,8 @@ $projectMatrix = @(
       "index.html",
       "playwright.config.ts",
       "scripts/add-native-platforms.ps1",
+      "supabase/README.md",
+      "supabase/migrations/001_template_foundation.sql",
       "src/main.tsx",
       "src/app/AppShell.tsx",
       "src/app/NavigationShell.tsx",

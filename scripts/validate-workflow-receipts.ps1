@@ -16,17 +16,6 @@ function Add-Failure {
   Add-HarnessFailure -Failures $failures -Message $Message
 }
 
-function Get-ActiveSpecRelativePath {
-  param([Parameter(Mandatory=$true)][string]$AgentsPath)
-
-  $content = Get-Content -LiteralPath $AgentsPath -Raw
-  $match = [regex]::Match($content, "specs/\d{3}-[a-z0-9-]+/spec\.md")
-  if ($match.Success) {
-    return $match.Value.Replace("/", "\")
-  }
-  return $null
-}
-
 function Get-SectionBody {
   param(
     [Parameter(Mandatory=$true)][string]$Content,
@@ -89,7 +78,7 @@ function Test-ReceiptSection {
 
   if ($RequireVerificationEvidence) {
     $verification = Get-FieldValue -Section $section -Field "Verification performed"
-    if ($verification -match '^(not-run|none)$') {
+    if ($verification -match '^(pending|not-run|none)$') {
       Add-Failure "$Heading is required for this change set but Verification performed is '$verification'."
     }
   }

@@ -36,6 +36,45 @@ function extractKeywords(repository: z.infer<typeof githubRepositorySchema>) {
   );
 }
 
+function getGithubToken(
+  source: Record<string, string | undefined> = import.meta.env as Record<string, string | undefined>
+) {
+  const token = source.VITE_GITHUB_TOKEN?.trim();
+  return token ? token : null;
+}
+
+function buildGithubHeaders(token: string | null) {
+  return {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+function buildGithubErrorMessage(response: Response) {
+  const resetHeader = response.headers.get("x-ratelimit-reset");
+  const remainingHeader = response.headers.get("x-ratelimit-remaining");
+  const hitRateLimit =
+    response.status === 429 ||
+    ((response.status === 403 || response.status === 422) && remainingHeader === "0");
+
+  if (hitRateLimit) {
+    const resetAt = resetHeader ? new Date(Number(resetHeader) * 1000) : null;
+    const resetText =
+      resetAt && !Number.isNaN(resetAt.getTime())
+        ? ` Wait until ${resetAt.toLocaleString()} before refreshing again.`
+        : " Wait a few minutes before refreshing again.";
+
+    return (
+      "GitHub refresh hit the Search API rate limit." +
+      resetText +
+      " Configure VITE_GITHUB_TOKEN for this internal operator client if you need higher refresh headroom."
+    );
+  }
+
+  return `GitHub refresh failed with status ${response.status}.`;
+}
+
 export async function fetchGithubSourceItems(
   fetcher: typeof fetch = fetch,
   now = new Date()
@@ -53,14 +92,11 @@ export async function fetchGithubSourceItems(
   url.searchParams.set("per_page", "8");
 
   const response = await fetcher(url.toString(), {
-    headers: {
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-    },
+    headers: buildGithubHeaders(getGithubToken()),
   });
 
   if (!response.ok) {
-    throw new Error(`GitHub refresh failed with status ${response.status}.`);
+    throw new Error(buildGithubErrorMessage(response));
   }
 
   const payload = githubSearchResponseSchema.parse(await response.json());

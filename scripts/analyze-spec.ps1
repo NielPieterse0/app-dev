@@ -60,18 +60,6 @@ function Get-FieldValue {
   return ""
 }
 
-function Get-ActiveSpecRelativePath {
-  param([Parameter(Mandatory=$true)][string]$AgentsPath)
-
-  $content = Get-Content -LiteralPath $AgentsPath -Raw
-  $match = [regex]::Match($content, "specs/\d{3}-[a-z0-9-]+/spec\.md")
-  if ($match.Success) {
-    return $match.Value.Replace("/", "\")
-  }
-
-  return $null
-}
-
 function Test-ChecklistRequired {
   param([Parameter(Mandatory=$true)][string]$SpecContent)
 

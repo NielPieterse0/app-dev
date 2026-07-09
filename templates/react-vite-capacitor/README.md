@@ -71,6 +71,7 @@ Reference surfaces included in the template:
 - Do not expose `service_role`, secret, or backend-only Supabase keys in browser env.
 - Use `/settings/protected` as the loader-guarded route example after wiring a real auth flow.
 - Enable Row Level Security on exposed schemas such as `public` before shipping app data access.
+- `supabase/README.md` and `supabase/migrations/001_template_foundation.sql` seed the generated app with a tracked Supabase scaffold instead of leaving migrations implicit.
 - Keep product-specific auth flows, roles, and RLS policies in generated app migrations after the data model is defined.
 
 ## CI workflow

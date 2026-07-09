@@ -6,7 +6,7 @@ Use this project's `PLAN.md` for architecture, module, risk, and verification de
 
 ## Active Specification
 
-- Active spec: `specs/004-concept-workbench/spec.md`.
+- Active spec: `specs/005-signalauditcloseout/spec.md`.
 - Create later feature specs under `specs/NNN-<slug>/`.
 - Keep `PLAN.md`, `tasks.md`, and `workflow-receipts.md` aligned to the active spec before implementation starts.
 
@@ -26,9 +26,9 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 
 ## Required Before Feature Work
 
-- Complete `specs/004-concept-workbench/spec.md` before feature work.
+- Complete `specs/005-signalauditcloseout/spec.md` before feature work.
 - Update `PLAN.md` for architecture-sensitive or multi-module work.
-- Update `specs/004-concept-workbench/tasks.md` before material implementation.
+- Update `specs/005-signalauditcloseout/tasks.md` before material implementation.
 - Review the starter `AppShell`, `NavigationShell`, and base route structure.
 - Keep module boundaries explicit: import other modules only through `@/modules/<module>`, and treat deep imports into another module's internals as lint failures.
 - Add `.env.example` for required public environment variables.
@@ -61,6 +61,7 @@ After installing dependencies inside this project, run available scripts through
 - `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` passes before completion.
 - `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` passes before completion.
 - Available checks pass through `../../scripts/verify-app.ps1 -ProjectPath .`.
+- `npm run release:check` is the explicit broader-deployment gate and must pass before any public-launch or production-readiness claim.
 - The React template lint config still enforces `@/modules/<module>` as the only public cross-module import surface.
 - Missing scripts are reported instead of invented.
 - UI changes include rendered desktop and mobile checks.

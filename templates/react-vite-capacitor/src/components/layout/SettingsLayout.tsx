@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { NavLink } from "react-router-dom";
 import "./layouts.css";
 
 type SettingsLayoutProps = {
@@ -11,15 +12,14 @@ export function SettingsLayout({ items, children }: SettingsLayoutProps) {
     <section className="settings-layout">
       <nav aria-label="Settings sections" className="settings-layout__nav">
         {items.map((item) => (
-          <a
+          <NavLink
             key={item.href}
-            aria-current={item.isActive ? "page" : undefined}
             className="settings-layout__link"
             data-active={item.isActive ? "true" : "false"}
-            href={item.href}
+            to={item.href}
           >
             {item.label}
-          </a>
+          </NavLink>
         ))}
       </nav>
       <div className="settings-layout__panel">{children}</div>

@@ -5,9 +5,11 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ConceptsRoute } from "../routes/ConceptsRoute";
 
 const useConceptsMock = vi.fn();
+const useSaveConceptMock = vi.fn();
 
 vi.mock("../hooks/useConcepts", () => ({
   useConcepts: () => useConceptsMock(),
+  useSaveConcept: () => useSaveConceptMock(),
 }));
 
 vi.mock("@/modules/sources", async (importOriginal) => {
@@ -39,6 +41,7 @@ function renderRoute() {
 describe("ConceptsRoute", () => {
   beforeEach(() => {
     useConceptsMock.mockReset();
+    useSaveConceptMock.mockReset();
     useConceptsMock.mockReturnValue({
       concepts: [
         {
@@ -75,6 +78,9 @@ describe("ConceptsRoute", () => {
       backend: "local-fallback",
       degradedReason: null,
       isLoading: false,
+      error: null,
+    });
+    useSaveConceptMock.mockReturnValue({
       isSaving: false,
       error: null,
       saveConcept: vi.fn().mockResolvedValue({

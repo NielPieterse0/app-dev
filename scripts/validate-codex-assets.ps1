@@ -362,6 +362,19 @@ function Test-PlanAssets {
   }
 }
 
+function Test-NoDuplicateSkillReferenceCopies {
+  $referencesRoot = Resolve-WorkspacePath ".agents/skills"
+  if (-not (Test-Path -LiteralPath $referencesRoot)) {
+    return
+  }
+
+  $duplicates = Get-ChildItem -LiteralPath $referencesRoot -Recurse -File -Filter "* (1).md"
+  foreach ($duplicate in $duplicates) {
+    $relativePath = $duplicate.FullName.Substring($Root.Length + 1).Replace("\", "/")
+    Add-Failure "Duplicate skill reference artifact must be removed or renamed canonically: $relativePath"
+  }
+}
+
 function Test-PackageJson {
   param([Parameter(Mandatory=$true)][string]$RelativePath)
 
@@ -557,6 +570,8 @@ function Test-TemplateReadiness {
     "templates/react-vite-capacitor/src/lib/env.ts",
     "templates/react-vite-capacitor/src/lib/supabase.ts",
     "templates/react-vite-capacitor/src/lib/query-client.ts",
+    "templates/react-vite-capacitor/supabase/README.md",
+    "templates/react-vite-capacitor/supabase/migrations/001_template_foundation.sql",
     "templates/react-vite-capacitor/src/components/layout/SettingsLayout.tsx",
     "templates/react-vite-capacitor/src/components/ui/form.tsx",
     "templates/react-vite-capacitor/src/modules/settings/routes/SettingsRoute.tsx",
@@ -615,7 +630,7 @@ function Test-CiWorkflow {
   }
 
   $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
-  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/test-workflow-enforcement.ps1", "scripts/test-analyze-spec.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1", "Signal validation", "working-directory: projects/signal")) {
+  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/test-workflow-enforcement.ps1", "scripts/test-analyze-spec.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1", "App validation", "strategy:", "matrix:", "path: projects/signal", 'working-directory: ${{ matrix.project.path }}')) {
     if ($workflow -notmatch [regex]::Escape($required)) {
       Add-Failure ".github/workflows/app-dev-validation.yml is missing required CI content: $required"
     }
@@ -754,6 +769,7 @@ if (Test-Path -LiteralPath $configPath) {
 Test-RulesFile -RulesPath $rulesPath
 Test-SkillFrontmatter -SkillPath $skillPath
 Test-MarkdownReferences -MarkdownPath $skillPath
+Test-NoDuplicateSkillReferenceCopies
 Test-AgentsSize -AgentsPath (Join-Path $Root "AGENTS.md")
 Test-NoDisposableVerificationFolders
 Test-CapabilityRouting -CapabilityPath $capabilityPath
