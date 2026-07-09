@@ -170,10 +170,12 @@ describe("useSourceSettings", () => {
       degradedReason: "write failed",
     });
 
-    expect(result.current.settings).toEqual({
-      enabledSources: ["github"],
-      includeKeywords: ["agents"],
-    });
+    await waitFor(() =>
+      expect(result.current.settings).toEqual({
+        enabledSources: ["github"],
+        includeKeywords: ["agents"],
+      })
+    );
     expect(result.current.backend).toBe("local-fallback");
     expect(result.current.degradedReason).toContain("write failed");
   });
