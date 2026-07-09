@@ -1,17 +1,18 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { useAuthSession } from "@/modules/auth";
 import { PageHeader } from "../../../app/PageHeader";
 import { FormLayoutExample } from "../../../components/layout/FormLayout";
 import { SettingsLayout } from "../../../components/layout/SettingsLayout";
 
+// Disposable example settings scaffolding. Rename or remove these routes once the
+// real product settings flows are defined for the generated app.
 const settingsItems = [
   { label: "General", href: "/settings" },
   { label: "Notifications", href: "/settings/notifications" },
   { label: "Protected", href: "/settings/protected" },
 ];
 
-export function SettingsRoute() {
-  const { pathname } = useLocation();
+export function SettingsExampleRoute() {
   const { session, isLoading } = useAuthSession();
 
   return (
@@ -25,10 +26,7 @@ export function SettingsRoute() {
         {isLoading ? "checking session" : session ? "signed in" : "not signed in or Supabase not configured"}
       </p>
       <SettingsLayout
-        items={settingsItems.map((item) => ({
-          ...item,
-          isActive: pathname === item.href,
-        }))}
+        items={settingsItems}
       >
         <Outlet />
       </SettingsLayout>
@@ -36,7 +34,7 @@ export function SettingsRoute() {
   );
 }
 
-export function SettingsGeneralRoute() {
+export function SettingsGeneralExampleRoute() {
   return (
     <div>
       <p>Replace this starter route with real settings workflows when the product decision record defines them.</p>
@@ -45,7 +43,7 @@ export function SettingsGeneralRoute() {
   );
 }
 
-export function SettingsNotificationsRoute() {
+export function SettingsNotificationsExampleRoute() {
   return (
     <div>
       <h2>Notification defaults</h2>

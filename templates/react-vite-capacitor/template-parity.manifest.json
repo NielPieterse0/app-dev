@@ -1,0 +1,22 @@
+{
+  "comparisons": [
+    {
+      "template": "templates/react-vite-capacitor/src/lib/env.ts",
+      "apps": [
+        "projects/signal/src/lib/env.ts"
+      ]
+    },
+    {
+      "template": "templates/react-vite-capacitor/src/lib/query-client.ts",
+      "apps": [
+        "projects/signal/src/lib/query-client.ts"
+      ]
+    },
+    {
+      "template": "templates/react-vite-capacitor/src/components/layout/SettingsLayout.tsx",
+      "apps": [
+        "projects/signal/src/components/layout/SettingsLayout.tsx"
+      ]
+    }
+  ]
+}

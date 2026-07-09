@@ -126,7 +126,7 @@ if (-not [string]::IsNullOrWhiteSpace($ChangedFilesJson)) {
     releaseReadiness = $payload.releaseReadiness
   }
 } else {
-  $obligationScript = Join-Path (Split-Path -Parent $PSScriptRoot) "scripts\get-workflow-obligations.ps1"
+  $obligationScript = Join-Path (Split-Path -Parent $PSScriptRoot) "scripts/get-workflow-obligations.ps1"
   $payload = & $obligationScript -ProjectPath $ProjectPath -JsonSummary | ConvertFrom-Json -ErrorAction Stop
   $obligations = [ordered]@{
     uiChange = $payload.uiChange

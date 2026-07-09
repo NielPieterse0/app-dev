@@ -17,6 +17,8 @@ $textExtensions = @(".md", ".txt", ".json", ".js", ".jsx", ".ts", ".tsx", ".mjs"
 $patterns = @(
   @{ Name = "OpenAI API key"; Regex = "sk-[A-Za-z0-9_-]{20,}" },
   @{ Name = "GitHub token"; Regex = "gh[pousr]_[A-Za-z0-9_]{20,}" },
+  @{ Name = "Supabase secret key"; Regex = "sb_secret_[A-Za-z0-9_-]{20,}" },
+  @{ Name = "Supabase publishable key"; Regex = "sb_publishable_[A-Za-z0-9_-]{20,}" },
   @{ Name = "Supabase service role JWT"; Regex = "eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}" },
   @{ Name = "Private key block"; Regex = "-----BEGIN (RSA |OPENSSH |EC |DSA |PRIVATE )?PRIVATE KEY-----" },
   @{ Name = "AWS access key"; Regex = "AKIA[0-9A-Z]{16}" },
@@ -209,8 +211,11 @@ function Test-IsAllowedPlaceholderLine {
 
   $lineText = [string]$Line
 
+  if ($lineText -match "(?i)sb_(publishable|secret)_(your|example|sample|dummy|fake|placeholder)") { return $true }
   if ($lineText -match "sk-[A-Za-z0-9_-]{20,}") { return $false }
   if ($lineText -match "gh[pousr]_[A-Za-z0-9_]{20,}") { return $false }
+  if ($lineText -match "sb_secret_[A-Za-z0-9_-]{20,}") { return $false }
+  if ($lineText -match "sb_publishable_[A-Za-z0-9_-]{20,}") { return $false }
   if ($lineText -match "AKIA[0-9A-Z]{16}") { return $false }
   if ($lineText -match "eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}") { return $false }
   if ($lineText -match "-----BEGIN (RSA |OPENSSH |EC |DSA |PRIVATE )?PRIVATE KEY-----") { return $false }
@@ -222,7 +227,8 @@ function Test-IsAllowedPlaceholderLine {
   if ($lineText -match "\$[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*") { return $true }
   if ($lineText -match "\$\{[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*\}") { return $true }
 
-  if ($lineText -match "(?i)(your|example|sample|dummy|fake|placeholder)[-_ ]?(token|secret|password|api[-_ ]?key|key)") { return $true }
+  if ($lineText -match "(?i)(your|example|sample|dummy|fake|placeholder|publishable)[-_ ]?(token|secret|password|api[-_ ]?key|key)") { return $true }
+  if ($lineText -match "(?i)(your|example|sample|dummy|fake|placeholder)[-_ ]?(publishable|secret)[-_ ]?key") { return $true }
   if ($lineText -match "(?i)<[^>]*(token|secret|password|api[-_ ]?key|key)[^>]*>") { return $true }
   if ($lineText -match "(?i)\{[^}]*(token|secret|password|api[-_ ]?key|key)[^}]*\}") { return $true }
   if ($lineText -match "(?i)(account-id|zone-id|record-id|dns_record_id|user@example\.com|example\.com)") { return $true }
@@ -264,6 +270,8 @@ function Add-SecretFinding {
   $hasConcreteSecretShape = (
     $safeLineText -match "sk-[A-Za-z0-9_-]{20,}" -or
     $safeLineText -match "gh[pousr]_[A-Za-z0-9_]{20,}" -or
+    $safeLineText -match "sb_secret_[A-Za-z0-9_-]{20,}" -or
+    $safeLineText -match "sb_publishable_[A-Za-z0-9_-]{20,}" -or
     $safeLineText -match "AKIA[0-9A-Z]{16}" -or
     $safeLineText -match "eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}" -or
     $safeLineText -match "-----BEGIN (RSA |OPENSSH |EC |DSA |PRIVATE )?PRIVATE KEY-----"
@@ -353,17 +361,7 @@ foreach ($file in $files) {
   }
 }
 
-$reportableFindings = @(
-  $findings | Where-Object {
-    -not (
-      $_.file -eq ".agents/skills/data-visualization/SKILL.md" -and
-      [int]$_.line -eq 79 -and
-      $_.type -eq "OpenAI API key"
-    )
-  }
-)
-
-$findingArray = @($reportableFindings)
+$findingArray = $findings.ToArray()
 $warningArray = $warnings.ToArray()
 
 $summary = [ordered]@{

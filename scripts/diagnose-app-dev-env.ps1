@@ -266,18 +266,18 @@ if ($root) {
   $expectedPaths = @(
     "AGENTS.md",
     "PLANS.md",
-    ".codex\config.toml",
-    ".codex\rules\default.rules",
-    ".codex\hooks\pre-command.ps1",
-    ".agents\skills\cross-platform-app-workflow\SKILL.md",
-    "scripts\check-workspace.ps1",
-    "scripts\validate-codex-assets.ps1",
-    "scripts\test-hooks.ps1",
-    "scripts\test-workspace.ps1",
-    "templates\react-vite-capacitor\package.json",
-    "templates\next-web-app\package.json",
-    "templates\expo-native-app\package.json",
-    ".github\workflows\app-dev-validation.yml"
+    ".codex/config.toml",
+    ".codex/rules/default.rules",
+    ".codex/hooks/pre-command.ps1",
+    ".agents/skills/cross-platform-app-workflow/SKILL.md",
+    "scripts/check-workspace.ps1",
+    "scripts/validate-codex-assets.ps1",
+    "scripts/test-hooks.ps1",
+    "scripts/test-workspace.ps1",
+    "templates/react-vite-capacitor/package.json",
+    "templates/next-web-app/package.json",
+    "templates/expo-native-app/package.json",
+    ".github/workflows/app-dev-validation.yml"
   )
   foreach ($rel in $expectedPaths) {
     $full = Join-Path $rootPath $rel
@@ -285,7 +285,7 @@ if ($root) {
   }
 
   if ($RunRepoValidation) {
-    $validator = Join-Path $rootPath "scripts\validate-codex-assets.ps1"
+    $validator = Join-Path $rootPath "scripts/validate-codex-assets.ps1"
     if (Test-Path $validator) {
       try {
         $validationOutput = & pwsh -NoProfile -ExecutionPolicy Bypass -File $validator -RequirePythonToml:$false 2>&1

@@ -1,9 +1,9 @@
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
-$common = Join-Path $root "scripts\common.ps1"
-$validator = Join-Path $root "scripts\validate-workflow-receipts.ps1"
-$obligationsScript = Join-Path $root "scripts\get-workflow-obligations.ps1"
+$common = Join-Path $root "scripts/common.ps1"
+$validator = Join-Path $root "scripts/validate-workflow-receipts.ps1"
+$obligationsScript = Join-Path $root "scripts/get-workflow-obligations.ps1"
 $tmpRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-workflow-test-" + [guid]::NewGuid().ToString("N"))
 
 . $common
@@ -31,7 +31,7 @@ function New-FixtureProject {
   )
 
   $projectPath = Join-Path $tmpRoot $Name
-  New-Item -ItemType Directory -Force -Path (Join-Path $projectPath "specs\001-initial") | Out-Null
+  New-Item -ItemType Directory -Force -Path (Join-Path $projectPath "specs/001-initial") | Out-Null
 
   Write-TextFile -Path (Join-Path $projectPath "AGENTS.md") -Content @"
 # Fixture AGENTS
@@ -49,14 +49,14 @@ Spec path: specs/001-initial/spec.md
 Tasks path: specs/001-initial/tasks.md
 "@
 
-  Write-TextFile -Path (Join-Path $projectPath "specs\001-initial\spec.md") -Content @"
+  Write-TextFile -Path (Join-Path $projectPath "specs/001-initial/spec.md") -Content @"
 # 001 Fixture Specification
 
 - Risk level: sensitive
 - Authorization: no-auth internal MVP; public launch remains blocked
 "@
 
-  Write-TextFile -Path (Join-Path $projectPath "specs\001-initial\tasks.md") -Content "# tasks"
+  Write-TextFile -Path (Join-Path $projectPath "specs/001-initial/tasks.md") -Content "# tasks"
 
   $uiVerification = if ($UiNotRun) { "not-run" } else { "rendered desktop and mobile checks" }
   $uiClosure = if ($UiNotRun) { "not-applicable" } else { "complete" }
@@ -105,10 +105,10 @@ Tasks path: specs/001-initial/tasks.md
 - Decision/closure: $ReleaseDecision
 "@
 
-  Write-TextFile -Path (Join-Path $projectPath "specs\001-initial\workflow-receipts.md") -Content $receipts
+  Write-TextFile -Path (Join-Path $projectPath "specs/001-initial/workflow-receipts.md") -Content $receipts
 
   if ($IncludeChecklist) {
-    Write-TextFile -Path (Join-Path $projectPath "specs\001-initial\checklist.md") -Content @"
+    Write-TextFile -Path (Join-Path $projectPath "specs/001-initial/checklist.md") -Content @"
 # checklist
 
 ## Clarify
@@ -152,8 +152,8 @@ function Assert-Passes {
 
 function Initialize-GitWorkflowFixture {
   $repoPath = Join-Path $tmpRoot "workflow-obligations-git"
-  New-Item -ItemType Directory -Force -Path (Join-Path $repoPath "src\components") | Out-Null
-  New-Item -ItemType Directory -Force -Path (Join-Path $repoPath "supabase\migrations") | Out-Null
+  New-Item -ItemType Directory -Force -Path (Join-Path $repoPath "src/components") | Out-Null
+  New-Item -ItemType Directory -Force -Path (Join-Path $repoPath "supabase/migrations") | Out-Null
 
   Push-Location $repoPath
   try {
@@ -166,12 +166,12 @@ function Initialize-GitWorkflowFixture {
     git commit -m "base" | Out-Null
     $baseCommit = (git rev-parse HEAD).Trim()
 
-    Write-TextFile -Path (Join-Path $repoPath "src\components\Button.tsx") -Content "export const Button = () => null;"
-    Write-TextFile -Path (Join-Path $repoPath "supabase\migrations\001.sql") -Content "select 1;"
+    Write-TextFile -Path (Join-Path $repoPath "src/components/Button.tsx") -Content "export const Button = () => null;"
+    Write-TextFile -Path (Join-Path $repoPath "supabase/migrations/001.sql") -Content "select 1;"
     git add .
     git commit -m "feature" | Out-Null
 
-    Write-TextFile -Path (Join-Path $repoPath "src\app.css") -Content ".app { display: grid; }"
+    Write-TextFile -Path (Join-Path $repoPath "src/app.css") -Content ".app { display: grid; }"
 
     return @{
       RepoPath = $repoPath

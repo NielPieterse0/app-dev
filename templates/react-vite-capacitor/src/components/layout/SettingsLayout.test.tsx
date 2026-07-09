@@ -7,7 +7,7 @@ test("SettingsLayout renders navigation and active panel content", () => {
     <MemoryRouter initialEntries={["/settings"]}>
       <SettingsLayout
         items={[
-          { label: "General", href: "/settings", isActive: true },
+          { label: "General", href: "/settings" },
           { label: "Notifications", href: "/settings/notifications" },
         ]}
       >

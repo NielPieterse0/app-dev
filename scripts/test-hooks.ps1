@@ -1,9 +1,39 @@
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
-$hook = Join-Path $root ".codex\hooks\pre-command.ps1"
-$postEditHook = Join-Path $root ".codex\hooks\post-edit.ps1"
-$finishHook = Join-Path $root ".codex\hooks\verify-before-finish.ps1"
+$hook = Join-Path $root ".codex/hooks/pre-command.ps1"
+$postEditHook = Join-Path $root ".codex/hooks/post-edit.ps1"
+$finishHook = Join-Path $root ".codex/hooks/verify-before-finish.ps1"
+
+function Get-PowerShellRuntime {
+  $currentProcessPath = (Get-Process -Id $PID).Path
+  if ($currentProcessPath -and (Test-Path -LiteralPath $currentProcessPath)) {
+    return $currentProcessPath
+  }
+
+  $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
+  if ($pwsh) {
+    return $pwsh.Source
+  }
+
+  $windowsPowerShell = Get-Command powershell -ErrorAction SilentlyContinue
+  if ($windowsPowerShell) {
+    return $windowsPowerShell.Source
+  }
+
+  throw "No PowerShell runtime found for hook validation."
+}
+
+function Invoke-ScriptFromStdIn {
+  param(
+    [Parameter(Mandatory=$true)][string]$ScriptPath,
+    [Parameter(Mandatory=$true)][string]$InputText
+  )
+
+  return $InputText | & $powerShellRuntime -NoProfile -File $ScriptPath
+}
+
+$powerShellRuntime = Get-PowerShellRuntime
 
 if (-not (Test-Path $hook)) {
   Write-Error "pre-command hook not found: $hook"
@@ -56,7 +86,7 @@ $allowed = @(
   "git status --short",
   "git diff -- AGENTS.md",
   "rg --files",
-  "pwsh -NoProfile -File scripts\check-workspace.ps1"
+  "pwsh -NoProfile -File scripts/check-workspace.ps1"
 )
 
 $failures = @()
@@ -79,28 +109,28 @@ foreach ($sample in $allowed) {
   }
 }
 
-$malformed = "{ not valid json" | powershell -NoProfile -ExecutionPolicy Bypass -File $hook
+$malformed = Invoke-ScriptFromStdIn -ScriptPath $hook -InputText "{ not valid json"
 if ($LASTEXITCODE -ne 0 -or $malformed -notmatch '"decision":"block"') {
   $failures += "Expected malformed hook JSON to return block JSON without crashing."
 } else {
   Write-Host "Malformed hook JSON failed closed as expected."
 }
 
-$jsonBlocked = '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"git reset --hard HEAD"}}' | powershell -NoProfile -ExecutionPolicy Bypass -File $hook
+$jsonBlocked = Invoke-ScriptFromStdIn -ScriptPath $hook -InputText '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"git reset --hard HEAD"}}'
 if ($LASTEXITCODE -ne 0 -or $jsonBlocked -notmatch '"permissionDecision":"deny"') {
   $failures += "Expected PreToolUse JSON command to return deny JSON."
 } else {
   Write-Host "PreToolUse JSON command denied as expected."
 }
 
-$jsonPermissionBlocked = '{"hook_event_name":"PermissionRequest","tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}' | powershell -NoProfile -ExecutionPolicy Bypass -File $hook
+$jsonPermissionBlocked = Invoke-ScriptFromStdIn -ScriptPath $hook -InputText '{"hook_event_name":"PermissionRequest","tool_name":"Bash","tool_input":{"command":"git push --force origin main"}}'
 if ($LASTEXITCODE -ne 0 -or $jsonPermissionBlocked -notmatch '"behavior":"deny"') {
   $failures += "Expected PermissionRequest JSON command to return deny JSON."
 } else {
   Write-Host "PermissionRequest JSON command denied as expected."
 }
 
-$jsonAllowed = '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"git status --short"}}' | powershell -NoProfile -ExecutionPolicy Bypass -File $hook
+$jsonAllowed = Invoke-ScriptFromStdIn -ScriptPath $hook -InputText '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"git status --short"}}'
 if ($LASTEXITCODE -ne 0 -or -not [string]::IsNullOrWhiteSpace($jsonAllowed)) {
   $failures += "Expected allowed hook JSON command to produce no output and exit 0."
 } else {

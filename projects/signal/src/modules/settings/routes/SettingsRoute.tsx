@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet, useLocation, useOutletContext } from "react-router-dom";
+import { Outlet, useOutletContext } from "react-router-dom";
 import { PageHeader } from "@/app/PageHeader";
 import { SettingsLayout } from "@/components/layout/SettingsLayout";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +40,6 @@ type SettingsRouteContext = {
 };
 
 export function SettingsRoute() {
-  const { pathname } = useLocation();
   const enabledSources = useSourcePreferencesStore((state) => state.enabledSources);
   const hasHydrated = useSourcePreferencesStore((state) => state.hasHydrated);
   const includeKeywordsText = useSourcePreferencesStore((state) => state.includeKeywordsText);
@@ -127,10 +126,7 @@ export function SettingsRoute() {
         ) : null}
       </div>
       <SettingsLayout
-        items={settingsItems.map((item) => ({
-          ...item,
-          isActive: pathname === item.href,
-        }))}
+        items={settingsItems}
       >
         <Outlet context={context} />
       </SettingsLayout>

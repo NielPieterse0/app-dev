@@ -10,7 +10,7 @@
     "test": "vitest run --config ./vitest.config.ts",
     "build": "tsc --noEmit && vite build",
     "e2e": "playwright test",
-    "release:check": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/check-public-launch-readiness.ps1"
+    "release:check": "pwsh -NoProfile -File ./scripts/check-public-launch-readiness.ps1"
   },
   "dependencies": {
     "@capacitor/core": "^7.6.7",

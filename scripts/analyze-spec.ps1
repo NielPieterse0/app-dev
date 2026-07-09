@@ -82,7 +82,7 @@ function Test-RelativeTaskPathExists {
     return $false
   }
 
-  $candidate = $match.Groups[2].Value.Trim().Replace("/", "\")
+  $candidate = $match.Groups[2].Value.Trim()
   if ([string]::IsNullOrWhiteSpace($candidate)) {
     return $false
   }

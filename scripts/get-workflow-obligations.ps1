@@ -12,10 +12,16 @@ $commonPath = Join-Path $PSScriptRoot "common.ps1"
 
 function Invoke-GitNameOnlyDiff {
   param(
-    [AllowEmptyString()][string]$Arguments = ""
+    [string[]]$Arguments = @()
   )
 
-  $output = & cmd.exe /d /c "git diff --name-only $Arguments 2>nul"
+  if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)) {
+    $argumentText = ($Arguments | ForEach-Object { $_.Replace('"', '\"') }) -join " "
+    $output = & cmd.exe /d /c "git diff --name-only $argumentText 2>nul"
+  } else {
+    $output = & git diff --name-only @Arguments 2>$null
+  }
+
   if ($LASTEXITCODE -ne 0) {
     throw "git diff failed while collecting workflow obligations."
   }
@@ -24,7 +30,12 @@ function Invoke-GitNameOnlyDiff {
 }
 
 function Invoke-GitUntrackedFiles {
-  $output = & cmd.exe /d /c "git ls-files --others --exclude-standard 2>nul"
+  if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)) {
+    $output = & cmd.exe /d /c "git ls-files --others --exclude-standard 2>nul"
+  } else {
+    $output = & git ls-files --others --exclude-standard 2>$null
+  }
+
   if ($LASTEXITCODE -ne 0) {
     throw "git ls-files failed while collecting workflow obligations."
   }
@@ -46,14 +57,14 @@ function Get-GitChangedFiles {
       throw "git merge-base failed while collecting workflow obligations from $BasePath."
     }
 
-    foreach ($line in @(Invoke-GitNameOnlyDiff -Arguments "$mergeBase..HEAD")) {
+    foreach ($line in @(Invoke-GitNameOnlyDiff -Arguments @("$mergeBase..HEAD"))) {
       if (-not [string]::IsNullOrWhiteSpace($line)) {
         $results.Add($line) | Out-Null
       }
     }
   }
 
-  foreach ($arguments in @("--cached", "")) {
+  foreach ($arguments in @(@("--cached"), @())) {
     foreach ($line in @(Invoke-GitNameOnlyDiff -Arguments $arguments)) {
       if (-not [string]::IsNullOrWhiteSpace($line)) {
         $results.Add($line) | Out-Null

@@ -9,13 +9,14 @@ create table if not exists public.user_profiles (
 
 alter table public.user_profiles enable row level security;
 
-drop policy if exists "authenticated_users_manage_own_profile" on public.user_profiles;
-create policy "authenticated_users_manage_own_profile"
+drop policy if exists "authenticated_users_read_own_profile" on public.user_profiles;
+create policy "authenticated_users_read_own_profile"
 on public.user_profiles
-for all
+for select
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using (auth.uid() = user_id);
+
+revoke insert, update, delete on public.user_profiles from anon, authenticated;
 
 comment on table public.user_profiles is
-  'Template baseline profile table. Replace or extend this in generated apps once the real auth and domain model are defined.';
+  'Template baseline profile table. Replace or extend this in generated apps once the real auth and domain model are defined. Internal scaffold, not production-ready policy.';

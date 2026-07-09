@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
-$analyzer = Join-Path $root "scripts\analyze-spec.ps1"
+$analyzer = Join-Path $root "scripts/analyze-spec.ps1"
 $tmpRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-analyze-test-" + [guid]::NewGuid().ToString("N"))
 
 function Write-TextFile {
@@ -32,11 +32,11 @@ function New-AnalyzeFixture {
   )
 
   $projectPath = Join-Path $tmpRoot $Name
-  $specDir = Join-Path $projectPath "specs\001-initial"
+  $specDir = Join-Path $projectPath "specs/001-initial"
   New-Item -ItemType Directory -Force -Path $specDir | Out-Null
 
   if ($CreateAuthPath) {
-    New-Item -ItemType Directory -Force -Path (Join-Path $projectPath "src\modules\auth") | Out-Null
+    New-Item -ItemType Directory -Force -Path (Join-Path $projectPath "src/modules/auth") | Out-Null
   }
 
   Write-TextFile -Path (Join-Path $projectPath "AGENTS.md") -Content @"
@@ -189,7 +189,7 @@ try {
   Assert-Fails -ProjectPath $fixture
 
   $fixture = New-AnalyzeFixture -Name "planned-spec-open-clarification" -IncludeChecklist -IncludeClarification
-  foreach ($required in @("AGENTS.md", "PLAN.md", "specs\001-initial\spec.md", "specs\001-initial\tasks.md", "specs\001-initial\workflow-receipts.md", "specs\001-initial\checklist.md")) {
+  foreach ($required in @("AGENTS.md", "PLAN.md", "specs/001-initial/spec.md", "specs/001-initial/tasks.md", "specs/001-initial/workflow-receipts.md", "specs/001-initial/checklist.md")) {
     if (-not (Test-Path -LiteralPath (Join-Path $fixture $required))) {
       throw "Fixture generation failed for ${fixture}: missing $required"
     }
@@ -197,7 +197,7 @@ try {
   Assert-Passes -ProjectPath $fixture
 
   try {
-    & $analyzer -ProjectPath (Join-Path $root "projects\signal") *> $null
+    & $analyzer -ProjectPath (Join-Path $root "projects/signal") *> $null
   } catch {
     throw "Signal analysis should pass while spec 002 remains planned."
   }

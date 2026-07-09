@@ -11,6 +11,28 @@ permissions:
   contents: read
 
 jobs:
+  discover-apps:
+    name: Discover app projects
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Build app matrix
+        id: discover
+        shell: bash
+        run: |
+          matrix="$(node ./scripts/get-app-validation-matrix.mjs)"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   workspace-validation:
     name: Workspace validation
     runs-on: ubuntu-latest
@@ -58,9 +80,9 @@ jobs:
         shell: pwsh
         run: ./scripts/test-analyze-spec.ps1
 
-      - name: Analyze Signal spec artifacts
+      - name: Check template parity
         shell: pwsh
-        run: ./scripts/analyze-spec.ps1 -ProjectPath projects/signal
+        run: ./scripts/check-template-parity.ps1
 
       - name: Scan for secrets
         shell: pwsh
@@ -71,14 +93,12 @@ jobs:
         run: ./scripts/test-workspace.ps1
 
   app-validation:
+    needs: discover-apps
     name: App validation (${{ matrix.project.name }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        project:
-          - name: Signal
-            path: projects/signal
+      matrix: ${{ fromJson(needs.discover-apps.outputs.matrix) }}
 
     defaults:
       run:
@@ -98,6 +118,18 @@ jobs:
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
+
+      - name: Check spec artifacts
+        shell: pwsh
+        run: ../../scripts/check-spec-artifacts.ps1 -ProjectPath .
+
+      - name: Analyze spec artifacts
+        shell: pwsh
+        run: ../../scripts/analyze-spec.ps1 -ProjectPath .
+
+      - name: Validate workflow receipts
+        shell: pwsh
+        run: ../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence
 
       - name: Typecheck
         run: npm run typecheck

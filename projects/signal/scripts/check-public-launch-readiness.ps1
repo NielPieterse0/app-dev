@@ -1,39 +1,55 @@
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$migrationPaths = @(
-  "supabase/migrations/003_signal_live_ingestion.sql",
-  "supabase/migrations/004_signal_concepts.sql"
-) | ForEach-Object { Join-Path $projectRoot $_ }
+$migrationDirectory = Join-Path $projectRoot "supabase/migrations"
 
-$blockingPatterns = @(
+$blockingFunctions = @(
   @{
-    Path = $migrationPaths[0]
-    Pattern = "grant execute on function public\.save_signal_settings\(text\[\], text\[\]\) to anon, authenticated;"
+    Signature = "save_signal_settings(text[], text[])"
     Message = "Anonymous browser-write access remains enabled for save_signal_settings(...)."
   },
   @{
-    Path = $migrationPaths[0]
-    Pattern = "grant execute on function public\.replace_signal_source_items\(jsonb, timestamptz\) to anon, authenticated;"
-    Message = "Anonymous browser-write access remains enabled for replace_signal_source_items(...)."
+    Signature = "replace_signal_source_items(jsonb, timestamptz)"
+    Message = "Anonymous full-feed reset access remains enabled for replace_signal_source_items(...)."
   },
   @{
-    Path = $migrationPaths[1]
-    Pattern = "grant execute on function public\.upsert_signal_concept\(jsonb\) to anon, authenticated;"
+    Signature = "upsert_signal_concept(jsonb)"
     Message = "Anonymous browser-write access remains enabled for upsert_signal_concept(...)."
   }
 )
 
 $failures = New-Object System.Collections.Generic.List[string]
 
-foreach ($check in $blockingPatterns) {
-  if (-not (Test-Path -LiteralPath $check.Path)) {
-    $failures.Add("Missing migration required for public-launch readiness inspection: $($check.Path)") | Out-Null
-    continue
+if (-not (Test-Path -LiteralPath $migrationDirectory)) {
+  Write-Error "Signal public-launch readiness failed.`nMissing migration directory: $migrationDirectory"
+}
+
+$migrationFiles = @(Get-ChildItem -LiteralPath $migrationDirectory -Filter "*.sql" | Sort-Object Name)
+if ($migrationFiles.Count -eq 0) {
+  Write-Error "Signal public-launch readiness failed.`nNo SQL migrations found under $migrationDirectory"
+}
+
+foreach ($check in $blockingFunctions) {
+  $hasGrantToAnon = $false
+
+  foreach ($migrationFile in $migrationFiles) {
+    $content = Get-Content -LiteralPath $migrationFile.FullName -Raw
+    $escapedSignature = [regex]::Escape($check.Signature)
+
+    foreach ($match in [regex]::Matches($content, "(?im)^\s*grant\s+execute\s+on\s+function\s+public\.$escapedSignature\s+to\s+([^;]+);")) {
+      if ($match.Groups[1].Value -match "(?i)\banon\b") {
+        $hasGrantToAnon = $true
+      }
+    }
+
+    foreach ($match in [regex]::Matches($content, "(?im)^\s*revoke\s+execute\s+on\s+function\s+public\.$escapedSignature\s+from\s+([^;]+);")) {
+      if ($match.Groups[1].Value -match "(?i)\banon\b" -or $match.Groups[1].Value -match "(?i)\bpublic\b") {
+        $hasGrantToAnon = $false
+      }
+    }
   }
 
-  $content = Get-Content -LiteralPath $check.Path -Raw
-  if ($content -match $check.Pattern) {
+  if ($hasGrantToAnon) {
     $failures.Add($check.Message) | Out-Null
   }
 }

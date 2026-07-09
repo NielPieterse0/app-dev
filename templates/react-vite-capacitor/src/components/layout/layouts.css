@@ -79,7 +79,7 @@
   text-decoration: none;
 }
 
-.settings-layout__link[data-active="true"] {
+.settings-layout__link--active {
   background: #eef4ff;
   border-color: #bfd4ff;
 }

@@ -46,7 +46,8 @@ Reference surfaces included in the template:
 
 - `FormLayoutExample` shows the supported React Hook Form + Zod + shadcn `Form` pattern.
 - `DataTableLayout` shows the supported TanStack Table + shadcn `Table` pattern.
-- `SettingsLayout` is wired into nested settings routes for general, notifications, and a protected example section.
+- `SettingsLayout` is wired into nested disposable example settings routes for general, notifications, and a protected example section.
+- `src/modules/auth` and `src/modules/settings` are example scaffolding, not durable product requirements. Generated apps should rename, replace, or delete them once real auth and settings flows are defined.
 
 ## Module boundaries
 

@@ -4,14 +4,15 @@
 
 project_doc_max_bytes = 65536
 
-[features]
-hooks = true
+# Use the app-dev workspace permission profile by default.
+default_permissions = "app-dev-workspace"
 
-# Leave default_permissions disabled until the Windows runner is stable.
-# If you re-enable it later, include the parent [permissions.app-dev-workspace]
-# table and set default_permissions = "app-dev-workspace".
-#
-# default_permissions = "app-dev-workspace"
+[permissions.app-dev-workspace]
+
+[permissions.app-dev-workspace.filesystem.":workspace_roots"]
+"." = "write"
+".codex" = "read"
+".git" = "write"
 
 # Hooks: keep inline here. Do not also use .codex/hooks.json in this layer.
 

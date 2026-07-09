@@ -2,9 +2,9 @@ import { createBrowserRouter } from "react-router-dom";
 import { DashboardRoute } from "@/modules/dashboard";
 import {
   ProtectedSettingsExampleRoute,
-  SettingsGeneralRoute,
-  SettingsNotificationsRoute,
-  SettingsRoute,
+  SettingsExampleRoute,
+  SettingsGeneralExampleRoute,
+  SettingsNotificationsExampleRoute,
 } from "@/modules/settings";
 import { requireAuthSession } from "@/modules/auth";
 import { AppShell } from "./AppShell";
@@ -17,10 +17,10 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardRoute /> },
       {
         path: "settings",
-        element: <SettingsRoute />,
+        element: <SettingsExampleRoute />,
         children: [
-          { index: true, element: <SettingsGeneralRoute /> },
-          { path: "notifications", element: <SettingsNotificationsRoute /> },
+          { index: true, element: <SettingsGeneralExampleRoute /> },
+          { path: "notifications", element: <SettingsNotificationsExampleRoute /> },
           {
             path: "protected",
             loader: requireAuthSession,

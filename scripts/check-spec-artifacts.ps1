@@ -55,14 +55,14 @@ if (Test-Path -LiteralPath $agentsPath) {
   if (-not $match.Success) {
     Add-Failure "Missing active spec. Run ./scripts/new-spec.ps1 -ProjectPath <path> -Slug <slug> first."
   } else {
-    $activeSpecRelative = $match.Value.Replace("/", "\")
+    $activeSpecRelative = $match.Value
   }
 }
 
 if (Test-Path -LiteralPath $planPath) {
   $planContent = Assert-Contains -Path $planPath -Needles @("Active spec:", "Spec path:", "Tasks path:")
   if ($activeSpecRelative) {
-    $planExpected = $activeSpecRelative.Replace("\spec.md", "/spec.md").Replace("\", "/")
+    $planExpected = $activeSpecRelative
     if ($planContent -notmatch [regex]::Escape($planExpected)) {
       Add-Failure "PLAN.md must reference the same active spec path as AGENTS.md."
     }

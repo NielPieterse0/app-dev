@@ -572,6 +572,8 @@ function Test-TemplateReadiness {
     "templates/react-vite-capacitor/src/lib/query-client.ts",
     "templates/react-vite-capacitor/supabase/README.md",
     "templates/react-vite-capacitor/supabase/migrations/001_template_foundation.sql",
+    "templates/react-vite-capacitor/supabase/migrations/002_template_profile_rpc.sql",
+    "templates/react-vite-capacitor/template-parity.manifest.json",
     "templates/react-vite-capacitor/src/components/layout/SettingsLayout.tsx",
     "templates/react-vite-capacitor/src/components/ui/form.tsx",
     "templates/react-vite-capacitor/src/modules/settings/routes/SettingsRoute.tsx",
@@ -630,7 +632,7 @@ function Test-CiWorkflow {
   }
 
   $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
-  foreach ($required in @("pull_request", "workflow_dispatch", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/test-hooks.ps1", "scripts/test-workflow-enforcement.ps1", "scripts/test-analyze-spec.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1", "App validation", "strategy:", "matrix:", "path: projects/signal", 'working-directory: ${{ matrix.project.path }}')) {
+  foreach ($required in @("pull_request", "workflow_dispatch", "Discover app projects", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/get-app-validation-matrix.mjs", "scripts/check-workspace.ps1", "scripts/validate-codex-assets.ps1", "scripts/check-template-parity.ps1", "scripts/test-hooks.ps1", "scripts/test-workflow-enforcement.ps1", "scripts/test-analyze-spec.ps1", "scripts/scan-secrets.ps1", "scripts/test-workspace.ps1", "check-spec-artifacts.ps1", "validate-workflow-receipts.ps1", "App validation", "strategy:", "matrix:", "fromJson(needs.discover-apps.outputs.matrix)", 'working-directory: ${{ matrix.project.path }}')) {
     if ($workflow -notmatch [regex]::Escape($required)) {
       Add-Failure ".github/workflows/app-dev-validation.yml is missing required CI content: $required"
     }
@@ -705,6 +707,7 @@ $auditLedgerPath = Resolve-WorkspacePath "docs/audit/app-dev-audit-closeout.md"
   "PLANS.md",
   "docs/audit/app-dev-audit-closeout.md",
   ".github/workflows/app-dev-validation.yml",
+  ".github/dependabot.yml",
   ".codex/config.toml",
   ".codex/rules/default.rules",
   ".codex/hooks/pre-command.ps1",
@@ -741,11 +744,14 @@ $auditLedgerPath = Resolve-WorkspacePath "docs/audit/app-dev-audit-closeout.md"
   "templates/spec-workflow/converge.template.md",
   "templates/common/.github/workflows/verify.yml",
   "templates/react-vite-capacitor/.github/workflows/verify.yml",
+  "templates/react-vite-capacitor/template-parity.manifest.json",
   "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
   "scripts/validate-codex-assets.ps1",
+  "scripts/check-template-parity.ps1",
   "scripts/common.ps1",
   "scripts/analyze-spec.ps1",
   "scripts/test-analyze-spec.ps1",
+  "scripts/get-app-validation-matrix.mjs",
   "scripts/get-workflow-obligations.ps1",
   "scripts/validate-workflow-receipts.ps1",
   "scripts/test-workflow-enforcement.ps1",
