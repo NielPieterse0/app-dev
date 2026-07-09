@@ -4,7 +4,12 @@ export {
   getEnabledKeywordFilters,
   useSourcePreferencesStore,
 } from "./state/source-preferences-store";
-export { sourceKindSchema, sourceSettingsSchema } from "./schemas/source-item.schema";
+export {
+  normalizedSourceItemSchema,
+  sourceKindSchema,
+  sourceSettingsSchema,
+} from "./schemas/source-item.schema";
+export { sourceLabels } from "./schemas/source-item.schema";
 export type {
   NormalizedSourceItem,
   SourceSettings,

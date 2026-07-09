@@ -1,7 +1,10 @@
+import { useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../../../app/PageHeader";
 import { Button } from "../../../components/ui/button";
 import { EmptyState, ErrorState, LoadingState } from "../../../components/state";
 import { getEnabledKeywordFilters, useSourcePreferencesStore } from "@/modules/sources";
+import { createConceptDraftFromSourceItem, SignalDetailCard, useConcepts } from "@/modules/concepts";
 import { RankedItemsTable } from "../components/RankedItemsTable";
 import { SourceActivityChart } from "../components/SourceActivityChart";
 import { TrendSummaryCards } from "../components/TrendSummaryCards";
@@ -26,14 +29,37 @@ export function DashboardRoute() {
     enabledSources,
     includeKeywords: getEnabledKeywordFilters(includeKeywordsText),
   });
-  const { selectedSource, setSelectedSource } = useDashboardViewStore();
+  const { saveConcept, isSaving: isPromotingConcept } = useConcepts();
+  const navigate = useNavigate();
+  const { selectedSignalId, selectedSource, setSelectedSignalId, setSelectedSource } =
+    useDashboardViewStore();
 
-  const items =
-    selectedSource === "all"
-      ? data ?? []
-      : (data ?? []).filter((item) => item.source === selectedSource);
+  const items = useMemo(
+    () =>
+      selectedSource === "all"
+        ? data ?? []
+        : (data ?? []).filter((item) => item.source === selectedSource),
+    [data, selectedSource]
+  );
+  const selectedSignal = items.find((item) => item.id === selectedSignalId) ?? null;
   const summary = buildTrendSummary(items);
   const activity = buildTrendActivity(items);
+
+  useEffect(() => {
+    if (selectedSignalId && !items.some((item) => item.id === selectedSignalId)) {
+      setSelectedSignalId(null);
+    }
+  }, [items, selectedSignalId, setSelectedSignalId]);
+
+  async function handlePromoteSignal() {
+    if (!selectedSignal) {
+      return;
+    }
+
+    const conceptDraft = createConceptDraftFromSourceItem(selectedSignal);
+    const savedConcept = await saveConcept(conceptDraft);
+    navigate(`/concepts?concept=${savedConcept.concept.id}`);
+  }
 
   return (
     <div className="dashboard-route">
@@ -47,7 +73,7 @@ export function DashboardRoute() {
           <p className="dashboard-route__meta">
             Feed backend:{" "}
             {backend === "supabase"
-              ? "Supabase persisted source feed"
+              ? "configured remote persisted source feed"
               : "local fallback persisted source feed"}
           </p>
           <p className="dashboard-route__meta">
@@ -65,27 +91,15 @@ export function DashboardRoute() {
       </div>
 
       <div className="dashboard-route__filters">
-        <button
-          aria-pressed={selectedSource === "all"}
-          type="button"
-          onClick={() => setSelectedSource("all")}
-        >
+        <Button aria-pressed={selectedSource === "all"} type="button" variant={selectedSource === "all" ? "default" : "outline"} onClick={() => setSelectedSource("all")}>
           All
-        </button>
-        <button
-          aria-pressed={selectedSource === "github"}
-          type="button"
-          onClick={() => setSelectedSource("github")}
-        >
+        </Button>
+        <Button aria-pressed={selectedSource === "github"} type="button" variant={selectedSource === "github" ? "default" : "outline"} onClick={() => setSelectedSource("github")}>
           GitHub
-        </button>
-        <button
-          aria-pressed={selectedSource === "hacker_news"}
-          type="button"
-          onClick={() => setSelectedSource("hacker_news")}
-        >
+        </Button>
+        <Button aria-pressed={selectedSource === "hacker_news"} type="button" variant={selectedSource === "hacker_news" ? "default" : "outline"} onClick={() => setSelectedSource("hacker_news")}>
           Hacker News
-        </button>
+        </Button>
       </div>
 
       {getEnabledKeywordFilters(includeKeywordsText).length ? (
@@ -121,7 +135,17 @@ export function DashboardRoute() {
             totalItems={summary.totalItems}
           />
           <SourceActivityChart activity={activity} />
-          <RankedItemsTable backend={backend} items={items} />
+          <SignalDetailCard
+            isPromoting={isPromotingConcept}
+            item={selectedSignal}
+            onPromote={() => void handlePromoteSignal()}
+          />
+          <RankedItemsTable
+            backend={backend}
+            items={items}
+            onInspect={(item) => setSelectedSignalId(item.id)}
+            selectedSignalId={selectedSignalId}
+          />
         </>
       ) : null}
     </div>

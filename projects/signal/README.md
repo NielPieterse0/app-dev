@@ -1,12 +1,13 @@
 # Signal
 
-Signal is the first real app inside `app-dev`: a single-operator trend scouting dashboard that ranks public GitHub and Hacker News signals and persists source settings through a browser-safe Supabase boundary.
+Signal is the first real app inside `app-dev`: a single-operator trend scouting dashboard that ranks public GitHub and Hacker News signals, persists settings and live source items through a browser-safe remote boundary, and promotes strong signals into concept drafts for future product work.
 
 ## Current app surface
 
 - Ranked dashboard for GitHub and Hacker News source items.
 - Settings workflow for source toggles and keyword filters.
-- Local fallback persistence when Supabase is unconfigured or unavailable.
+- Concept promotion, concept editing, and export workflow for future product briefs.
+- Local fallback persistence when the configured remote backend is unavailable.
 - Browser-safe Supabase integration that allows only publishable keys in the client.
 
 Install dependencies inside `projects/signal` before verification:
@@ -17,6 +18,8 @@ npm run typecheck
 npm run lint
 npm run test
 npm run build
+npm run e2e
+../../scripts/verify-app.ps1 -ProjectPath .
 ```
 
 ## Supabase notes
@@ -25,4 +28,5 @@ npm run build
 - Do not expose `service_role`, secret, or backend-only Supabase keys in browser env.
 - Enable Row Level Security on exposed schemas such as `public` before browser reads or writes.
 - The current no-auth policies are an internal MVP compromise and are not safe for public launch.
-- Auth, sharing, source-item persistence, and scheduled ingestion stay out of scope for Slice 2.
+- Live Slice 4 verification was completed against the bounded internal Supabase project `qwtfvuwkxtucgcteisfa`, including settings, feed, and concept RPC smoke checks.
+- Auth, sharing, scheduled/background ingestion, and public launch remain out of scope for the current internal MVP.

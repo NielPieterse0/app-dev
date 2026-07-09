@@ -1,13 +1,13 @@
 # Signal Task Plan
 
-- Created: 2026-07-08
+- Created: 2026-07-09
 - Template: react-vite-capacitor
-- Active spec: `specs/003-live-ingestion/spec.md`
+- Active spec: `specs/004-concept-workbench/spec.md`
 - Status: complete
 
 ## Goal
 
-Deliver Signal Slice 3 completely: harden the settings and workflow base from Slice 2, then replace the fixture-backed dashboard with a manual-refresh live-ingestion product backed by persisted source items.
+Complete Signal Slice 4 in two linked parts: first close the remaining Slice 3 verification and drift gaps, then add a concept workbench that promotes persisted live signals into durable product briefs with backend-neutral storage messaging.
 
 ## Non-Goals
 
@@ -18,70 +18,75 @@ Deliver Signal Slice 3 completely: harden the settings and workflow base from Sl
 - additional sources beyond GitHub and Hacker News
 - broad bundle optimization or chart-library replacement
 - service-role or backend secrets in the client
+- direct repo mutation from inside the browser app
 
 ## Spec Link
 
-- Spec id: `003-live-ingestion`
-- Spec path: `specs/003-live-ingestion/spec.md`
-- Tasks path: `specs/003-live-ingestion/tasks.md`
-- Workflow receipts path: `specs/003-live-ingestion/workflow-receipts.md`
-- Checklist path: `specs/003-live-ingestion/checklist.md`
-- Detailed design reference: `../../docs/superpowers/specs/2026-07-08-signal-slice-3a-3b-design.md`
+- Spec id: `004-concept-workbench`
+- Spec path: `specs/004-concept-workbench/spec.md`
+- Tasks path: `specs/004-concept-workbench/tasks.md`
+- Workflow receipts path: `specs/004-concept-workbench/workflow-receipts.md`
+- Checklist path: `specs/004-concept-workbench/checklist.md`
+- Detailed design reference: `../../docs/superpowers/specs/2026-07-09-signal-slice-4a-4b-design.md`
 
 ## Architecture Decision
 
 - App type: React + Vite + React Router with the existing Capacitor-ready shell retained but unused for native packaging in this slice.
-- Routing model: keep `/` as the ranked dashboard and `/settings` for source and keyword controls; widen the dashboard with a manual refresh workflow instead of adding new routes.
-- State/data strategy: Zod schemas remain the normalization contract; TanStack Query owns persisted settings and persisted source-feed reads; Zustand owns transient dashboard filter state and settings drafts without allowing background hydration to overwrite dirty edits.
-- Backend/auth/storage: Supabase remains the target persistence backend with publishable browser keys only. Transactional browser-write paths move behind bounded RPCs, and the no-auth posture stays explicitly internal-MVP only.
-- Feed architecture: live GitHub and Hacker News adapters fetch public data, normalize it client-side, and persist the latest batch through repository abstractions that support configured Supabase storage plus explicit local fallback persistence.
-- UI system: preserve the existing Signal shell and operational layout patterns. Slice 3 fixes correctness and adds refresh/live-state UX rather than redesigning the product surface.
-- Implementation constraints: free-tier-first, no service-role secrets, module-boundary lint rules preserved, UI/data/release-readiness workflows required, source/API terms tracked in the active checklist, and live-integration verification recorded honestly when tooling or credentials are unavailable.
+- Routing model: keep `/` as the ranked dashboard, `/settings` for source and keyword controls, and add `/concepts` as the concept workspace surface for promoted signals and export actions.
+- State/data strategy: Zod remains the normalization contract; TanStack Query owns persisted settings, source-feed reads, and concept reads/writes; Zustand stays limited to transient dashboard view state and settings drafts.
+- Backend/auth/storage: Supabase remains the default remote persistence backend with publishable browser keys only, but product-facing copy should describe generic remote storage versus local fallback unless the vendor is the actual point. The no-auth posture remains explicitly internal-MVP only.
+- Feed architecture: live GitHub and Hacker News adapters remain manual-refresh only; concept promotion must derive from persisted source items rather than direct live API responses.
+- Concept architecture: promoted signals persist as separate concept drafts with captured evidence snapshots, editable product-brief fields, and export helpers for Markdown and JSON handoff.
+- UI system: preserve the existing Signal shell and operational layout patterns. Slice 4 adds inspect-first promotion, concept review/edit flows, and export actions without turning the app into a marketing or public-launch surface.
+- Implementation constraints: free-tier-first, no service-role secrets, module-boundary lint rules preserved, UI/data/release-readiness workflows required, source/API terms tracked in the active checklist, and live integration verification recorded with exact proof level rather than implied by unit coverage alone.
 
 ## Module Plan
 
 | Module | Responsibility | Main files | Verification |
 | --- | --- | --- | --- |
-| `sources` | own settings RPC persistence, live adapters, persisted source-item repositories, and refresh orchestration | `src/modules/sources/**`, `supabase/migrations/003_signal_live_ingestion.sql` | repository, adapter, hook, and migration contract tests |
-| `dashboard` | display persisted ranked items, refresh state, source filters, and trend activity with corrected semantics | `src/modules/dashboard/**` | route/component tests and rendered checks |
-| `settings` | preserve draft edits, save through the transactional path, and disclose degraded fallback honestly | `src/modules/settings/**` | route tests and rendered checks |
-| `root harness` | enforce base-ref workflow obligations, project-tree secret scanning, and real-project contradiction analysis in CI | `scripts/**`, `.github/workflows/app-dev-validation.yml` | root script tests and governance checks |
+| `sources` | own settings persistence, live adapters, persisted source-item repositories, and shared source metadata such as labels | `src/modules/sources/**`, `supabase/migrations/001-004*.sql` | repository, adapter, hook, and migration contract tests |
+| `dashboard` | display persisted ranked items, inspect-first promotion affordances, refresh state, source filters, and trend activity | `src/modules/dashboard/**` | route/component tests and rendered checks |
+| `concepts` | own concept schemas, persistence, promotion helpers, concept editing, and export payload generation | `src/modules/concepts/**`, `supabase/migrations/004_signal_concepts.sql` | repository, route, export, and persistence tests |
+| `settings` | preserve draft edits, save through the transactional path, and disclose storage mode honestly without over-branding the vendor | `src/modules/settings/**` | route tests and rendered checks |
+| `root/app docs` | reconcile stale slice wording, record live verification truthfully, and keep repo guidance aligned to the current Signal baseline | `README.md`, `projects/signal/**`, relevant `standards/**` | root script checks and artifact validation |
 
 ## Implementation Steps
 
-1. Activate spec 003 and align Signal planning artifacts with the combined Slice 3 scope.
-2. Harden root workflow enforcement with base-ref aware obligation detection, committed-tree tests, and real Signal contradiction analysis in CI.
-3. Narrow secret-scan exclusions so `projects/signal` is scanned while disposable verification folders remain ignored.
-4. Add a new Supabase migration that introduces transactional settings RPC writes plus persisted source-item storage and replacement RPCs.
-5. Refactor Signal settings repositories, query behavior, and draft state so unsaved edits are not clobbered and configured save failures degrade to local fallback.
-6. Remove eager env parsing at import time and scope query refetch behavior to avoid settings regressions.
-7. Fix dashboard filter semantics and chart token correctness without redesigning the app shell.
-8. Add live GitHub and Hacker News adapters, manual refresh orchestration, and persisted source-item repositories.
-9. Switch the dashboard read path from fixtures to persisted source items with explicit empty, degraded, and refresh states.
-10. Run artifact gates, app verification, and root governance checks; record live-integration blockers honestly if disposable Supabase infrastructure is unavailable.
+1. Activate spec 004 and align Signal planning artifacts with the Slice 4 core-closeout plus concept-workbench scope.
+2. Close the deferred Slice 3 live-backend blocker by applying the Signal migrations to the connected internal Supabase project and recording bounded smoke evidence.
+3. Reconcile stale docs and receipts so the live repo no longer describes Slice 2-era or pre-ingestion behavior as current.
+4. Add a new migration for concept persistence and evidence snapshots on top of the existing Signal schema.
+5. Add remote and local-fallback concept repositories, query orchestration, and export helpers.
+6. Add an inspect-first dashboard promotion flow that creates concept drafts from persisted source items.
+7. Add a concept workspace route for review, editing, and export.
+8. Replace unnecessary vendor-heavy product copy with backend-neutral storage messaging where the concern is generic remote persistence versus local fallback.
+9. Standardize the small drift items touched during the slice, including shared source labels and mixed import patterns.
+10. Run artifact gates, app verification, root governance checks, and live backend smoke verification; record exact proof levels and any remaining bounded limitations honestly.
 
 ## Risks and Assumptions
 
 | Item | Type | Impact | Mitigation |
 | --- | --- | --- | --- |
-| Public API shape drift can break adapters | risk | medium | keep adapter normalization strict and cover parsing with mocked contract tests |
-| Disposable Supabase infrastructure may be unavailable in-session | risk | medium | keep repository logic testable without live backend and record the exact integration blocker |
-| No-auth browser writes remain unsafe for public launch | risk | high | route all writes through bounded RPCs, keep the policy internal-only, and enforce explicit non-production wording in artifacts |
-| Manual refresh can return zero items for some public-source windows | assumption | low | treat empty feed as a valid state with a clear refresh message |
-| Bundle size remains elevated with Recharts and live adapters | risk | low | keep scope narrow and defer broader optimization unless a correctness fix requires it |
+| Public API shape drift can break adapters and concept evidence quality | risk | medium | keep adapter normalization strict and preserve evidence snapshots at promotion time |
+| The connected internal Supabase project may lag the repo schema | risk | medium | apply migrations deliberately, verify objects before app-level smoke claims, and record the exact environment used |
+| No-auth browser writes remain unsafe for public launch | risk | high | keep RPC-backed boundaries, retain internal-only wording, and avoid any public-launch claim |
+| Concept promotion can produce weak drafts if the signal is reviewed too quickly | risk | medium | keep inspect-first workflow, expose evidence details, and make drafts editable before export |
+| Bundle size remains elevated with Recharts and the growing concepts UI | risk | low | keep scope narrow and defer broad visualization or bundle work unless a correctness fix requires it |
 
 ## Data Security Posture
 
-- `public.source_settings` and `public.signal_preferences` stay browser-readable for the internal MVP, but writes move behind a transactional RPC boundary.
+- `public.source_settings` and `public.signal_preferences` stay browser-readable for the internal MVP, but writes remain behind a transactional RPC boundary.
 - `public.source_items` stores normalized public-source data for the latest manual refresh batch and is browser-readable for the internal MVP.
+- `public.signal_concepts` stores internal concept drafts and captured evidence snapshots for promoted signals, and browser writes remain internal-MVP only.
 - Browser code may use only publishable Supabase keys. Service-role credentials remain prohibited from client code, repo files, and checked-in artifacts.
 - The no-auth policy remains an internal-MVP compromise that blocks any public-launch or production-readiness claim.
 
 ## Failure And Rollback
 
-- If the live-ingestion path regresses, keep the persisted local fallback repository path and disable the failing configured repository behavior rather than restoring fixture-backed runtime truth.
-- If migration review raises issues, do not apply the migration to any shared environment. Adjust the SQL locally and re-run project verification first.
+- If the connected remote persistence path regresses, keep the explicit local fallback repository path and disable the failing configured repository behavior rather than restoring obsolete runtime assumptions.
+- If migration review raises issues, do not apply the migration to any shared or public-facing environment. Adjust the SQL locally and re-run project verification first.
 - If public API rate limits or adapter parsing fail, surface the failure in the dashboard refresh state and preserve the last persisted batch.
+- If concept persistence fails remotely after promotion, degrade explicitly to the local fallback concept store rather than dropping the concept draft.
 
 ## Verification
 
@@ -104,7 +109,9 @@ npm run e2e
 Rendered UI checks:
 
 - first meaningful dashboard state
-- manual refresh affordance and source-filter interaction
+- inspect and concept-promotion affordance
+- concept workspace list/detail flow
+- concept export action
 - desktop viewport
 - mobile viewport
 - no clipped, overlapping, or overflowing text
@@ -117,37 +124,29 @@ Pre-completion artifact checks:
 
 Verification result:
 
-- 2026-07-08: `../../scripts/analyze-spec.ps1 -ProjectPath .`, `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`, `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`, and `../../scripts/verify-app.ps1 -ProjectPath .` passed after the Slice 3 implementation changes.
-- 2026-07-08: root `check-workspace.ps1`, `validate-codex-assets.ps1 -RequirePythonToml:$true`, `test-hooks.ps1`, `test-workflow-enforcement.ps1`, `test-analyze-spec.ps1`, `test-workspace.ps1`, and `scan-secrets.ps1` passed after the root harness changes.
-- 2026-07-08: disposable-environment Supabase migration application and read/write smoke verification were not executable in-session because no disposable project credentials or local Supabase stack were available; repository and RPC behavior were instead covered by unit and integration-style tests.
+- Completed on 2026-07-09. Local checks passed: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`, `npm run e2e`, and `../../scripts/verify-app.ps1 -ProjectPath .`.
+- Signal artifact checks passed: `../../scripts/analyze-spec.ps1 -ProjectPath .`, `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`, and `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`.
+- Root governance checks passed: `./scripts/check-workspace.ps1`, `./scripts/validate-codex-assets.ps1 -RequirePythonToml:$true`, `./scripts/test-hooks.ps1`, `./scripts/test-workflow-enforcement.ps1`, `./scripts/test-analyze-spec.ps1`, `./scripts/test-workspace.ps1`, and `./scripts/scan-secrets.ps1`.
+- Live Supabase verification passed against internal project `qwtfvuwkxtucgcteisfa` after applying migrations `001` through `004`. Smoke checks confirmed the settings, feed, and concept RPC paths with bounded test data.
 
 ## Open Decisions
 
 | Decision | Options | Owner | Status |
 | --- | --- | --- | --- |
-| Persisted feed replacement boundary | table writes vs transactional RPC | Codex | resolved: transactional RPC replaces the full source-item batch |
-| Dashboard default state without stored items | fixtures vs empty state with manual refresh | Codex | resolved: empty state with manual refresh |
-| Adapter execution mode | automatic on load vs manual refresh | Codex | resolved: manual refresh only |
-| Settings draft hydration policy | hydrate on every query vs preserve dirty drafts | Codex | resolved: preserve dirty drafts until explicit save or reset |
+| Concept evidence persistence shape | join table vs captured snapshot payload | Codex | resolved: captured snapshot payload |
+| Concept review surface | dedicated route vs inline dashboard-only editor | Codex | resolved: dedicated `/concepts` route |
+| Export handoff format | markdown only vs markdown plus JSON | Codex | resolved: markdown plus JSON |
+| Storage-mode messaging | vendor-specific copy vs backend-neutral copy with targeted infra notes | Codex | resolved: backend-neutral copy with targeted infra notes |
 
 ## Handoff Notes
 
 Record deviations from this plan, skipped checks, source/API constraints, and app-dev backport candidates discovered during the slice.
 
-- Live-source verification remains honest about the difference between mocked/unit coverage and disposable-environment integration coverage.
-- The dashboard is no longer fixture-backed at runtime; empty-state onboarding is now the first-run path until a refresh persists live items.
-- The app still carries the existing Recharts dependency and build-size warning; broader visualization or bundle work remains deferred.
-- Signal remains tracked in the root `app-dev` repository unless a later recorded decision changes the repository model.
-
 ## Audit Disposition
 
 | Item | Disposition | Notes |
 | --- | --- | --- |
-| Transaction safety for settings writes | fixed | settings writes now run through an RPC boundary |
-| Real-project contradiction analysis in CI | fixed | CI now analyzes `projects/signal` directly |
-| Secret scan coverage gap for `projects/signal` | fixed | root scan covers the project while still excluding disposable verification folders |
-| Settings draft overwrite on refetch | fixed | draft hydration preserves dirty local edits |
-| Degraded save fallback symmetry | fixed | configured save failures fall back locally with explicit degraded state |
-| Dashboard chart token mismatch and filter semantics | fixed | chart uses intended token names and filters expose active semantics |
-| Fixture-backed dashboard truth | fixed | manual refresh persists live source items and dashboard reads the persisted batch |
-| Disposable Supabase migration/smoke execution | deferred | bounded live integration remains blocked by unavailable disposable credentials or local stack in this session |
+| Prior CI, repo-topology, and gated-validator findings | fixed | treat older attached findings as regression targets, not fresh defects |
+| Signal README stale Slice 2 wording | fixed | reconciled during Slice 4A repo-surface drift pass |
+| Backend-neutral product messaging | fixed | route-level and plan/spec copy now distinguishes generic remote storage from Supabase-specific setup notes |
+| Disposable Supabase migration/smoke execution | fixed | completed against internal project `qwtfvuwkxtucgcteisfa` with recorded RPC smoke evidence |

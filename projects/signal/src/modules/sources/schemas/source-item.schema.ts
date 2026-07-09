@@ -1,6 +1,10 @@
 import { z } from "zod";
 
 export const sourceKindSchema = z.enum(["github", "hacker_news"]);
+export const sourceLabels = {
+  github: "GitHub",
+  hacker_news: "Hacker News",
+} satisfies Record<z.infer<typeof sourceKindSchema>, string>;
 
 const normalizedKeywordSchema = z.string().trim().min(1).transform((value) => value.toLowerCase());
 

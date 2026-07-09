@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useOutletContext } from "react-router-dom";
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { PageHeader } from "../../../app/PageHeader";
-import { SettingsLayout } from "../../../components/layout/SettingsLayout";
+import { PageHeader } from "@/app/PageHeader";
+import { SettingsLayout } from "@/components/layout/SettingsLayout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   getEnabledKeywordFilters,
   useSourcePreferencesStore,
@@ -74,8 +74,8 @@ export function SettingsRoute() {
       hydrateFromSettings(nextData.settings, { force: true });
       setSaveMessage(
         nextData.backend === "local-fallback"
-          ? "Saved locally while Supabase is unavailable."
-          : "Settings saved to Supabase."
+          ? "Saved locally while the configured remote workspace is unavailable."
+          : "Settings saved in the configured remote workspace."
       );
     } catch (saveError) {
       setRouteErrorMessage(
@@ -109,10 +109,10 @@ export function SettingsRoute() {
       />
       <div className="space-y-2">
         <p>
-          Settings backend:{" "}
+          Settings storage:{" "}
           {backend === "supabase"
-            ? "Supabase with publishable browser keys"
-            : "local fallback while Supabase is unavailable or unconfigured"}
+            ? "configured remote workspace with publishable browser keys"
+            : "local fallback while the configured remote workspace is unavailable or unconfigured"}
         </p>
         {degradedReason ? (
           <p className="text-sm text-muted-foreground">
@@ -187,7 +187,7 @@ export function SettingsSourcesRoute() {
         {errorMessage ? <p className="text-destructive">{errorMessage}</p> : null}
         {backend === "local-fallback" ? (
           <p className="text-muted-foreground">
-            Signal is in local fallback mode. Changes stay in this browser until Supabase is reachable again.
+            Signal is in local fallback mode. Changes stay in this browser until the configured remote workspace is reachable again.
           </p>
         ) : null}
       </div>
@@ -202,7 +202,7 @@ export function SettingsSourcesRoute() {
       <div className="rounded-lg border p-4">
         <h3 className="font-medium">Operating boundary</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          Signal stays on free-tier infrastructure until the product is proven. This slice documents the risk that Supabase can pause after inactivity and does not assume always-on backend availability.
+          Signal stays on free-tier infrastructure until the product is proven. This slice documents the risk that the configured remote backend can pause after inactivity and does not assume always-on availability.
         </p>
       </div>
     </div>
@@ -258,7 +258,7 @@ export function SettingsKeywordsRoute() {
         {errorMessage ? <p className="text-destructive">{errorMessage}</p> : null}
         {backend === "local-fallback" ? (
           <p className="text-muted-foreground">
-            Keyword changes are saving to the local fallback store until Supabase is available.
+            Keyword changes are saving to the local fallback store until the configured remote workspace is available.
           </p>
         ) : null}
       </div>
@@ -273,7 +273,7 @@ export function SettingsKeywordsRoute() {
       <div className="rounded-lg border p-4">
         <h3 className="font-medium">Next-step note</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          Keyword filters now persist through the same settings repository boundary as source toggles. Public launch still requires a stricter auth and RLS model.
+          Keyword filters persist through the same settings repository boundary as source toggles. Public launch still requires a stricter auth and RLS model.
         </p>
       </div>
     </div>

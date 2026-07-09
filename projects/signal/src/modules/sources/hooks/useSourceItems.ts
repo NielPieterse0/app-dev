@@ -13,6 +13,7 @@ export function useSourceItems(options: UseSourceItemsOptions) {
   const query = useQuery({
     queryKey: [...sourceItemsQueryKey, options.enabledSources, options.includeKeywords],
     queryFn: () => listSourceItems(options),
+    refetchOnWindowFocus: false,
   });
   const mutation = useMutation({
     mutationFn: () => refreshSourceItems(options.enabledSources),

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isSupabaseConfigured } from "../../../lib/env";
 import { getSupabaseClient } from "../../../lib/supabase";
@@ -56,13 +57,18 @@ async function loadSettingsData(
 export function useSourceSettings(options: UseSourceSettingsOptions = {}) {
   const queryClient = useQueryClient();
   const supabaseConfigured = options.supabaseConfigured ?? isSupabaseConfigured();
-  const fallbackRepository =
-    options.fallbackRepository ?? createLocalSourceSettingsRepository();
-  const primaryRepository =
-    options.primaryRepository ??
-    (supabaseConfigured
-      ? createSupabaseSourceSettingsRepository(getSupabaseClient())
-      : fallbackRepository);
+  const fallbackRepository = useMemo(
+    () => options.fallbackRepository ?? createLocalSourceSettingsRepository(),
+    [options.fallbackRepository]
+  );
+  const primaryRepository = useMemo(
+    () =>
+      options.primaryRepository ??
+      (supabaseConfigured
+        ? createSupabaseSourceSettingsRepository(getSupabaseClient())
+        : fallbackRepository),
+    [fallbackRepository, options.primaryRepository, supabaseConfigured]
+  );
 
   const query = useQuery({
     queryKey: sourceSettingsQueryKey,

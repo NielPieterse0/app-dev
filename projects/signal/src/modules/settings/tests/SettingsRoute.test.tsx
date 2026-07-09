@@ -173,7 +173,7 @@ describe("SettingsRoute", () => {
     renderSettings("/settings/keywords");
 
     expect(
-      screen.getByText(/local fallback while Supabase is unavailable or unconfigured/i)
+      screen.getByText(/local fallback while the configured remote workspace is unavailable or unconfigured/i)
     ).toBeInTheDocument();
     expect(screen.getByText(/project paused/i)).toBeInTheDocument();
   });

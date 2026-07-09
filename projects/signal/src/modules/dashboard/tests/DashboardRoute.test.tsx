@@ -1,35 +1,63 @@
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { DashboardRoute } from "../routes/DashboardRoute";
 
 const useRankedItemsMock = vi.fn();
 const useDashboardViewStoreMock = vi.fn();
 const useSourcePreferencesStoreMock = vi.fn();
+const useConceptsMock = vi.fn();
 
 vi.mock("../hooks/useRankedItems", () => ({
   useRankedItems: (options: unknown) => useRankedItemsMock(options),
+}));
+
+vi.mock("@/modules/concepts", () => ({
+  SignalDetailCard: ({ item }: { item: { title: string } | null }) =>
+    item ? <p>Inspecting {item.title}</p> : <p>Inspect a signal before promotion</p>,
+  createConceptDraftFromSourceItem: vi.fn(),
+  useConcepts: () => useConceptsMock(),
 }));
 
 vi.mock("../state/dashboard-view-store", () => ({
   useDashboardViewStore: () => useDashboardViewStoreMock(),
 }));
 
-vi.mock("@/modules/sources", () => ({
-  buildActivityPoints: vi.fn(() => []),
-  getEnabledKeywordFilters: (value: string) =>
-    value
-      .split(",")
-      .map((entry) => entry.trim().toLowerCase())
-      .filter(Boolean),
-  useSourcePreferencesStore: (selector: (state: { enabledSources: ["github", "hacker_news"]; includeKeywordsText: string }) => unknown) =>
-    useSourcePreferencesStoreMock(selector),
-}));
+vi.mock("@/modules/sources", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/modules/sources")>();
+
+  return {
+    ...actual,
+    buildActivityPoints: vi.fn(() => []),
+    getEnabledKeywordFilters: (value: string) =>
+      value
+        .split(",")
+        .map((entry) => entry.trim().toLowerCase())
+        .filter(Boolean),
+    useSourcePreferencesStore: (selector: (state: { enabledSources: ["github", "hacker_news"]; includeKeywordsText: string }) => unknown) =>
+      useSourcePreferencesStoreMock(selector),
+  };
+});
 
 describe("DashboardRoute", () => {
+  function renderRoute() {
+    return render(
+      <MemoryRouter>
+        <DashboardRoute />
+      </MemoryRouter>
+    );
+  }
+
   beforeEach(() => {
     useDashboardViewStoreMock.mockReturnValue({
+      selectedSignalId: null,
       selectedSource: "all",
+      setSelectedSignalId: vi.fn(),
       setSelectedSource: vi.fn(),
+    });
+    useConceptsMock.mockReturnValue({
+      saveConcept: vi.fn(),
+      isSaving: false,
     });
 
     useSourcePreferencesStoreMock.mockImplementation((selector) =>
@@ -52,7 +80,7 @@ describe("DashboardRoute", () => {
       error: null,
     });
 
-    render(<DashboardRoute />);
+    renderRoute();
 
     expect(screen.getByText("Loading source signals")).toBeInTheDocument();
   });
@@ -69,7 +97,7 @@ describe("DashboardRoute", () => {
       error: null,
     });
 
-    render(<DashboardRoute />);
+    renderRoute();
 
     expect(screen.getByRole("region", { name: "No persisted signals yet" })).toBeInTheDocument();
   });
@@ -101,11 +129,12 @@ describe("DashboardRoute", () => {
       error: null,
     });
 
-    render(<DashboardRoute />);
+    renderRoute();
 
     expect(screen.getByRole("heading", { name: "Trend scout" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "owner/repo" })).toBeInTheDocument();
     expect(screen.getByText("Total signals")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Refresh live feed" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Inspect" })).toBeInTheDocument();
   });
 });

@@ -1,8 +1,9 @@
-import { LayoutDashboard, Settings } from "lucide-react";
+import { LayoutDashboard, Lightbulb, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navItems = [
   { label: "Feed", icon: LayoutDashboard, to: "/" },
+  { label: "Concepts", icon: Lightbulb, to: "/concepts" },
   { label: "Settings", icon: Settings, to: "/settings" },
 ];
 
