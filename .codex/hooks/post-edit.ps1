@@ -12,7 +12,7 @@ $packageJson = Join-Path $ProjectPath "package.json"
 if (Test-Path $packageJson) {
   Write-Host "JavaScript/TypeScript project detected. Consider running scripts/verify-app.ps1 -ProjectPath `"$ProjectPath`" before handoff."
   $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-  $obligationScript = Join-Path $root "scripts\get-workflow-obligations.ps1"
+  $obligationScript = Join-Path $root "scripts/get-workflow-obligations.ps1"
   if (Test-Path -LiteralPath $obligationScript) {
     $summary = & $obligationScript -ProjectPath $ProjectPath -JsonSummary:$true | ConvertFrom-Json -ErrorAction SilentlyContinue
     if ($null -ne $summary) {

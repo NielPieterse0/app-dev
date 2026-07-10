@@ -4,7 +4,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $common = Join-Path $root "scripts/common.ps1"
 $validator = Join-Path $root "scripts/validate-workflow-receipts.ps1"
 $obligationsScript = Join-Path $root "scripts/get-workflow-obligations.ps1"
-$tmpRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-workflow-test-" + [guid]::NewGuid().ToString("N"))
+$tmpRoot = Join-Path $root (".tmp/app-dev-workflow-test-" + [guid]::NewGuid().ToString("N"))
 
 . $common
 

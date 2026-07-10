@@ -16,40 +16,12 @@ function Add-Failure {
   Add-HarnessFailure -Failures $failures -Message $Message
 }
 
-function Get-SectionBody {
-  param(
-    [Parameter(Mandatory=$true)][string]$Content,
-    [Parameter(Mandatory=$true)][string]$Heading
-  )
-
-  $pattern = "(?ms)^##\s+$([regex]::Escape($Heading))\s*\r?\n(.*?)(?=^##\s+|\z)"
-  $match = [regex]::Match($Content, $pattern)
-  if ($match.Success) {
-    return $match.Groups[1].Value
-  }
-  return $null
-}
-
-function Get-FieldValue {
-  param(
-    [Parameter(Mandatory=$true)][string]$Section,
-    [Parameter(Mandatory=$true)][string]$Field
-  )
-
-  $pattern = "(?m)^-\s+$([regex]::Escape($Field)):\s*(.+)$"
-  $match = [regex]::Match($Section, $pattern)
-  if ($match.Success) {
-    return $match.Groups[1].Value.Trim()
-  }
-  return $null
-}
-
 function Test-ReceiptSection {
   param(
     [Parameter(Mandatory=$true)][string]$ReceiptContent,
     [Parameter(Mandatory=$true)][string]$Heading,
-    [Parameter(Mandatory=$true)][bool]$Required,
-    [Parameter(Mandatory=$true)][bool]$RequireVerificationEvidence
+    [switch]$Required,
+    [switch]$RequireVerificationEvidence
   )
 
   $section = Get-SectionBody -Content $ReceiptContent -Heading $Heading
@@ -78,7 +50,7 @@ function Test-ReceiptSection {
 
   if ($RequireVerificationEvidence) {
     $verification = Get-FieldValue -Section $section -Field "Verification performed"
-    if ($verification -match '^(pending|not-run|none)$') {
+    if (Test-InvalidVerificationState -Status $verification) {
       Add-Failure "$Heading is required for this change set but Verification performed is '$verification'."
     }
   }
@@ -138,13 +110,13 @@ if (-not [string]::IsNullOrWhiteSpace($ChangedFilesJson)) {
 
 if (Test-Path -LiteralPath $receiptPath) {
   $receiptContent = Get-Content -LiteralPath $receiptPath -Raw
-  Test-ReceiptSection -ReceiptContent $receiptContent -Heading "UI Change Workflow Receipt" -Required ([bool]$obligations.uiChange.required) -RequireVerificationEvidence $RequireVerificationEvidence
-  Test-ReceiptSection -ReceiptContent $receiptContent -Heading "Data Change Workflow Receipt" -Required ([bool]$obligations.dataChange.required) -RequireVerificationEvidence $RequireVerificationEvidence
-  Test-ReceiptSection -ReceiptContent $receiptContent -Heading "Mobile Validation Workflow Receipt" -Required ([bool]$obligations.mobileValidation.required) -RequireVerificationEvidence $RequireVerificationEvidence
-  Test-ReceiptSection -ReceiptContent $receiptContent -Heading "Release Readiness Workflow Receipt" -Required ([bool]$obligations.releaseReadiness.required) -RequireVerificationEvidence $RequireVerificationEvidence
+  Test-ReceiptSection -ReceiptContent $receiptContent -Heading "UI Change Workflow Receipt" -Required:$obligations.uiChange.required -RequireVerificationEvidence:$RequireVerificationEvidence
+  Test-ReceiptSection -ReceiptContent $receiptContent -Heading "Data Change Workflow Receipt" -Required:$obligations.dataChange.required -RequireVerificationEvidence:$RequireVerificationEvidence
+  Test-ReceiptSection -ReceiptContent $receiptContent -Heading "Mobile Validation Workflow Receipt" -Required:$obligations.mobileValidation.required -RequireVerificationEvidence:$RequireVerificationEvidence
+  Test-ReceiptSection -ReceiptContent $receiptContent -Heading "Release Readiness Workflow Receipt" -Required:$obligations.releaseReadiness.required -RequireVerificationEvidence:$RequireVerificationEvidence
 }
 
-if (([bool]$obligations.dataChange.required -or [bool]$obligations.releaseReadiness.required) -and -not (Test-Path -LiteralPath $checklistPath)) {
+if (($obligations.dataChange.required -or $obligations.releaseReadiness.required) -and -not (Test-Path -LiteralPath $checklistPath)) {
   Add-Failure "Gated spec requires checklist.md. Create it from templates/spec-workflow/checklist.template.md."
 }
 

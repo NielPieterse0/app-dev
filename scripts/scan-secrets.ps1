@@ -8,7 +8,7 @@ $Root = (Resolve-Path -LiteralPath $Root).Path
 $findings = New-Object System.Collections.Generic.List[object]
 $warnings = New-Object System.Collections.Generic.List[string]
 
-$excludedDirectoryNames = @(".git", "node_modules", "dist", "build", ".next", "out", "coverage", "playwright-report", "test-results")
+$excludedDirectoryNames = @(".git", "node_modules", "dist", "build", ".next", "out", "coverage", "playwright-report", "test-results", ".tmp")
 $allowedFileNames = @(".env.example")
 $textExtensions = @(".md", ".txt", ".json", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".yml", ".yaml", ".toml", ".ps1", ".css", ".html", ".config", ".example")
 
@@ -24,6 +24,65 @@ $patterns = @(
   @{ Name = "AWS access key"; Regex = "AKIA[0-9A-Z]{16}" },
   @{ Name = "Secret assignment"; Regex = "(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['""][^'""]{12,}['""]" }
 )
+
+function Test-GitleaksExecutable {
+  param([Parameter(Mandatory=$true)][string]$Path)
+
+  if (-not (Test-Path -LiteralPath $Path)) {
+    return $false
+  }
+
+  try {
+    & $Path version *> $null
+    return $LASTEXITCODE -eq 0
+  } catch {
+    return $false
+  }
+}
+
+function Get-GitleaksCommand {
+  $candidates = New-Object System.Collections.Generic.List[object]
+  $seen = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
+
+  function Add-Candidate {
+    param(
+      [string]$Path,
+      [Parameter(Mandatory=$true)][string]$Source
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+      return
+    }
+
+    if ($seen.Add($Path)) {
+      $candidates.Add([pscustomobject]@{
+        Path = $Path
+        Source = $Source
+      }) | Out-Null
+    }
+  }
+
+  Add-Candidate -Path $env:GITLEAKS_PATH -Source "GITLEAKS_PATH"
+  Add-Candidate -Path "C:/Tools/gitleaks/gitleaks.exe" -Source "default standalone install"
+  Add-Candidate -Path (Join-Path $Root "tools/gitleaks/gitleaks.exe") -Source "workspace tools"
+
+  $resolvedCommand = Get-Command gitleaks -ErrorAction SilentlyContinue
+  if ($resolvedCommand) {
+    Add-Candidate -Path $resolvedCommand.Source -Source "PATH"
+  }
+
+  foreach ($candidate in $candidates) {
+    if (Test-GitleaksExecutable -Path $candidate.Path) {
+      return $candidate
+    }
+
+    if (Test-Path -LiteralPath $candidate.Path) {
+      $warnings.Add("Skipped unusable gitleaks executable from $($candidate.Source): $($candidate.Path). Set GITLEAKS_PATH to a runnable standalone binary to restore native scanning.") | Out-Null
+    }
+  }
+
+  return $null
+}
 
 function Get-RelativePath {
   param([Parameter(Mandatory=$true)][string]$Path)
@@ -293,13 +352,15 @@ function Add-SecretFinding {
   }) | Out-Null
 }
 
-$gitleaks = Get-Command gitleaks -ErrorAction SilentlyContinue
+$gitleaks = Get-GitleaksCommand
 if ($null -ne $gitleaks) {
-  $reportPath = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-gitleaks-{0}.json" -f ([System.Guid]::NewGuid().ToString("N")))
+  $tempDir = Join-Path $Root ".tmp"
+  New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+  $reportPath = Join-Path $tempDir ("app-dev-gitleaks-{0}.json" -f ([System.Guid]::NewGuid().ToString("N")))
   Push-Location $Root
   try {
     try {
-      & $gitleaks.Source detect --no-git --redact --source $Root --report-format json --report-path $reportPath | Out-Null
+      & $gitleaks.Path detect --no-git --redact --source $Root --report-format json --report-path $reportPath | Out-Null
       $gitleaksExitCode = $LASTEXITCODE
 
       if ($gitleaksExitCode -ne 0) {
@@ -337,14 +398,14 @@ if ($null -ne $gitleaks) {
         }
       }
     } catch {
-      $warnings.Add("gitleaks was found but could not execute; using local regex fallback scan. $($_.Exception.Message)") | Out-Null
+      $warnings.Add("gitleaks from $($gitleaks.Source) could not execute; using local regex fallback scan. $($_.Exception.Message)") | Out-Null
     }
   } finally {
     Pop-Location
     Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
   }
 } else {
-  $warnings.Add("gitleaks not found; using local regex fallback scan.") | Out-Null
+  $warnings.Add("No runnable gitleaks executable was found; using local regex fallback scan. Set GITLEAKS_PATH or install a standalone binary at C:/Tools/gitleaks/gitleaks.exe to restore native scanning.") | Out-Null
 }
 
 $files = Get-ScannableFiles

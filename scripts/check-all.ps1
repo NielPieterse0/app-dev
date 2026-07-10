@@ -2,6 +2,10 @@ $ErrorActionPreference = "Stop"
 
 $steps = @(
   @{
+    Name = "Run portability lint"
+    Action = { & ./scripts/lint-portability.ps1 }
+  },
+  @{
     Name = "Check workspace structure"
     Action = { & ./scripts/check-workspace.ps1 }
   },
@@ -12,6 +16,10 @@ $steps = @(
   @{
     Name = "Test hook policy"
     Action = { & ./scripts/test-hooks.ps1 }
+  },
+  @{
+    Name = "Test portability lint"
+    Action = { & ./scripts/test-lint-portability.ps1 }
   },
   @{
     Name = "Test workflow enforcement"

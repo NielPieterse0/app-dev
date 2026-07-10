@@ -24,42 +24,6 @@ function Get-MarkdownStatus {
   return ""
 }
 
-function Test-CompletedStatus {
-  param([string]$Status)
-
-  return $Status -in @("complete", "completed", "done")
-}
-
-function Get-SectionBody {
-  param(
-    [Parameter(Mandatory=$true)][string]$Content,
-    [Parameter(Mandatory=$true)][string]$Heading
-  )
-
-  $pattern = "(?ms)^##\s+$([regex]::Escape($Heading))\s*\r?\n(.*?)(?=^##\s+|\z)"
-  $match = [regex]::Match($Content, $pattern)
-  if ($match.Success) {
-    return $match.Groups[1].Value
-  }
-
-  return ""
-}
-
-function Get-FieldValue {
-  param(
-    [Parameter(Mandatory=$true)][string]$Section,
-    [Parameter(Mandatory=$true)][string]$Field
-  )
-
-  $pattern = "(?im)^-\s+$([regex]::Escape($Field)):\s*(.+)$"
-  $match = [regex]::Match($Section, $pattern)
-  if ($match.Success) {
-    return $match.Groups[1].Value.Trim()
-  }
-
-  return ""
-}
-
 function Test-ChecklistRequired {
   param([Parameter(Mandatory=$true)][string]$SpecContent)
 
@@ -156,7 +120,7 @@ foreach ($heading in @(
 
   $decision = Get-FieldValue -Section $section -Field "Decision/closure"
   $verification = Get-FieldValue -Section $section -Field "Verification performed"
-  if ((Test-CompletedStatus -Status $decision) -and ($verification -match "(?i)^(pending|not-run|none)$")) {
+  if ((Test-CompletedStatus -Status $decision) -and (Test-InvalidVerificationState -Status $verification)) {
     Add-Failure "$heading is marked complete while Verification performed is '$verification'."
   }
 }

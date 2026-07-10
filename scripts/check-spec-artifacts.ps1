@@ -51,11 +51,9 @@ $expected = 1
 $activeSpecRelative = $null
 if (Test-Path -LiteralPath $agentsPath) {
   $agentsContent = Assert-Contains -Path $agentsPath -Needles @("Active Specification", "specs/")
-  $match = [regex]::Match($agentsContent, "specs/\d{3}-[a-z0-9-]+/spec\.md")
-  if (-not $match.Success) {
+  $activeSpecRelative = Get-ActiveSpecRelativePath -AgentsPath $agentsPath
+  if ([string]::IsNullOrWhiteSpace($activeSpecRelative)) {
     Add-Failure "Missing active spec. Run ./scripts/new-spec.ps1 -ProjectPath <path> -Slug <slug> first."
-  } else {
-    $activeSpecRelative = $match.Value
   }
 }
 

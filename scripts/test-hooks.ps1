@@ -5,22 +5,28 @@ $hook = Join-Path $root ".codex/hooks/pre-command.ps1"
 $postEditHook = Join-Path $root ".codex/hooks/post-edit.ps1"
 
 function Get-PowerShellRuntime {
-  $currentProcessPath = (Get-Process -Id $PID).Path
-  if ($currentProcessPath -and (Test-Path -LiteralPath $currentProcessPath)) {
-    return $currentProcessPath
-  }
-
   $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
-  if ($pwsh) {
+  if ($pwsh -and (Test-PowerShellRuntime -RuntimePath $pwsh.Source)) {
     return $pwsh.Source
   }
 
-  $windowsPowerShell = Get-Command powershell -ErrorAction SilentlyContinue
-  if ($windowsPowerShell) {
-    return $windowsPowerShell.Source
+  $currentProcessPath = (Get-Process -Id $PID).Path
+  if ($currentProcessPath -and (Test-Path -LiteralPath $currentProcessPath) -and (Test-PowerShellRuntime -RuntimePath $currentProcessPath)) {
+    return $currentProcessPath
   }
 
   throw "No PowerShell runtime found for hook validation."
+}
+
+function Test-PowerShellRuntime {
+  param([Parameter(Mandatory=$true)][string]$RuntimePath)
+
+  try {
+    & $RuntimePath -NoProfile -Command "exit 0" *> $null
+    return $LASTEXITCODE -eq 0
+  } catch {
+    return $false
+  }
 }
 
 function Invoke-ScriptFromStdIn {
@@ -49,9 +55,9 @@ $blocked = @(
   "git checkout -- AGENTS.md",
   "git clean -fd",
   "git push --force origin main",
-  "Remove-Item -LiteralPath projects\demo -Recurse -Force",
-  "ri projects\demo -Recurse -Force",
-  "del projects\demo -Recurse -Force",
+  "Remove-Item -LiteralPath projects/demo -Recurse -Force",
+  "ri projects/demo -Recurse -Force",
+  "del projects/demo -Recurse -Force",
   "rm -rf dist",
   "rm -r dist",
   "node -e ""require('fs').rmSync('dist', { recursive: true, force: true })""",

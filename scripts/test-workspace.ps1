@@ -158,6 +158,7 @@ function Assert-GeneratedProject {
   }
   Push-Location $projectPath
   try {
+    $generatedWorkflowRequirements = '{"uiChange":{"required":true},"dataChange":{"required":true},"mobileValidation":{"required":true},"releaseReadiness":{"required":true}}'
     & (Join-Path $root "scripts/check-spec-artifacts.ps1") -ProjectPath "."
     if ($LASTEXITCODE -ne 0) {
       Write-Error "check-spec-artifacts.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
@@ -166,7 +167,7 @@ function Assert-GeneratedProject {
     if ($LASTEXITCODE -ne 0) {
       Write-Error "analyze-spec.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
     }
-    & (Join-Path $root "scripts/validate-workflow-receipts.ps1") -ProjectPath "."
+    & (Join-Path $root "scripts/validate-workflow-receipts.ps1") -ProjectPath "." -ChangedFilesJson $generatedWorkflowRequirements
     if ($LASTEXITCODE -ne 0) {
       Write-Error "validate-workflow-receipts.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
     }
@@ -190,9 +191,11 @@ function Assert-TrackedByRootGitignore {
 }
 
 try {
+  & (Join-Path $root "scripts/lint-portability.ps1")
   & (Join-Path $root "scripts/check-workspace.ps1")
   & (Join-Path $root "scripts/validate-codex-assets.ps1") -RequirePythonToml:$true
   & (Join-Path $root "scripts/test-hooks.ps1")
+  & (Join-Path $root "scripts/test-lint-portability.ps1")
   & (Join-Path $root "scripts/test-workflow-enforcement.ps1")
   & (Join-Path $root "scripts/test-analyze-spec.ps1")
   & (Join-Path $root "scripts/check-template-parity.ps1")

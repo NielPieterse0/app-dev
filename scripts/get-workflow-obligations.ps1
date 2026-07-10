@@ -15,12 +15,7 @@ function Invoke-GitNameOnlyDiff {
     [string[]]$Arguments = @()
   )
 
-  if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)) {
-    $argumentText = ($Arguments | ForEach-Object { $_.Replace('"', '\"') }) -join " "
-    $output = & cmd.exe /d /c "git diff --name-only $argumentText 2>nul"
-  } else {
-    $output = & git diff --name-only @Arguments 2>$null
-  }
+  $output = & git -c core.safecrlf=false -c core.autocrlf=false diff --name-only @Arguments 2>$null
 
   if ($LASTEXITCODE -ne 0) {
     throw "git diff failed while collecting workflow obligations."
@@ -30,11 +25,7 @@ function Invoke-GitNameOnlyDiff {
 }
 
 function Invoke-GitUntrackedFiles {
-  if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)) {
-    $output = & cmd.exe /d /c "git ls-files --others --exclude-standard 2>nul"
-  } else {
-    $output = & git ls-files --others --exclude-standard 2>$null
-  }
+  $output = & git -c core.safecrlf=false -c core.autocrlf=false ls-files --others --exclude-standard 2>$null
 
   if ($LASTEXITCODE -ne 0) {
     throw "git ls-files failed while collecting workflow obligations."
@@ -52,7 +43,7 @@ function Get-GitChangedFiles {
   $results = New-Object System.Collections.Generic.List[string]
 
   if (-not [string]::IsNullOrWhiteSpace($BaseRef)) {
-    $mergeBase = (& git merge-base $BaseRef HEAD 2>$null)
+    $mergeBase = (& git -c core.safecrlf=false -c core.autocrlf=false merge-base $BaseRef HEAD 2>$null)
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace(($mergeBase | Out-String))) {
       throw "git merge-base failed while collecting workflow obligations from $BasePath."
     }
@@ -96,12 +87,12 @@ function Normalize-RelativePath {
     $resolvedCandidate = [System.IO.Path]::GetFullPath($candidatePath)
     $resolvedBase = [System.IO.Path]::GetFullPath($BasePath)
     if ($resolvedCandidate.StartsWith($resolvedBase, [System.StringComparison]::OrdinalIgnoreCase)) {
-      return ($resolvedCandidate.Substring($resolvedBase.Length).TrimStart('\')).Replace('\', '/')
+      return ($resolvedCandidate.Substring($resolvedBase.Length).TrimStart('/', '\') -replace "\\", "/")
     }
   } catch {
   }
 
-  return $Candidate.Replace('\', '/')
+  return ($Candidate -replace "\\", "/")
 }
 
 function Add-Match {

@@ -6,8 +6,6 @@ param(
   [ValidateSet("react-vite-capacitor", "next-web-app", "expo-native-app")]
   [string]$Template = "react-vite-capacitor",
 
-  [switch]$NoInstall = $true,
-
   [switch]$InitializeGit
 )
 
@@ -169,10 +167,6 @@ foreach ($item in $required) {
   if (-not (Test-Path -LiteralPath $path)) {
     Write-Error "Generated project is missing required file: $item"
   }
-}
-
-if (-not $NoInstall) {
-  Write-Host "Dependency installation is intentionally not automated. Run the package manager inside $target after reviewing package.json."
 }
 
 if ($InitializeGit) {

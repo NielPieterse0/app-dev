@@ -5,11 +5,13 @@ param(
   [Parameter(Mandatory=$true)]
   [string]$Name,
 
-  [ValidateSet("standard", "sensitive")]
   [string]$RiskLevel = "standard"
 )
 
 $ErrorActionPreference = "Stop"
+$commonPath = Join-Path $PSScriptRoot "common.ps1"
+. $commonPath
+Assert-AllowedRiskLevel -RiskLevel $RiskLevel
 
 function Convert-ToSlug {
   param([Parameter(Mandatory=$true)][string]$Value)
@@ -81,7 +83,7 @@ $replacements = @{
 }
 
 $files = @("spec.template.md", "tasks.template.md", "workflow-receipts.template.md")
-if ($RiskLevel -eq "sensitive") {
+if (Test-GatedRiskLevel -RiskLevel $RiskLevel) {
   $files += "checklist.template.md"
 }
 

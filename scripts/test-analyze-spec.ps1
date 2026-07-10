@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $analyzer = Join-Path $root "scripts/analyze-spec.ps1"
-$tmpRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-analyze-test-" + [guid]::NewGuid().ToString("N"))
+$tmpRoot = Join-Path $root (".tmp/app-dev-analyze-test-" + [guid]::NewGuid().ToString("N"))
 
 function Write-TextFile {
   param(
@@ -199,7 +199,7 @@ try {
   try {
     & $analyzer -ProjectPath (Join-Path $root "projects/signal") *> $null
   } catch {
-    throw "Signal analysis should pass while spec 002 remains planned."
+    throw "Signal analysis should pass for the current active spec."
   }
 
   Write-Host "Spec analysis tests passed."

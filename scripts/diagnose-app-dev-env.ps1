@@ -3,7 +3,7 @@
   Read-only environment diagnostic for the app-dev / Codex workspace.
 
 .USAGE
-  pwsh -NoProfile -ExecutionPolicy Bypass -File .\diagnose-app-dev-env.ps1
+  pwsh -NoProfile -ExecutionPolicy Bypass -File ./diagnose-app-dev-env.ps1
 
 .NOTES
   - Does not install anything.
@@ -238,9 +238,9 @@ if ($androidHome -and (Test-Path $androidHome)) {
   Add-Row -Category "Mobile" -Tool "Android SDK env" -Need "Optional / Android" -Status "MISSING" -Note "Needed for Capacitor/Expo Android emulator/device validation."
 }
 Test-PathTool -Category "Mobile" -Tool "Android Studio" -Need "Optional / Android" -CandidatePaths @(
-  "$env:ProgramFiles\Android\Android Studio\bin\studio64.exe",
-  "${env:ProgramFiles(x86)}\Android\Android Studio\bin\studio64.exe",
-  "$env:LOCALAPPDATA\Programs\Android Studio\bin\studio64.exe"
+  (Join-Path $env:ProgramFiles "Android/Android Studio/bin/studio64.exe"),
+  (Join-Path ${env:ProgramFiles(x86)} "Android/Android Studio/bin/studio64.exe"),
+  (Join-Path $env:LOCALAPPDATA "Programs/Android Studio/bin/studio64.exe")
 ) -MissingNote "Needed for Android emulator and SDK management."
 Test-CommandTool -Category "Mobile" -Tool "Java / JDK" -Command "java" -Need "Optional / Android" -VersionArgs @("-version") -MissingNote "Needed for Android builds. Install JDK through Android Studio or separately."
 Test-CommandTool -Category "Mobile" -Tool "ADB" -Command "adb" -Need "Optional / Android" -VersionArgs @("version") -MissingNote "Install Android SDK Platform Tools and add to PATH."

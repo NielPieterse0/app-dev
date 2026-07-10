@@ -65,3 +65,8 @@ Fresh local verification is required before claiming this slice complete. The re
 - `projects/signal`: `npm run test`
 - `projects/signal`: `npm run build`
 - `projects/signal`: `npm run e2e`
+
+## 2026-07-09 Correction Note
+
+- Repo-relative link hygiene was rechecked during slice `007-code-script-closeout`.
+- This ledger intentionally contains no machine-local absolute paths.

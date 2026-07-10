@@ -86,30 +86,28 @@ except Exception as exc:
 if "sandbox_mode" in data or "sandbox_workspace_write" in data:
     print("LEGACY_SANDBOX_WITH_PERMISSIONS", file=sys.stderr)
     sys.exit(4)
-features = data.get("features", {})
-if features.get("hooks") is not True:
-    print("HOOKS_NOT_ENABLED", file=sys.stderr)
-    sys.exit(5)
 hooks = data.get("hooks", {})
 for event in ("PreToolUse", "PermissionRequest", "PostToolUse"):
     if event not in hooks or not hooks[event]:
         print(f"MISSING_HOOK_EVENT:{event}", file=sys.stderr)
-        sys.exit(6)
+        sys.exit(5)
 if "default_permissions" in data:
     permissions = data.get("permissions", {})
     profile_name = data["default_permissions"]
     if profile_name not in permissions:
         print("DEFAULT_PERMISSION_PROFILE_NOT_DEFINED", file=sys.stderr)
-        sys.exit(7)
+        sys.exit(6)
     profile = permissions[profile_name]
     network = profile.get("network", {})
     if network.get("enabled") is not False:
         print("NETWORK_NOT_DISABLED_BY_DEFAULT", file=sys.stderr)
-        sys.exit(8)
+        sys.exit(7)
 print("TOML_OK")
 '@
 
-  $tempScript = [System.IO.Path]::GetTempFileName() + ".py"
+  $tempDir = Join-Path $Root ".tmp"
+  New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+  $tempScript = Join-Path $tempDir ("validate-codex-assets-{0}.py" -f ([System.Guid]::NewGuid().ToString("N")))
   try {
     Set-Content -LiteralPath $tempScript -Encoding UTF8 -Value $script
     $output = & $python $tempScript $ConfigPath 2>&1
@@ -266,7 +264,7 @@ function Test-ConfigTextChecks {
   )
 
   $config = Get-Content -LiteralPath $ConfigPath -Raw
-  foreach ($required in @("[features]", "hooks = true", "[[hooks.PreToolUse]]", "[[hooks.PermissionRequest]]", "[[hooks.PostToolUse]]")) {
+  foreach ($required in @("[[hooks.PreToolUse]]", "[[hooks.PermissionRequest]]", "[[hooks.PostToolUse]]")) {
     if ($config -notmatch [regex]::Escape($required)) {
       Add-Failure ".codex/config.toml is missing required active setting: $required"
     }
@@ -393,7 +391,7 @@ function Test-NoDuplicateSkillReferenceCopies {
 
   $duplicates = Get-ChildItem -LiteralPath $referencesRoot -Recurse -File -Filter "* (1).md"
   foreach ($duplicate in $duplicates) {
-    $relativePath = $duplicate.FullName.Substring($Root.Length + 1).Replace("\", "/")
+    $relativePath = $duplicate.FullName.Substring($Root.Length + 1) -replace "\\", "/"
     Add-Failure "Duplicate skill reference artifact must be removed or renamed canonically: $relativePath"
   }
 }
@@ -676,7 +674,7 @@ function Test-CiWorkflow {
   }
 
   $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
-  foreach ($required in @("pull_request", "workflow_dispatch", "Discover app projects", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "scripts/get-app-validation-matrix.mjs", "scripts/check-all.ps1", "check-spec-artifacts.ps1", "validate-workflow-receipts.ps1", "App validation", "strategy:", "matrix:", "fromJson(needs.discover-apps.outputs.matrix)", 'working-directory: ${{ matrix.project.path }}')) {
+  foreach ($required in @("pull_request", "workflow_dispatch", "concurrency:", "cancel-in-progress", "Discover app projects", "actions/checkout@v4", "actions/setup-node@v4", "actions/setup-python@v5", "actions/cache@v4", "PSScriptAnalyzer", "scripts/get-app-validation-matrix.mjs", "scripts/lint-portability.ps1", "scripts/check-all.ps1", "check-spec-artifacts.ps1", "validate-workflow-receipts.ps1", "Upload Playwright artifacts on failure", "App validation", "strategy:", "matrix:", "fromJson(needs.discover-apps.outputs.matrix)", 'working-directory: ${{ matrix.project.path }}')) {
     if ($workflow -notmatch [regex]::Escape($required)) {
       Add-Failure ".github/workflows/app-dev-validation.yml is missing required CI content: $required"
     }
@@ -684,7 +682,7 @@ function Test-CiWorkflow {
 }
 
 function Test-ScriptAssets {
-  foreach ($relativePath in @("scripts/scan-secrets.ps1", "scripts/export-workspace.ps1", "scripts/new-spec.ps1", "scripts/check-spec-artifacts.ps1", "scripts/get-workflow-obligations.ps1", "scripts/validate-workflow-receipts.ps1", "scripts/test-workflow-enforcement.ps1")) {
+  foreach ($relativePath in @("scripts/scan-secrets.ps1", "scripts/export-workspace.ps1", "scripts/new-spec.ps1", "scripts/check-spec-artifacts.ps1", "scripts/get-workflow-obligations.ps1", "scripts/validate-workflow-receipts.ps1", "scripts/test-workflow-enforcement.ps1", "scripts/lint-portability.ps1", "scripts/test-lint-portability.ps1", "scripts/PSScriptAnalyzerSettings.psd1")) {
     Assert-PathExists $relativePath
   }
 

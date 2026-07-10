@@ -2,9 +2,9 @@
 
 ## Clarify
 
-- [ ] Confirm CI e2e env posture: unconfigured-degraded-state default per workspace standard 5.5, or repo-secret configured run (decision recorded before T10)
-- [ ] Confirm lockfile regeneration approach if T11 implicates it (Linux npm ci versus package-lock-only refresh)
-- [ ] Confirm the findings-ledger correction lands as an appended note, preserving record immutability
+- [x] Confirm CI e2e env posture: unconfigured-degraded-state default per workspace standard 5.5, or repo-secret configured run (decision recorded before T9/T10)
+- [x] Confirm lockfile regeneration approach if T10 implicates it (Linux npm ci versus package-lock-only refresh)
+- [x] Confirm the findings-ledger correction lands as an appended note, preserving record immutability
 
 ## Security And Data Review
 
@@ -15,6 +15,6 @@
 
 ## Implementation Readiness
 
-- [ ] Spec, tasks, and receipts reviewed and consistent
-- [ ] T1-first ordering and gate-ships-with-fix pairing (T9 with T1-T8) accepted
-- [ ] Hosted CI green on the head commit acknowledged as the closure referee
+- [x] Spec, tasks, and receipts reviewed and consistent
+- [x] T1-first ordering and gate-ships-with-fix pairing (T8 with T1-T7) accepted
+- [x] Hosted CI green on the head commit acknowledged as the closure referee
