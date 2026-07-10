@@ -6,7 +6,6 @@
   CheckWorkspace = @{
     RequiredPaths = @(
       "AGENTS.md",
-      "PLANS.md",
       "docs/audit/app-dev-audit-closeout.md",
       ".github/workflows/app-dev-validation.yml",
       ".codex/config.toml",
@@ -59,7 +58,7 @@
       "scripts/validate-codex-assets.ps1",
       "scripts/scan-secrets.ps1",
       "scripts/export-workspace.ps1",
-      "templates/PLAN.template.md",
+      "templates/spec-workflow/PLAN.template.md",
       "templates/spec-workflow/spec.template.md",
       "templates/spec-workflow/tasks.template.md",
       "templates/spec-workflow/checklist.template.md",
@@ -103,7 +102,6 @@
   ValidateCodexAssets = @{
     RequiredPaths = @(
       "AGENTS.md",
-      "PLANS.md",
       "docs/audit/app-dev-audit-closeout.md",
       ".github/workflows/app-dev-validation.yml",
       ".github/dependabot.yml",
@@ -136,7 +134,7 @@
       "standards/codex-capabilities.md",
       "standards/spec-driven-workflow.md",
       "standards/workspace-manifest.psd1",
-      "templates/PLAN.template.md",
+      "templates/spec-workflow/PLAN.template.md",
       "templates/spec-workflow/spec.template.md",
       "templates/spec-workflow/tasks.template.md",
       "templates/spec-workflow/checklist.template.md",

@@ -32,10 +32,26 @@ function Test-ReceiptSection {
     return
   }
 
-  foreach ($field in @("Trigger surface", "Command path used", "Local workflow used", "External skill used or unavailable", "Files/surfaces reviewed", "Verification performed", "Outstanding gaps", "Decision/closure")) {
+  foreach ($field in @("Trigger surface", "Command path used", "Local workflow used", "External skill used or unavailable", "Files/surfaces reviewed", "Outstanding gaps", "Decision/closure")) {
     $value = Get-FieldValue -Section $section -Field $field
     if ([string]::IsNullOrWhiteSpace($value)) {
       Add-Failure "$Heading is missing required field content: $field"
+    }
+  }
+
+  $legacyVerification = Get-FieldValue -Section $section -Field "Verification performed"
+  $implementationEvidence = Get-FieldValue -Section $section -Field "Implementation evidence"
+  $verificationCommands = Get-FieldValue -Section $section -Field "Verification commands"
+  $verificationResult = Get-FieldValue -Section $section -Field "Verification result"
+  if ([string]::IsNullOrWhiteSpace($legacyVerification)) {
+    foreach ($fieldInfo in @(
+      @{ Name = "Implementation evidence"; Value = $implementationEvidence },
+      @{ Name = "Verification commands"; Value = $verificationCommands },
+      @{ Name = "Verification result"; Value = $verificationResult }
+    )) {
+      if ([string]::IsNullOrWhiteSpace($fieldInfo.Value)) {
+        Add-Failure "$Heading is missing required field content: $($fieldInfo.Name)"
+      }
     }
   }
 
@@ -49,9 +65,12 @@ function Test-ReceiptSection {
   }
 
   if ($RequireVerificationEvidence) {
-    $verification = Get-FieldValue -Section $section -Field "Verification performed"
+    $verification = Get-FieldValue -Section $section -Field "Verification result"
+    if ([string]::IsNullOrWhiteSpace($verification)) {
+      $verification = Get-FieldValue -Section $section -Field "Verification performed"
+    }
     if (Test-InvalidVerificationState -Status $verification) {
-      Add-Failure "$Heading is required for this change set but Verification performed is '$verification'."
+      Add-Failure "$Heading is required for this change set but verification evidence is '$verification'."
     }
   }
 }

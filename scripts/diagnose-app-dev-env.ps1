@@ -265,7 +265,7 @@ if ($root) {
   $rootPath = $root.Path
   $expectedPaths = @(
     "AGENTS.md",
-    "PLANS.md",
+    "standards/spec-driven-workflow.md",
     ".codex/config.toml",
     ".codex/rules/default.rules",
     ".codex/hooks/pre-command.ps1",

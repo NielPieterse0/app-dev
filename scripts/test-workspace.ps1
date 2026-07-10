@@ -159,7 +159,7 @@ function Assert-GeneratedProject {
   Push-Location $projectPath
   try {
     $generatedWorkflowRequirements = '{"uiChange":{"required":true},"dataChange":{"required":true},"mobileValidation":{"required":true},"releaseReadiness":{"required":true}}'
-    & (Join-Path $root "scripts/check-spec-artifacts.ps1") -ProjectPath "."
+    & (Join-Path $root "scripts/check-spec-artifacts.ps1") -ProjectPath "." -ValidationMode "current-template"
     if ($LASTEXITCODE -ne 0) {
       Write-Error "check-spec-artifacts.ps1 failed with exit code $LASTEXITCODE for $($Project.Name)"
     }

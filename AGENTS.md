@@ -38,7 +38,7 @@ Promote to a pnpm/Turborepo monorepo only after at least two apps share real cod
 - Put durable workspace rules in this file.
 - Put app-specific rules in `projects/<app>/AGENTS.md`.
 - Put feature specifications in `projects/<app>/specs/NNN-<slug>/`.
-- Put task planning protocol in `PLANS.md` and per-app plans in `projects/<app>/PLAN.md`.
+- Put task planning protocol in `standards/spec-driven-workflow.md` and per-app plans in `projects/<app>/PLAN.md`.
 - Put repeatable task workflows in `.agents/skills/`.
 - Put repo-owned workflow entry commands in `.agents/commands/`.
 - Put project settings, rules, and hooks in `.codex/`.

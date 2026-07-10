@@ -9,7 +9,6 @@ This folder is not intended to be one giant application. It holds shared develop
 ```text
 app-dev/
   AGENTS.md
-  PLANS.md
   .codex/
   .agents/
   .github/workflows/
@@ -49,7 +48,7 @@ Repo-specific Codex skills live in `.agents/skills/` so Codex can discover them 
 
 ## Planning
 
-Root planning protocol lives in `PLANS.md`. New project plans are created from `templates/PLAN.template.md`.
+Planning protocol lives in `standards/spec-driven-workflow.md`. New project plans are created from `templates/spec-workflow/PLAN.template.md`.
 
 A generated app should have:
 

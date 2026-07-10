@@ -15,7 +15,7 @@ Use this skill for modular app planning, scaffolding, implementation review, and
 
 1. Read root `AGENTS.md`.
 2. Read the app `AGENTS.md` when working inside `projects/<app>`.
-3. Read the app `PLAN.md` when present. Create one from `templates/PLAN.template.md` for architectural or multi-module work.
+3. Read the app `PLAN.md` when present. Create one from `templates/spec-workflow/PLAN.template.md` for architectural or multi-module work.
 4. Load only the reference file needed for the task:
    - `../../../standards/stack.md` for app-type or library decisions.
    - `references/module-contract.md` for module structure.

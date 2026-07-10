@@ -1,5 +1,7 @@
 param(
-  [string]$ProjectPath = (Get-Location).Path
+  [string]$ProjectPath = (Get-Location).Path,
+  [ValidateSet("compatibility", "current-template")]
+  [string]$ValidationMode = "compatibility"
 )
 
 $ErrorActionPreference = "Stop"
@@ -57,8 +59,21 @@ if (Test-Path -LiteralPath $agentsPath) {
   }
 }
 
+function Test-UnresolvedTemplateText {
+  param([Parameter(Mandatory=$true)][string]$Content)
+
+  return $Content -match "{{|Replace this line|Replace with|\bTODO:"
+}
+
 if (Test-Path -LiteralPath $planPath) {
   $planContent = Assert-Contains -Path $planPath -Needles @("Active spec:", "Spec path:", "Tasks path:")
+  if ($ValidationMode -eq "current-template") {
+    foreach ($needle in @("## Technical Context", "## Project Structure And Ownership", "## Complexity Tracking", "## Verification Strategy", "## Rendered UI Verification")) {
+      if ($planContent -notmatch [regex]::Escape($needle)) {
+        Add-Failure "PLAN.md is missing current-template plan content: $needle"
+      }
+    }
+  }
   if ($activeSpecRelative) {
     $planExpected = $activeSpecRelative
     if ($planContent -notmatch [regex]::Escape($planExpected)) {
@@ -93,14 +108,50 @@ foreach ($dir in $specDirs) {
 
   if (Test-Path -LiteralPath $specPath) {
     $specContent = Assert-Contains -Path $specPath -Needles @("## Summary", "## Requirements", "## Verification Intent")
-    if ($specContent -match "{{|Replace this line|Replace with") {
+    if ($ValidationMode -eq "current-template" -or $specContent -match "## User Scenarios And Testing") {
+      foreach ($needle in @("## User Scenarios And Testing", "## Success Criteria")) {
+        if ($specContent -notmatch [regex]::Escape($needle)) {
+          Add-Failure "$specPath is missing current-template spec content: $needle"
+        }
+      }
+      foreach ($needle in @("## Success Criteria")) {
+        if ($specContent -notmatch [regex]::Escape($needle)) {
+          Add-Failure "$specPath is missing required content: $needle"
+        }
+      }
+      foreach ($pattern in @("FR-\d{3}", "SC-\d{3}", "Independent Test")) {
+        if ($specContent -notmatch $pattern) {
+          Add-Failure "$specPath is missing required spec pattern: $pattern"
+        }
+      }
+    }
+    if (Test-UnresolvedTemplateText -Content $specContent) {
       Add-Failure "$specPath still contains unresolved template placeholders."
     }
   }
 
   if (Test-Path -LiteralPath $tasksPath) {
     $tasksContent = Assert-Contains -Path $tasksPath -Needles @("## Task List", "check-spec-artifacts.ps1", "verify-app.ps1")
-    if ($tasksContent -match "{{|Replace this section") {
+    if ($ValidationMode -eq "current-template") {
+      foreach ($needle in @("## Task Format", "## Dependencies And Order", "## Parallel Opportunities", "[US1]", "[P]", "Repeat the user story phase")) {
+        if ($tasksContent -notmatch [regex]::Escape($needle)) {
+          Add-Failure "$tasksPath is missing current-template task content: $needle"
+        }
+      }
+    }
+    if ($ValidationMode -eq "current-template" -or $tasksContent -match "## Task Format") {
+      if ($tasksContent -notmatch "\bT001\b") {
+        Add-Failure "$tasksPath is missing required content: T001"
+      }
+      $taskRows = [regex]::Matches($tasksContent, "(?im)^-\s*\[[ xX]\]\s+(.+)$")
+      foreach ($row in $taskRows) {
+        $taskText = $row.Groups[1].Value.Trim()
+        if ($taskText -notmatch "^T\d{3}\b") {
+          Add-Failure "$tasksPath has a checklist task without a T### task id: $taskText"
+        }
+      }
+    }
+    if (Test-UnresolvedTemplateText -Content $tasksContent) {
       Add-Failure "$tasksPath still contains unresolved template placeholders."
     }
   }
@@ -113,8 +164,11 @@ foreach ($dir in $specDirs) {
       "## Mobile Validation Workflow Receipt",
       "## Release Readiness Workflow Receipt"
     )
-    foreach ($needle in @("Trigger surface:", "Command path used:", "Local workflow used:", "Verification performed:", "Decision/closure:")) {
+    foreach ($needle in @("Trigger surface:", "Command path used:", "Local workflow used:", "Implementation evidence:", "Verification commands:", "Verification result:", "Decision/closure:")) {
       if ($receiptContent -notmatch [regex]::Escape($needle)) {
+        if ($needle -in @("Implementation evidence:", "Verification commands:", "Verification result:") -and $receiptContent -match [regex]::Escape("Verification performed:")) {
+          continue
+        }
         Add-Failure "$receiptPath is missing required content: $needle"
       }
     }
@@ -134,7 +188,7 @@ foreach ($dir in $specDirs) {
       Add-Failure "Gated spec requires checklist.md. Create it from templates/spec-workflow/checklist.template.md."
     } else {
       $checklistContent = Assert-Contains -Path $checklistPath -Needles @("## Clarify", "## Security And Data Review", "## Implementation Readiness")
-      if ($checklistContent -match "{{|Replace with") {
+      if (Test-UnresolvedTemplateText -Content $checklistContent) {
         Add-Failure "$checklistPath still contains unresolved template placeholders."
       }
     }
@@ -152,4 +206,4 @@ if ($failures.Count -gt 0) {
   Write-CorrectiveFailure -Summary "Spec artifact validation failed:" -Failures $failures
 }
 
-Write-Host "Spec artifact validation passed for $ProjectPath"
+Write-Host "Spec artifact validation passed for $ProjectPath ($ValidationMode)"

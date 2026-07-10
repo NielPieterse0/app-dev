@@ -119,9 +119,12 @@ foreach ($heading in @(
   }
 
   $decision = Get-FieldValue -Section $section -Field "Decision/closure"
-  $verification = Get-FieldValue -Section $section -Field "Verification performed"
+  $verification = Get-FieldValue -Section $section -Field "Verification result"
+  if ([string]::IsNullOrWhiteSpace($verification)) {
+    $verification = Get-FieldValue -Section $section -Field "Verification performed"
+  }
   if ((Test-CompletedStatus -Status $decision) -and (Test-InvalidVerificationState -Status $verification)) {
-    Add-Failure "$heading is marked complete while Verification performed is '$verification'."
+    Add-Failure "$heading is marked complete while verification evidence is '$verification'."
   }
 }
 

@@ -69,6 +69,8 @@ $ErrorActionPreference = "Stop"
 - 5.3 Template substitution uses `{{TOKEN}}` placeholders exclusively. Prose-matching replacement chains are forbidden; generation fails if any token remains unresolved in output.
 - 5.4 Vocabularies are defined once in the registry (section 6) and referenced everywhere.
 - 5.5 Suppressions and allowlists are keyed by path plus pattern with a mandatory inline justification, never by line number.
+- 5.6 Validator scope must distinguish root source enforcement from app artifact enforcement. Root source validators may tighten immediately against current standards, commands, templates, and scripts.
+- 5.7 Project artifact validators default to a compatibility contract for existing apps. A stricter `current-template` or equivalent mode is required for newly generated apps, disposable scaffold tests, and explicit template-refresh migrations. Do not retroactively fail an established app because the root template became denser later.
 
 ### 6. Shared Code And The Single-Truth Rule
 

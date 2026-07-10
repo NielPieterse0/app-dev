@@ -341,33 +341,37 @@ function Test-CapabilityRouting {
 
 function Test-PlanAssets {
   param(
-    [Parameter(Mandatory=$true)][string]$PlansPath,
     [Parameter(Mandatory=$true)][string]$PlanTemplatePath,
+    [Parameter(Mandatory=$true)][string]$WorkflowPath,
     [Parameter(Mandatory=$true)][string]$ConstitutionPath
   )
 
-  if (-not (Test-Path -LiteralPath $PlansPath)) {
-    Add-Failure "Missing root PLANS.md."
+  if (Test-Path -LiteralPath (Resolve-WorkspacePath "PLANS.md")) {
+    Add-Failure "Root PLANS.md should not remain a standalone planning owner. Planning protocol belongs in standards/spec-driven-workflow.md."
+  }
+
+  if (-not (Test-Path -LiteralPath $WorkflowPath)) {
+    Add-Failure "Missing standards/spec-driven-workflow.md."
   } else {
-    $plans = Get-Content -LiteralPath $PlansPath -Raw
-    foreach ($required in @("Planning Standard", "projects/<app>/PLAN.md", "templates/PLAN.template.md", "Completion Rule")) {
-      if ($plans -notmatch [regex]::Escape($required)) {
-        Add-Failure "PLANS.md is missing required planning protocol content: $required"
+    $workflow = Get-Content -LiteralPath $WorkflowPath -Raw
+    foreach ($required in @("Planning Protocol", "When A Plan Is Required", "Minimum Plan Content", "Plan Lifecycle", "Completion Rule", "Validation Modes", "current-template", "compatibility", "templates/spec-workflow/PLAN.template.md")) {
+      if ($workflow -notmatch [regex]::Escape($required)) {
+        Add-Failure "standards/spec-driven-workflow.md is missing consolidated planning protocol content: $required"
       }
     }
   }
 
   if (-not (Test-Path -LiteralPath $PlanTemplatePath)) {
-    Add-Failure "Missing templates/PLAN.template.md."
+    Add-Failure "Missing templates/spec-workflow/PLAN.template.md."
   } else {
     $template = Get-Content -LiteralPath $PlanTemplatePath -Raw
-    foreach ($required in @("{{APP_NAME}}", "{{TEMPLATE}}", "{{DATE}}", "Active spec:", "Spec path:", "Verification", "Risks and Assumptions", "Constitution Check", "Clarifications", "Complexity And Deviations")) {
+    foreach ($required in @("{{APP_NAME}}", "{{TEMPLATE}}", "{{DATE}}", "Active spec:", "Spec path:", "Technical Context", "Project Structure And Ownership", "Complexity Tracking", "Verification Strategy", "Rendered UI Verification", "Risks And Assumptions", "Constitution Check", "Workflow Classification", "Decisions", "Deviations And Follow-Ups")) {
       if ($template -notmatch [regex]::Escape($required)) {
-        Add-Failure "templates/PLAN.template.md is missing required content: $required"
+        Add-Failure "templates/spec-workflow/PLAN.template.md is missing required content: $required"
       }
     }
     if ($template -match "\bTBD\b") {
-      Add-Failure "templates/PLAN.template.md must not contain unresolved TBD placeholders."
+      Add-Failure "templates/spec-workflow/PLAN.template.md must not contain unresolved TBD placeholders."
     }
   }
 
@@ -458,6 +462,7 @@ function Test-SpecWorkflowAssets {
     "standards/spec-driven-workflow.md",
     "standards/command-workflow-contract.md",
     "templates/spec-workflow/spec.template.md",
+    "templates/spec-workflow/PLAN.template.md",
     "templates/spec-workflow/tasks.template.md",
     "templates/spec-workflow/checklist.template.md",
     "templates/spec-workflow/workflow-receipts.template.md",
@@ -471,9 +476,30 @@ function Test-SpecWorkflowAssets {
   }
 
   $workflow = Get-Content -LiteralPath (Resolve-WorkspacePath "standards/spec-driven-workflow.md") -Raw
-  foreach ($required in @("Numbered Specs", "workflow-receipts.md", "Lean Path", "Gated Path", "Convergence")) {
+  foreach ($required in @("Numbered Specs", "Validation Modes", "workflow-receipts.md", "Lean Path", "Gated Path", "Convergence", "Planning Protocol")) {
     if ($workflow -notmatch [regex]::Escape($required)) {
       Add-Failure "standards/spec-driven-workflow.md is missing required workflow content: $required"
+    }
+  }
+
+  $receiptTemplate = Get-Content -LiteralPath (Resolve-WorkspacePath "templates/spec-workflow/workflow-receipts.template.md") -Raw
+  foreach ($required in @("Implementation evidence:", "Verification commands:", "Verification result:", "Final Verification Evidence")) {
+    if ($receiptTemplate -notmatch [regex]::Escape($required)) {
+      Add-Failure "workflow-receipts.template.md is missing dense evidence field: $required"
+    }
+  }
+
+  $taskTemplate = Get-Content -LiteralPath (Resolve-WorkspacePath "templates/spec-workflow/tasks.template.md") -Raw
+  foreach ($required in @("T001", "[P]", "[US1]", "## Dependencies And Order", "## Parallel Opportunities", "Additional User Stories Or Vertical Increments", "Repeat the user story phase")) {
+    if ($taskTemplate -notmatch [regex]::Escape($required)) {
+      Add-Failure "tasks.template.md is missing dense task content: $required"
+    }
+  }
+
+  $artifactValidator = Get-Content -LiteralPath (Resolve-WorkspacePath "scripts/check-spec-artifacts.ps1") -Raw
+  foreach ($required in @("ValidationMode", "compatibility", "current-template", "Technical Context", "Project Structure And Ownership", "Complexity Tracking", "Repeat the user story phase")) {
+    if ($artifactValidator -notmatch [regex]::Escape($required)) {
+      Add-Failure "scripts/check-spec-artifacts.ps1 is missing required validation-mode coverage: $required"
     }
   }
 }
@@ -509,6 +535,48 @@ function Test-WorkflowWrapperAssets {
   foreach ($required in @("workflow-receipts.md", "UI", "Data", "Mobile", "Release readiness")) {
     if ($commandContract -notmatch [regex]::Escape($required)) {
       Add-Failure "standards/command-workflow-contract.md is missing required workflow contract content: $required"
+    }
+  }
+
+  $requiredHeadings = @(
+    "# /",
+    "## Purpose",
+    "## Working Directory",
+    "## Start Gate",
+    "## Required Reads",
+    "## Required Writes",
+    "## Pre-Step Checks",
+    "## Execution Steps",
+    "## Post-Step Checks",
+    "## Receipt Updates",
+    "## Stop Conditions",
+    "## Completion Report",
+    "## Next Command"
+  )
+  foreach ($command in @("specify", "plan", "tasks", "implement", "verify")) {
+    $relativePath = ".agents/commands/$command.md"
+    $content = Get-Content -LiteralPath (Resolve-WorkspacePath $relativePath) -Raw
+    foreach ($heading in $requiredHeadings) {
+      if ($content -notmatch [regex]::Escape($heading)) {
+        Add-Failure "$relativePath is missing required command contract heading: $heading"
+      }
+    }
+  }
+
+  $commandNeedles = @{
+    "specify" = @("Task List", "Command path used:", "ValidationMode current-template")
+    "plan" = @("templates/spec-workflow/PLAN.template.md", "Workflow Classification", "ValidationMode current-template")
+    "tasks" = @("T001", "[US1]", "ValidationMode current-template")
+    "implement" = @("workflow-receipts.md", "focused checks", "ValidationMode current-template")
+    "verify" = @("converge.template.md", "rendered", "ValidationMode current-template")
+  }
+  foreach ($entry in $commandNeedles.GetEnumerator()) {
+    $relativePath = ".agents/commands/$($entry.Key).md"
+    $content = Get-Content -LiteralPath (Resolve-WorkspacePath $relativePath) -Raw
+    foreach ($needle in $entry.Value) {
+      if ($content -notmatch [regex]::Escape($needle)) {
+        Add-Failure "$relativePath is missing dense command guidance: $needle"
+      }
     }
   }
 }
@@ -723,8 +791,7 @@ $configPath = Resolve-WorkspacePath ".codex/config.toml"
 $skillPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/SKILL.md"
 $rulesPath = Resolve-WorkspacePath ".codex/rules/default.rules"
 $capabilityPath = Resolve-WorkspacePath "standards/codex-capabilities.md"
-$plansPath = Resolve-WorkspacePath "PLANS.md"
-$planTemplatePath = Resolve-WorkspacePath "templates/PLAN.template.md"
+$planTemplatePath = Resolve-WorkspacePath "templates/spec-workflow/PLAN.template.md"
 $workflowPath = Resolve-WorkspacePath ".github/workflows/app-dev-validation.yml"
 $openAiAgentMetadataPath = Resolve-WorkspacePath ".agents/skills/cross-platform-app-workflow/agents/openai.yaml"
 
@@ -749,7 +816,7 @@ Test-NoDuplicateSkillReferenceCopies
 Test-AgentsSize -AgentsPath (Join-Path $Root "AGENTS.md") -MaxBytes $workspaceManifest.GovernedNumbers.AgentsMaxBytes
 Test-NoDisposableVerificationFolders
 Test-CapabilityRouting -CapabilityPath $capabilityPath
-Test-PlanAssets -PlansPath $plansPath -PlanTemplatePath $planTemplatePath -ConstitutionPath (Resolve-WorkspacePath "standards/constitution.md")
+Test-PlanAssets -PlanTemplatePath $planTemplatePath -WorkflowPath (Resolve-WorkspacePath "standards/spec-driven-workflow.md") -ConstitutionPath (Resolve-WorkspacePath "standards/constitution.md")
 Test-SpecWorkflowAssets
 Test-WorkflowWrapperAssets
 Test-WorkflowPointers -AgentsPath (Resolve-WorkspacePath "AGENTS.md") -SkillPath $skillPath
