@@ -16,8 +16,7 @@ The goal is not to vendor upstream `spec-kit` or copy its runtime model. The goa
 The current app-dev harness already has the right surfaces:
 
 - `.agents/commands/` owns executable workflow steps.
-- `templates/spec-workflow/` owns generated spec artifacts.
-- `templates/PLAN.template.md` owns generated app plans.
+- `templates/spec-workflow/` owns generated workflow artifacts, including spec, plan, tasks, receipts, checklist, and convergence templates.
 - `standards/spec-driven-workflow.md` owns phase semantics.
 - `standards/command-workflow-contract.md` owns command responsibilities.
 - scripts enforce artifact, receipt, and verification contracts.
@@ -60,9 +59,9 @@ The weak point is density and repeatability. The current command files are direc
 
 2. Densify the core templates:
    - `templates/spec-workflow/spec.template.md`
+   - `templates/spec-workflow/PLAN.template.md`
    - `templates/spec-workflow/tasks.template.md`
    - `templates/spec-workflow/workflow-receipts.template.md`
-   - `templates/PLAN.template.md`
 
 3. Touch supporting templates only where the vertical path requires it:
    - `templates/spec-workflow/checklist.template.md`
@@ -70,8 +69,9 @@ The weak point is density and repeatability. The current command files are direc
 
 4. Consolidate root planning protocol:
    - Fold the unique useful content from root `PLANS.md` into `standards/spec-driven-workflow.md`.
+   - Move `templates/PLAN.template.md` into `templates/spec-workflow/PLAN.template.md`.
    - Stop treating `PLANS.md` as a standalone governance owner.
-   - Update references and validators that require or point to `PLANS.md`.
+   - Update references and validators that require or point to `PLANS.md` or the old root-level plan-template path.
 
 5. Add targeted validator hardening only where needed to keep the new contracts honest.
 
@@ -123,7 +123,7 @@ The sections create a consistent grammar for Codex sessions and provide headings
 `/plan` turns the active spec into an app-level plan. It should:
 
 - confirm `AGENTS.md` points to the active spec
-- read `spec.md`, `tasks.md`, `workflow-receipts.md`, and `templates/PLAN.template.md`
+- read `spec.md`, `tasks.md`, `workflow-receipts.md`, and `templates/spec-workflow/PLAN.template.md`
 - update `PLAN.md`
 - record architecture, module, data, permission, platform, workflow, verification, and deviation decisions
 - run artifact and analysis checks that are safe before implementation
@@ -213,7 +213,7 @@ The app plan template should become the authoritative shape for `projects/<app>/
 - accepted, rejected, and deferred decisions
 - deviations and follow-ups
 
-Root `PLANS.md` should not remain the owner for these rules. The planning protocol belongs in `standards/spec-driven-workflow.md`; the app plan shape belongs in `templates/PLAN.template.md`.
+Root `PLANS.md` should not remain the owner for these rules. The planning protocol belongs in `standards/spec-driven-workflow.md`; the app plan shape belongs in `templates/spec-workflow/PLAN.template.md`.
 
 ### `tasks.template.md`
 
@@ -279,12 +279,12 @@ The convergence template should support `/verify` by requiring:
 Root `PLANS.md` currently duplicates planning protocol that now belongs to the workflow standard and command contract. The implementation slice should:
 
 1. Move unique planning requirements into `standards/spec-driven-workflow.md`.
-2. Keep `templates/PLAN.template.md` as the app plan artifact template.
+2. Move `templates/PLAN.template.md` to `templates/spec-workflow/PLAN.template.md` so all spec-workflow artifact templates live together.
 3. Keep `.agents/commands/plan.md` as the executable `/plan` command contract.
-4. Update `standards/workspace.md`, root `AGENTS.md`, README, manifest rules, and validators so `PLANS.md` is no longer a primary governance surface.
+4. Update `standards/workspace.md`, root `AGENTS.md`, README, manifest rules, generators, and validators so `PLANS.md` is no longer a primary governance surface and the old root-level plan-template path is no longer required.
 5. Remove `PLANS.md` if no compatibility reason remains; otherwise replace it with a short pointer file and record why the pointer remains.
 
-The preferred end state is no standalone root `PLANS.md`.
+The preferred end state is no standalone root `PLANS.md` and no root-level `templates/PLAN.template.md`.
 
 ## Validator Boundary
 
@@ -298,6 +298,7 @@ Validator work in this slice should stay targeted:
 - receipts keep `Command path used:`
 - verification evidence is required before completion closure
 - root `PLANS.md` is not required once planning protocol consolidation lands
+- `templates/spec-workflow/PLAN.template.md` is required and the old `templates/PLAN.template.md` path is not required
 
 Do not use this slice to perform a broad validator rewrite or a full manifest redesign.
 
@@ -308,11 +309,12 @@ The implementation slice is complete only when:
 1. The five vertical path command files share the command contract structure.
 2. The four core templates generate denser, more repeatable artifacts.
 3. Supporting checklist and convergence templates are updated only where needed.
-4. Root `PLANS.md` is consolidated into the workflow standard or reduced to a justified pointer.
-5. Standards and root docs point to canonical owners instead of duplicating workflow procedure.
-6. Targeted validators enforce the new structure without exact-prose assertions.
-7. `scripts/check-all.ps1` passes, or any blocker is recorded with exact command output and next action.
-8. The final handoff separates this slice's changes from unrelated dirty worktree changes.
+4. `templates/PLAN.template.md` is folded into `templates/spec-workflow/PLAN.template.md`.
+5. Root `PLANS.md` is consolidated into the workflow standard or reduced to a justified pointer.
+6. Standards and root docs point to canonical owners instead of duplicating workflow procedure.
+7. Targeted validators enforce the new structure without exact-prose assertions.
+8. `scripts/check-all.ps1` passes, or any blocker is recorded with exact command output and next action.
+9. The final handoff separates this slice's changes from unrelated dirty worktree changes.
 
 ## Risks
 
@@ -342,4 +344,4 @@ After this vertical path is implemented and verified, the next harness slice sho
 
 ## Recommendation
 
-Proceed with the vertical command and template density slice. Include `/plan`, `templates/PLAN.template.md`, and root `PLANS.md` consolidation in the same slice because planning is central to the path and the current root protocol file is now an ownership drift candidate.
+Proceed with the vertical command and template density slice. Include `/plan`, `templates/spec-workflow/PLAN.template.md`, migration of the old root-level plan template, and root `PLANS.md` consolidation in the same slice because planning is central to the path and the current root protocol file is now an ownership drift candidate.
