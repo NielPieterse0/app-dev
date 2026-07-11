@@ -1,40 +1,43 @@
 # Next Web App Instructions
 
-Follow the root `app-dev/AGENTS.md` standards. Use this template only when SSR, SEO, server routes, public content, or ecommerce-like flows justify Next.js.
-Use this project's `PLAN.md` for architecture, module, risk, and verification decisions.
+This file defines the durable app contract for this project.
+
+Keep feature-specific requirements, scenarios, risks, tasks, workflow receipts, and completion criteria in `specs/NNN-<slug>/`.
+
+Follow the root `app-dev/AGENTS.md` standards.
 
 ## Active Specification
 
-- Start with `specs/001-initial/spec.md`.
-- Create later feature specs under `specs/NNN-<slug>/`.
-- Keep `PLAN.md`, `tasks.md`, and `workflow-receipts.md` aligned to the active spec before implementation starts.
+- Active spec: `specs/001-initial/spec.md` until a later spec becomes active.
+- Start new work by creating or updating a numbered spec with `/specify`.
+- The first feature spec should live under `specs/001-initial/`.
+- Later feature specs live under `specs/NNN-<slug>/`.
+
+## App Type
+
+Use this template only when SSR, SEO, server routes, public content, or ecommerce-like flows justify Next.js.
 
 ## App Identity
 
-- Users: Replace with the target audience when establishing the initial app identity.
-- Core jobs: Replace with the primary user jobs the overall app will support.
+- Users: replace with the target audience when establishing the initial app identity.
+- Core jobs: replace with the primary user jobs the overall app will support.
 - Platforms: desktop web and mobile web unless revised.
-- Native requirements: none.
+- Repository model: generated apps remain tracked in the root `app-dev` repository unless a later recorded decision splits them out.
 
-## Capability Routing
+## Durable Constraints
 
-- Use `cross-platform-app-workflow` as the required local app-dev skill.
-- Use the local wrapper workflows when triggered: `ui-change-workflow`, `data-change-workflow`, and `release-readiness-workflow`.
-- Treat frontend, React/Next, security, GitHub, and deployment skills/plugins as optional external capabilities.
-- Continue with local standards and report the gap if optional capabilities are unavailable.
+- Cross-module imports use the target module public surface only when the app adopts the module contract.
+- Do not place app dependencies at the workspace root; keep them inside this project.
+- Do not store secrets, private keys, service-role keys, or `.env` files in the repository.
+- Document required public environment variables in `.env.example`.
 
-## Verification
+## Platform Constraints
 
-After installing dependencies inside this project, run available scripts through `../../scripts/verify-app.ps1 -ProjectPath .`.
+- Native requirements: none unless a later recorded decision changes the app type.
+- Add deployment-specific or server-side integrations only after an active spec explicitly requires them.
 
-## Done When
+## Verification Baseline
 
-- Active specification and task artifacts are current for the feature being built.
-- `workflow-receipts.md` is current for any UI, data, or release-readiness work.
-- `PLAN.md` is current for architecture, data model, auth, routing, deployment, migration, or multi-module work.
-- `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` passes before completion.
-- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` passes before completion.
-- Available checks pass through `../../scripts/verify-app.ps1 -ProjectPath .`.
-- Missing scripts are reported instead of invented.
-- UI changes include rendered desktop and mobile checks.
-- Handoff notes record deviations, skipped checks, and unresolved decisions.
+- Run the app's available verification commands through `../../scripts/verify-app.ps1 -ProjectPath .`.
+- If a required script is missing, report the missing script instead of inventing commands.
+- UI changes require rendered verification on the relevant supported surfaces.

@@ -1,0 +1,459 @@
+{
+  "standard": {
+    "id": "adaptive-layouts",
+    "title": "Adaptive Layout Standard",
+    "version": "1.0.0",
+    "source_file": "standards/adaptive-layouts.md",
+    "status": "adopted",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in standards/adaptive-layouts.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "ADP-001",
+      "standard_reference": "Preamble",
+      "section": "Adaptive Product Experience",
+      "title": "Design one adaptive product experience",
+      "requirement": "Design one product experience that adapts across desktop, tablet, Android, and iOS.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "ui",
+        "design-system",
+        "mobile",
+        "desktop"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "layout-change",
+        "responsive-layout",
+        "mobile-change",
+        "design-system"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "UI plans and receipts describe one adaptive product experience rather than separate unrelated desktop and mobile flows.",
+        "Rendered verification covers desktop, tablet, and mobile-relevant states when UI layout changes."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/ui-change-workflow/SKILL.md",
+          ".agents/skills/mobile-validation-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "adaptive layout receipt validator"
+        ]
+      }
+    },
+    {
+      "id": "ADP-002",
+      "standard_reference": "Layout Primitives",
+      "section": "Layout Primitives",
+      "title": "Define reusable layout modules before feature expansion",
+      "requirement": "Every app should define reusable layout modules before feature work expands.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "ui",
+        "layout",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "ui-change",
+        "layout-change",
+        "feature-expansion",
+        "template-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Feature expansion either uses existing reusable layout modules or records why a module is not applicable.",
+        "New app templates include the relevant reusable layout primitives for expected app surfaces."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/src/components/layout/SettingsLayout.tsx",
+          "templates/react-vite-capacitor/src/components/state/EmptyState.tsx",
+          "templates/react-vite-capacitor/src/components/state/LoadingState.tsx",
+          "templates/react-vite-capacitor/src/components/state/ErrorState.tsx"
+        ],
+        "target": [
+          "layout primitive presence check"
+        ]
+      }
+    },
+    {
+      "id": "ADP-003",
+      "standard_reference": "Layout Primitives",
+      "section": "Layout Primitives",
+      "title": "Provide top-level app shell and navigation shell",
+      "requirement": "Apps define AppShell for top-level frame, theme, providers, and route outlet, and NavigationShell for desktop sidebar plus mobile tabs or drawer.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "ui",
+        "routing",
+        "navigation",
+        "layout"
+      ],
+      "trigger_kinds": [
+        "app-shell",
+        "navigation",
+        "routing",
+        "layout-change",
+        "responsive-layout"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "App frame, providers, and route outlet are handled through a top-level shell where applicable.",
+        "Navigation adapts from desktop sidebar to a mobile-appropriate tab or drawer pattern."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/src/app/routes.tsx"
+        ],
+        "target": [
+          "layout shell contract check"
+        ]
+      }
+    },
+    {
+      "id": "ADP-004",
+      "standard_reference": "Layout Primitives",
+      "section": "Layout Primitives",
+      "title": "Use page list-detail form table and settings layout primitives",
+      "requirement": "Apps define PageHeader, ListDetailLayout, FormLayout, DataTableLayout, and SettingsLayout where those surfaces are present.",
+      "severity": "medium",
+      "applies_to": [
+        "apps",
+        "ui",
+        "forms",
+        "tables",
+        "settings",
+        "layout"
+      ],
+      "trigger_kinds": [
+        "page-header",
+        "list-detail",
+        "form-change",
+        "table-change",
+        "settings-change",
+        "layout-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Pages with titles, actions, breadcrumbs, or status use a PageHeader or equivalent established primitive.",
+        "List/detail, form, table, and settings surfaces use matching layout primitives when present."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/src/components/layout/SettingsLayout.tsx"
+        ],
+        "target": [
+          "layout primitive usage lint"
+        ]
+      }
+    },
+    {
+      "id": "ADP-005",
+      "standard_reference": "Breakpoints",
+      "section": "Breakpoints",
+      "title": "Prefer component-driven layout and container queries",
+      "requirement": "Use component-driven layout where possible. Prefer container queries for reusable modules and viewport breakpoints for app shell decisions.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "ui",
+        "layout",
+        "css",
+        "responsive-layout"
+      ],
+      "trigger_kinds": [
+        "responsive-layout",
+        "layout-change",
+        "css-change",
+        "component-change",
+        "app-shell"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Reusable modules use component-driven layout or container-aware behavior where practical.",
+        "Viewport breakpoints are reserved for app shell decisions where component context is insufficient."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "responsive CSS review checklist"
+        ]
+      }
+    },
+    {
+      "id": "ADP-006",
+      "standard_reference": "Breakpoints",
+      "section": "Breakpoints",
+      "title": "Verify required responsive widths",
+      "requirement": "Minimum required layout checks cover desktop at 1440px wide, laptop at 1280px wide, tablet at 768px wide, and mobile at 390px wide.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "ui",
+        "responsive-layout",
+        "verification",
+        "e2e"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "layout-change",
+        "responsive-layout",
+        "rendered-verification",
+        "e2e"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Rendered verification records checks at 1440px, 1280px, 768px, and 390px widths when layout changes.",
+        "Skipped viewport checks include an explicit blocker or scope reason."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "viewport evidence validator"
+        ]
+      }
+    },
+    {
+      "id": "ADP-007",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Prevent overlap clipping and mobile overflow",
+      "requirement": "Adaptive layouts have no overlapping text or controls, no horizontal overflow on mobile, and no clipped text or controls.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "ui",
+        "responsive-layout",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "layout-change",
+        "mobile-layout",
+        "visual-regression",
+        "rendered-verification"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Rendered verification confirms text and controls do not overlap or clip.",
+        "Mobile verification confirms no horizontal overflow."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "mobile overflow screenshot check"
+        ]
+      }
+    },
+    {
+      "id": "ADP-008",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Keep primary actions reachable on mobile",
+      "requirement": "Primary actions remain reachable on mobile.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "ui",
+        "mobile",
+        "interaction"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "mobile-layout",
+        "primary-action",
+        "interaction-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Mobile rendered verification confirms primary actions are visible or reachable through an expected mobile pattern.",
+        "Core mobile interactions exercise the primary action when behavior changed."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/ui-change-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "ADP-009",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Provide a mobile strategy for tables",
+      "requirement": "Tables provide a mobile strategy: priority columns, stacked rows, or detail drill-in.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "ui",
+        "tables",
+        "mobile",
+        "data-surfaces"
+      ],
+      "trigger_kinds": [
+        "table-change",
+        "data-table",
+        "mobile-layout",
+        "responsive-layout"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Data table work records the selected mobile strategy: priority columns, stacked rows, or detail drill-in.",
+        "Mobile verification confirms the table strategy is usable without horizontal overflow."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "data table mobile strategy checklist"
+        ]
+      }
+    },
+    {
+      "id": "ADP-010",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Collapse sidebars into mobile navigation",
+      "requirement": "Sidebars collapse into drawer or bottom navigation on mobile.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "ui",
+        "navigation",
+        "mobile",
+        "layout"
+      ],
+      "trigger_kinds": [
+        "navigation",
+        "sidebar",
+        "mobile-layout",
+        "responsive-layout"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Navigation verification confirms desktop sidebar behavior and mobile drawer or bottom navigation behavior.",
+        "Mobile navigation remains reachable and does not block core content."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/ui-change-workflow/SKILL.md"
+        ],
+        "target": [
+          "navigation responsive check"
+        ]
+      }
+    },
+    {
+      "id": "ADP-011",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Use mobile-appropriate sheets or drawers for modal-heavy flows",
+      "requirement": "Modal-heavy flows use sheets or drawers on mobile when appropriate.",
+      "severity": "medium",
+      "applies_to": [
+        "apps",
+        "ui",
+        "mobile",
+        "modals",
+        "flows"
+      ],
+      "trigger_kinds": [
+        "modal-flow",
+        "mobile-layout",
+        "interaction-change",
+        "ui-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Modal-heavy flow changes document whether mobile sheets or drawers are appropriate.",
+        "Mobile rendered verification confirms modal-heavy flows remain usable."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "mobile modal flow review checklist"
+        ]
+      }
+    }
+  ]
+}

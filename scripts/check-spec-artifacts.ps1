@@ -1,6 +1,6 @@
 param(
   [string]$ProjectPath = (Get-Location).Path,
-  [ValidateSet("compatibility", "current-template")]
+  [ValidateSet("spec-only", "compatibility", "current-template")]
   [string]$ValidationMode = "compatibility"
 )
 
@@ -31,10 +31,9 @@ function Assert-Contains {
 
 $ProjectPath = Resolve-ProjectPath -ProjectPath $ProjectPath
 $agentsPath = Join-Path $ProjectPath "AGENTS.md"
-$planPath = Join-Path $ProjectPath "PLAN.md"
 $specsPath = Join-Path $ProjectPath "specs"
 
-foreach ($path in @($agentsPath, $planPath, $specsPath)) {
+foreach ($path in @($agentsPath, $specsPath)) {
   if (-not (Test-Path -LiteralPath $path)) {
     Add-Failure "Missing required spec artifact path: $path"
   }
@@ -51,11 +50,22 @@ if ($specDirs.Count -eq 0) {
 
 $expected = 1
 $activeSpecRelative = $null
+$activePlanRelative = $null
+$planPath = $null
 if (Test-Path -LiteralPath $agentsPath) {
   $agentsContent = Assert-Contains -Path $agentsPath -Needles @("Active Specification", "specs/")
   $activeSpecRelative = Get-ActiveSpecRelativePath -AgentsPath $agentsPath
+  $activePlanRelative = Get-ActivePlanRelativePath -AgentsPath $agentsPath
   if ([string]::IsNullOrWhiteSpace($activeSpecRelative)) {
     Add-Failure "Missing active spec. Run ./scripts/new-spec.ps1 -ProjectPath <path> -Slug <slug> first."
+  }
+  if ($ValidationMode -ne "spec-only" -and [string]::IsNullOrWhiteSpace($activePlanRelative)) {
+    Add-Failure "Missing active plan path for the active spec. Create specs/NNN-<slug>/plan.md."
+  } elseif (-not [string]::IsNullOrWhiteSpace($activePlanRelative)) {
+    $planPath = Join-Path $ProjectPath $activePlanRelative
+    if ($ValidationMode -ne "spec-only" -and -not (Test-Path -LiteralPath $planPath)) {
+      Add-Failure "Missing required active plan artifact: $planPath"
+    }
   }
 }
 
@@ -65,19 +75,19 @@ function Test-UnresolvedTemplateText {
   return $Content -match "{{|Replace this line|Replace with|\bTODO:"
 }
 
-if (Test-Path -LiteralPath $planPath) {
+if ($planPath -and (Test-Path -LiteralPath $planPath)) {
   $planContent = Assert-Contains -Path $planPath -Needles @("Active spec:", "Spec path:", "Tasks path:")
   if ($ValidationMode -eq "current-template") {
     foreach ($needle in @("## Technical Context", "## Project Structure And Ownership", "## Complexity Tracking", "## Verification Strategy", "## Rendered UI Verification")) {
       if ($planContent -notmatch [regex]::Escape($needle)) {
-        Add-Failure "PLAN.md is missing current-template plan content: $needle"
+        Add-Failure "$activePlanRelative is missing current-template plan content: $needle"
       }
     }
   }
   if ($activeSpecRelative) {
     $planExpected = $activeSpecRelative
     if ($planContent -notmatch [regex]::Escape($planExpected)) {
-      Add-Failure "PLAN.md must reference the same active spec path as AGENTS.md."
+      Add-Failure "$activePlanRelative must reference the same active spec path as AGENTS.md."
     }
   }
 }
@@ -96,11 +106,18 @@ foreach ($dir in $specDirs) {
   $expected++
 
   $specPath = Join-Path $dir.FullName "spec.md"
+  $specPlanPath = Join-Path $dir.FullName "plan.md"
   $tasksPath = Join-Path $dir.FullName "tasks.md"
   $receiptPath = Join-Path $dir.FullName "workflow-receipts.md"
   $checklistPath = Join-Path $dir.FullName "checklist.md"
+  $specRelativePath = "specs/$($dir.Name)/spec.md"
+  $isActiveSpecDir = $activeSpecRelative -and ($activeSpecRelative -replace "\\", "/") -eq $specRelativePath
 
-  foreach ($requiredPath in @($specPath, $tasksPath, $receiptPath)) {
+  $requiredPaths = @($specPath)
+  if ($ValidationMode -ne "spec-only") {
+    $requiredPaths += @($tasksPath, $receiptPath)
+  }
+  foreach ($requiredPath in $requiredPaths) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
       Add-Failure "Missing required feature artifact: $requiredPath"
     }
@@ -108,15 +125,24 @@ foreach ($dir in $specDirs) {
 
   if (Test-Path -LiteralPath $specPath) {
     $specContent = Assert-Contains -Path $specPath -Needles @("## Summary", "## Requirements", "## Verification Intent")
-    if ($ValidationMode -eq "current-template" -or $specContent -match "## User Scenarios And Testing") {
+    if ($ValidationMode -eq "spec-only" -and $isActiveSpecDir) {
+      foreach ($needle in @("## Scope", "### In Scope", "### Out Of Scope", "## User Scenarios And Testing", "## Success Criteria", "## Data, Permissions, And Security", "## Risks And Open Questions")) {
+        if ($specContent -notmatch [regex]::Escape($needle)) {
+          Add-Failure "$specPath is missing spec-only required content: $needle"
+        }
+      }
+      foreach ($pattern in @("FR-\d{3}", "SC-\d{3}", "Independent Test")) {
+        if ($specContent -notmatch $pattern) {
+          Add-Failure "$specPath is missing required spec pattern: $pattern"
+        }
+      }
+      if ($specContent -notmatch "(?im)^-\s*Risk level:\s*(standard|gated|sensitive)\s*$") {
+        Add-Failure "$specPath must declare a valid Risk level."
+      }
+    } elseif ($ValidationMode -eq "current-template" -or ($ValidationMode -ne "spec-only" -and $specContent -match "## User Scenarios And Testing")) {
       foreach ($needle in @("## User Scenarios And Testing", "## Success Criteria")) {
         if ($specContent -notmatch [regex]::Escape($needle)) {
           Add-Failure "$specPath is missing current-template spec content: $needle"
-        }
-      }
-      foreach ($needle in @("## Success Criteria")) {
-        if ($specContent -notmatch [regex]::Escape($needle)) {
-          Add-Failure "$specPath is missing required content: $needle"
         }
       }
       foreach ($pattern in @("FR-\d{3}", "SC-\d{3}", "Independent Test")) {
@@ -127,6 +153,27 @@ foreach ($dir in $specDirs) {
     }
     if (Test-UnresolvedTemplateText -Content $specContent) {
       Add-Failure "$specPath still contains unresolved template placeholders."
+    }
+  }
+
+  if (($ValidationMode -eq "current-template" -or $ValidationMode -eq "compatibility") -and (Test-Path -LiteralPath $specPlanPath)) {
+    $specPlanContent = Assert-Contains -Path $specPlanPath -Needles @("Active spec:", "Spec path:", "Tasks path:", "Workflow shape:")
+    if ($ValidationMode -eq "current-template") {
+      foreach ($needle in @("## Technical Context", "## Project Structure And Ownership", "## Complexity Tracking", "Implementation readiness", "## Verification Strategy", "Focused implementation checks", "## Rendered UI Verification", "Workflow-specific implementation requirements", "Implementation sequencing constraints", "Documentation alignment constraints")) {
+        if ($specPlanContent -notmatch [regex]::Escape($needle)) {
+          Add-Failure "$specPlanPath is missing current-template plan content: $needle"
+        }
+      }
+    }
+    if ($specPlanContent -notmatch [regex]::Escape("specs/$($dir.Name)/spec.md")) {
+      Add-Failure "$specPlanPath must reference specs/$($dir.Name)/spec.md."
+    }
+    if (Test-UnresolvedTemplateText -Content $specPlanContent) {
+      Add-Failure "$specPlanPath still contains unresolved template placeholders."
+    }
+  } elseif ($ValidationMode -eq "current-template") {
+    if (-not (Test-Path -LiteralPath $specPlanPath)) {
+      Add-Failure "Missing required feature artifact: $specPlanPath"
     }
   }
 
@@ -164,6 +211,17 @@ foreach ($dir in $specDirs) {
       "## Mobile Validation Workflow Receipt",
       "## Release Readiness Workflow Receipt"
     )
+    $hasApplicableChecklist = $receiptContent -match [regex]::Escape("## Applicable Standards Checklist")
+    if ($ValidationMode -eq "current-template" -and -not $hasApplicableChecklist) {
+      Add-Failure "$receiptPath is missing required content: ## Applicable Standards Checklist"
+    }
+    if ($ValidationMode -eq "current-template" -or $hasApplicableChecklist) {
+      foreach ($needle in @("Status:", "Selection basis:", "Registry files reviewed:", "Prose standards consulted:", "Critical/high rule summary:", "| Rule | Reference | Severity | Status | Evidence | Reason or next action |", "Allowed statuses:")) {
+        if ($receiptContent -notmatch [regex]::Escape($needle)) {
+          Add-Failure "$receiptPath is missing required Applicable Standards Checklist content: $needle"
+        }
+      }
+    }
     foreach ($needle in @("Trigger surface:", "Command path used:", "Local workflow used:", "Implementation evidence:", "Verification commands:", "Verification result:", "Decision/closure:")) {
       if ($receiptContent -notmatch [regex]::Escape($needle)) {
         if ($needle -in @("Implementation evidence:", "Verification commands:", "Verification result:") -and $receiptContent -match [regex]::Escape("Verification performed:")) {
@@ -183,7 +241,7 @@ foreach ($dir in $specDirs) {
     }
   }
 
-  if ($requiresChecklist) {
+  if ($requiresChecklist -and $ValidationMode -ne "spec-only") {
     if (-not (Test-Path -LiteralPath $checklistPath)) {
       Add-Failure "Gated spec requires checklist.md. Create it from templates/spec-workflow/checklist.template.md."
     } else {

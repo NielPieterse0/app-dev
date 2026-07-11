@@ -1,8 +1,14 @@
 # `/release-readiness`
 
-Use this command for completion claims, PR readiness, or risky deploy-adjacent work.
+Use this command when:
+
+- the user asks to finish, complete, stage, commit, push, or prepare a PR
+- the task touches auth, payments, public APIs, deploy, secrets, live migrations, or production-readiness surfaces
+- the handoff claims a feature is complete or ready
 
 Working directory: `projects/<app>/`.
+
+Load the release-readiness-workflow skill `../../../../.agents/skills/release-readiness-workflow/SKILL.md`
 
 ## Required workflow
 

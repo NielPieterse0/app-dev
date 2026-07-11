@@ -1,0 +1,1891 @@
+{
+  "standard": {
+    "id": "workspace",
+    "title": "Workspace Standard",
+    "version": "2.0.0",
+    "source_file": "standards/workspace.md",
+    "status": "adopted and implemented",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in standards/workspace.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "WSP-001",
+      "standard_reference": "Preamble",
+      "section": "Workspace Definition",
+      "title": "Keep app-dev as one control workspace",
+      "requirement": "app-dev is a single control workspace where governance, standards, templates, scripts, and all application projects live in one repository with one git history, one .codex governance layer, one branch-protection policy, and one CI pipeline.",
+      "severity": "critical",
+      "applies_to": [
+        "repo",
+        "governance",
+        "projects",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "repo-structure",
+        "governance-change",
+        "project-creation",
+        "ci-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed workspace surfaces remain in the root repository.",
+        "No additional governance layer, repository history, or CI pipeline is introduced without an explicit recorded exception."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-workspace.ps1",
+          "scripts/validate-codex-assets.ps1",
+          "scripts/check-all.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-002",
+      "standard_reference": "1",
+      "section": "Repository Model",
+      "title": "Track apps directly under projects",
+      "requirement": "projects/<app>/ directories are tracked directly in app-dev and are never initialized as nested or standalone git repositories.",
+      "severity": "critical",
+      "applies_to": [
+        "projects",
+        "repo",
+        "scaffolding"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "repo-structure",
+        "git-metadata"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "New or changed apps are under projects/<app>/ in this repository.",
+        "No nested .git directory or standalone repository metadata was introduced."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-workspace.ps1",
+          "scripts/create-app.ps1"
+        ],
+        "target": [
+          "nested git repository scanner"
+        ]
+      }
+    },
+    {
+      "id": "WSP-003",
+      "standard_reference": "1",
+      "section": "Repository Model",
+      "title": "Scope app governance files to the app",
+      "requirement": "Each app keeps its own AGENTS.md, specs/, and package.json scoped to its directory. Each implementation spec owns its own plan.md inside specs/NNN-<slug>/, and gated checklists live inside the active spec folder.",
+      "severity": "high",
+      "applies_to": [
+        "projects",
+        "specs",
+        "app-agents",
+        "planning"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "spec-change",
+        "planning-change",
+        "app-governance"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "App AGENTS.md, package.json, and specs are scoped to the app directory.",
+        "Spec plan and checklist files live inside the active numbered spec folder."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1",
+          "scripts/new-spec.ps1",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-004",
+      "standard_reference": "1",
+      "section": "Repository Model",
+      "title": "Keep app ignores local to each app",
+      "requirement": "Each app's .gitignore excludes its own node_modules/, build output, and test artifacts.",
+      "severity": "medium",
+      "applies_to": [
+        "projects",
+        "templates",
+        "scaffolding"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "template-change",
+        "gitignore-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "App-local generated dependency, build, and test artifact paths are ignored by the app."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1"
+        ],
+        "target": [
+          "app gitignore validator"
+        ]
+      }
+    },
+    {
+      "id": "WSP-005",
+      "standard_reference": "1",
+      "section": "Repository Model",
+      "title": "Add shared app code only after real reuse exists",
+      "requirement": "Shared code across apps goes under packages/ in this same repo only after at least two apps share real code such as ui, auth, api-client, or config.",
+      "severity": "high",
+      "applies_to": [
+        "repo",
+        "packages",
+        "projects",
+        "architecture"
+      ],
+      "trigger_kinds": [
+        "shared-code",
+        "monorepo-change",
+        "architecture-change",
+        "project-creation"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Any packages/ introduction is justified by at least two apps sharing real code.",
+        "The active plan records why shared code belongs in packages/."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "packages ownership validator"
+        ]
+      }
+    },
+    {
+      "id": "WSP-006",
+      "standard_reference": "1",
+      "section": "Repository Model",
+      "title": "Promote to pnpm or Turborepo only after threshold",
+      "requirement": "Promote to a pnpm/Turborepo workspace only after at least two apps share real code, or record an explicit repository decision.",
+      "severity": "high",
+      "applies_to": [
+        "repo",
+        "package-management",
+        "build-system",
+        "architecture"
+      ],
+      "trigger_kinds": [
+        "monorepo-change",
+        "package-manager-change",
+        "build-system-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Any pnpm or Turborepo adoption records the sharing threshold or explicit exception decision."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "root package-manager drift check"
+        ]
+      }
+    },
+    {
+      "id": "WSP-007",
+      "standard_reference": "1",
+      "section": "Repository Model",
+      "title": "Record repository split exceptions",
+      "requirement": "An app may split into its own repository only for a hard external requirement, and the same change must update standards/workspace.md and the active spec plan.md.",
+      "severity": "critical",
+      "applies_to": [
+        "projects",
+        "repo",
+        "planning",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "repo-split",
+        "access-control",
+        "legal-boundary",
+        "release-process"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "The hard external requirement for a repo split is recorded.",
+        "standards/workspace.md and the active spec plan.md are updated in the same change."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "repo split exception detector"
+        ]
+      }
+    },
+    {
+      "id": "WSP-008",
+      "standard_reference": "2",
+      "section": "Authoritative Layout",
+      "title": "Keep root layout aligned with the authoritative tree",
+      "requirement": "Anything present in the repo but absent from the authoritative layout is either app-internal or a drift candidate; anything in the layout but absent from the repo is a defect.",
+      "severity": "critical",
+      "applies_to": [
+        "repo",
+        "standards",
+        "templates",
+        "scripts",
+        "projects",
+        "ci",
+        "codex"
+      ],
+      "trigger_kinds": [
+        "repo-structure",
+        "governance-change",
+        "template-change",
+        "script-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Changed or new root paths are represented in the authoritative layout or justified as app-internal.",
+        "Required layout paths exist."
+      ],
+      "automation": {
+        "current": [
+          "standards/workspace-manifest.psd1",
+          "scripts/check-workspace.ps1",
+          "scripts/check-all.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-009",
+      "standard_reference": "2",
+      "section": "Authoritative Layout",
+      "title": "Treat the workspace manifest as machine-readable layout",
+      "requirement": "The workspace manifest is the machine-readable form of the authoritative layout.",
+      "severity": "critical",
+      "applies_to": [
+        "manifest",
+        "validators",
+        "repo"
+      ],
+      "trigger_kinds": [
+        "manifest-change",
+        "repo-structure",
+        "validator-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Required root paths and governed numbers are updated in standards/workspace-manifest.psd1 when the layout changes.",
+        "Validators consume the manifest rather than a duplicate path list where applicable."
+      ],
+      "automation": {
+        "current": [
+          "standards/workspace-manifest.psd1",
+          "scripts/check-workspace.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-010",
+      "standard_reference": "3",
+      "section": "Fact Ownership Map",
+      "title": "Keep one owner for each governed fact",
+      "requirement": "Every governed fact has exactly one owning file. Other files may point to the owner; they may not restate its content.",
+      "severity": "critical",
+      "applies_to": [
+        "docs",
+        "standards",
+        "agents",
+        "templates",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "docs-change",
+        "standard-change",
+        "template-change",
+        "drift"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed documentation points to the owning file instead of duplicating governed facts.",
+        "Any duplicated owned fact is removed or justified by a validator-backed contract."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1",
+          "scripts/check-all.ps1"
+        ],
+        "target": [
+          "fact-owner duplication detector"
+        ]
+      }
+    },
+    {
+      "id": "WSP-011",
+      "standard_reference": "3",
+      "section": "Fact Ownership Map",
+      "title": "Point workflow facts to the workflow standard",
+      "requirement": "Workflow phases, Lean and Gated paths, convergence, and planning rules are owned by standards/spec-driven-workflow.md.",
+      "severity": "high",
+      "applies_to": [
+        "workflow",
+        "standards",
+        "agents",
+        "readme"
+      ],
+      "trigger_kinds": [
+        "workflow-change",
+        "docs-change",
+        "command-change",
+        "skill-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Workflow semantics changes are made in standards/spec-driven-workflow.md.",
+        "AGENTS.md, SKILL.md, and README retain pointers rather than copied procedures."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-012",
+      "standard_reference": "3",
+      "section": "Fact Ownership Map",
+      "title": "Keep command steps in .agents commands",
+      "requirement": "Executable workflow steps per phase are owned by .agents/commands/<phase>.md.",
+      "severity": "high",
+      "applies_to": [
+        "commands",
+        "workflow",
+        "skills",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "command-change",
+        "workflow-change",
+        "skill-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Executable phase steps are updated in the matching .agents/commands/<phase>.md file.",
+        "Standards and skills point to command files instead of copying command procedures."
+      ],
+      "automation": {
+        "current": [
+          "scripts/test-workflow-enforcement.ps1",
+          "scripts/check-all.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-013",
+      "standard_reference": "3",
+      "section": "Fact Ownership Map",
+      "title": "Keep default stack in the stack standard",
+      "requirement": "The default stack is owned by standards/stack.md.",
+      "severity": "medium",
+      "applies_to": [
+        "standards",
+        "agents",
+        "readme",
+        "skills"
+      ],
+      "trigger_kinds": [
+        "stack-change",
+        "docs-change",
+        "template-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Stack changes are made in standards/stack.md.",
+        "Other surfaces point to the stack owner or summarize without conflicting."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-014",
+      "standard_reference": "3",
+      "section": "Fact Ownership Map",
+      "title": "Keep module contract in the skill reference",
+      "requirement": "The module contract is owned by the local skill reference references/module-contract.md.",
+      "severity": "medium",
+      "applies_to": [
+        "skills",
+        "agents",
+        "templates",
+        "apps"
+      ],
+      "trigger_kinds": [
+        "module-contract",
+        "skill-change",
+        "template-change",
+        "app-code"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Module contract edits are made in the skill reference owner.",
+        "AGENTS.md and template AGENTS.md files do not become competing owners."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-015",
+      "standard_reference": "3",
+      "section": "Fact Ownership Map",
+      "title": "Keep scripting rules in the scripting standard",
+      "requirement": "Scripting and coding rules are owned by standards/scripting.md.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "standards",
+        "docs",
+        "templates",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "script-change",
+        "coding-standard",
+        "docs-change",
+        "template-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Script mechanics changes are made in standards/scripting.md or its registry.",
+        "Other documents point to the scripting standard instead of duplicating the rule body."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1",
+          "scripts/check-all.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-016",
+      "standard_reference": "3",
+      "section": "Fact Ownership Map",
+      "title": "Keep command policy in hooks and rules",
+      "requirement": "Command-execution policy is owned by .codex/hooks/pre-command.ps1 plus .codex/rules/default.rules, with layering described in section 6.",
+      "severity": "critical",
+      "applies_to": [
+        "codex",
+        "hooks",
+        "rules",
+        "docs"
+      ],
+      "trigger_kinds": [
+        "command-policy",
+        "hook-change",
+        "rules-change",
+        "docs-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Command policy changes are made in the hook rule table and default rules where applicable.",
+        "README and AGENTS.md do not become alternate policy owners."
+      ],
+      "automation": {
+        "current": [
+          "scripts/test-hooks.ps1",
+          ".codex/hooks/pre-command.ps1",
+          ".codex/rules/default.rules"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-017",
+      "standard_reference": "3",
+      "section": "Fact Ownership Map",
+      "title": "Keep AGENTS size limit synchronized",
+      "requirement": "The AGENTS.md size limit is one number in the manifest; .codex/config.toml project_doc_max_bytes and the validator must agree. The adopted value is 32768.",
+      "severity": "high",
+      "applies_to": [
+        "manifest",
+        "codex",
+        "validators",
+        "agents"
+      ],
+      "trigger_kinds": [
+        "governed-number",
+        "config-change",
+        "validator-change",
+        "agents-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "AgentsMaxBytes, project_doc_max_bytes, and validator expectations agree.",
+        "Any change to the adopted value updates all owning and consuming surfaces."
+      ],
+      "automation": {
+        "current": [
+          "standards/workspace-manifest.psd1",
+          ".codex/config.toml",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-018",
+      "standard_reference": "4.1",
+      "section": "Layer Roles",
+      "title": "Keep root AGENTS as durable rules and pointers",
+      "requirement": "Root AGENTS.md contains durable workspace rules and pointers, not detailed procedures or duplicated workflow steps.",
+      "severity": "high",
+      "applies_to": [
+        "agents",
+        "docs",
+        "workflow"
+      ],
+      "trigger_kinds": [
+        "agents-change",
+        "workflow-change",
+        "docs-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Root AGENTS.md changes remain pointer-oriented for workflow detail.",
+        "Detailed procedures remain in standards or command files."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-019",
+      "standard_reference": "4.1",
+      "section": "Layer Roles",
+      "title": "Keep app AGENTS scoped to app identity",
+      "requirement": "projects/<app>/AGENTS.md contains app identity, active-spec pointer, app-specific constraints, and verification baseline, with repo-relative forward-slash paths.",
+      "severity": "high",
+      "applies_to": [
+        "projects",
+        "app-agents",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "app-agents-change",
+        "project-creation",
+        "template-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "App AGENTS.md files use repo-relative forward-slash paths.",
+        "App AGENTS.md files do not duplicate root governance procedure text."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-020",
+      "standard_reference": "4.1",
+      "section": "Layer Roles",
+      "title": "Keep wrapper skills thin",
+      "requirement": "Wrapper skills are classifiable and receipt-referenced; they delegate to canonical standards and never accumulate their own procedure text.",
+      "severity": "high",
+      "applies_to": [
+        "skills",
+        "workflow",
+        "receipts"
+      ],
+      "trigger_kinds": [
+        "skill-change",
+        "workflow-change",
+        "receipt-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Wrapper skill changes preserve delegation to canonical standards.",
+        "Receipt references identify the relevant wrapper without copying procedure text into it."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": [
+          "skill delegation drift check"
+        ]
+      }
+    },
+    {
+      "id": "WSP-021",
+      "standard_reference": "4.1",
+      "section": "Layer Roles",
+      "title": "Keep executable workflow in commands",
+      "requirement": ".agents/commands/ is the executable workflow surface. Each command states working directory, exact script invocations, receipt obligations, and closure rule.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "workflow",
+        "receipts",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "command-change",
+        "workflow-change",
+        "script-change",
+        "receipt-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "implement",
+        "analyze",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Command changes preserve working directory, script invocation, receipt, and closure-rule contracts.",
+        "Workflow execution details are not moved into AGENTS.md or wrapper skills."
+      ],
+      "automation": {
+        "current": [
+          "scripts/test-workflow-enforcement.ps1",
+          "scripts/get-workflow-obligations.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-022",
+      "standard_reference": "4.1",
+      "section": "Layer Roles",
+      "title": "Keep .codex hook files wired",
+      "requirement": ".codex/config.toml uses inline hooks only; hooks.json must not coexist. Every hook file that exists is wired to an event in config.toml; unwired hook files are deleted.",
+      "severity": "critical",
+      "applies_to": [
+        "codex",
+        "hooks",
+        "config"
+      ],
+      "trigger_kinds": [
+        "hook-change",
+        "config-change",
+        "command-policy"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        ".codex/config.toml contains the active hook registrations.",
+        "No .codex/hooks.json is introduced while inline hooks are used.",
+        "Every committed hook file is registered or removed."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1",
+          "scripts/test-hooks.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-023",
+      "standard_reference": "4.1",
+      "section": "Layer Roles",
+      "title": "Pair standards with enforcement or label as preference",
+      "requirement": "standards/ contains canonical prose and scripts/ contains mechanical enforcement. A standard without an enforcing script is a preference; label it as such or build the script.",
+      "severity": "medium",
+      "applies_to": [
+        "standards",
+        "scripts",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "standard-change",
+        "validator-change",
+        "governance-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "New or changed standard requirements name their enforcement owner or are clearly labeled as preference.",
+        "Validator changes ship with the standard changes they enforce."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "standard enforcement owner audit"
+        ]
+      }
+    },
+    {
+      "id": "WSP-024",
+      "standard_reference": "4.2",
+      "section": "Workspace Manifest",
+      "title": "Keep path and content rules in the manifest",
+      "requirement": "Required paths, content rules, CI-content rules, and governed numbers live in standards/workspace-manifest.psd1 and are consumed by check-workspace.ps1 and validate-codex-assets.ps1.",
+      "severity": "critical",
+      "applies_to": [
+        "manifest",
+        "validators",
+        "standards",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "manifest-change",
+        "validator-change",
+        "repo-structure",
+        "governed-number"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Required path, content, CI-content, and governed-number changes are represented in standards/workspace-manifest.psd1.",
+        "check-workspace.ps1 and validate-codex-assets.ps1 consume the manifest for applicable data."
+      ],
+      "automation": {
+        "current": [
+          "standards/workspace-manifest.psd1",
+          "scripts/check-workspace.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-025",
+      "standard_reference": "4.2",
+      "section": "Workspace Manifest",
+      "title": "Validate audit records as path-exists only",
+      "requirement": "Historical records under docs/audit/ are validated as path-exists only.",
+      "severity": "medium",
+      "applies_to": [
+        "docs",
+        "audit",
+        "validators",
+        "manifest"
+      ],
+      "trigger_kinds": [
+        "audit-doc-change",
+        "validator-change",
+        "manifest-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Validators do not enforce mutable content rules against immutable audit records.",
+        "Audit record validation remains path-exists only."
+      ],
+      "automation": {
+        "current": [
+          "standards/workspace-manifest.psd1",
+          "scripts/check-workspace.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-026",
+      "standard_reference": "4.3",
+      "section": "Canonical Governance Check",
+      "title": "Use check-all as the governance entry point",
+      "requirement": "scripts/check-all.ps1 is the single entry point that runs the full governance sequence in CI order.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "ci",
+        "readme",
+        "agents",
+        "docs"
+      ],
+      "trigger_kinds": [
+        "governance-check",
+        "script-change",
+        "ci-change",
+        "docs-change"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Humans, README, AGENTS.md, and CI invoke scripts/check-all.ps1 rather than maintaining separate governance command lists.",
+        "check-all order remains aligned with CI order."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-all.ps1",
+          ".github/workflows/app-dev-validation.yml",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-027",
+      "standard_reference": "4.4",
+      "section": "Core vs Project Validator Scope",
+      "title": "Enforce root governance source immediately",
+      "requirement": "Root governance validators enforce current app-dev source surfaces immediately: standards, commands, templates, skills, hooks, CI, and root scripts.",
+      "severity": "critical",
+      "applies_to": [
+        "validators",
+        "standards",
+        "commands",
+        "templates",
+        "skills",
+        "hooks",
+        "ci",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "validator-change",
+        "governance-change",
+        "template-change",
+        "script-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Root governance source changes pass current source validators.",
+        "Compatibility exceptions are not applied to root governance source surfaces."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-workspace.ps1",
+          "scripts/validate-codex-assets.ps1",
+          "scripts/check-all.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-028",
+      "standard_reference": "4.4",
+      "section": "Core vs Project Validator Scope",
+      "title": "Keep project artifact validators scoped to projects",
+      "requirement": "Project artifact validators operate against app state under projects/<app>/.",
+      "severity": "high",
+      "applies_to": [
+        "validators",
+        "projects",
+        "specs",
+        "apps"
+      ],
+      "trigger_kinds": [
+        "validator-change",
+        "spec-change",
+        "app-artifact",
+        "project-validation"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Project validators accept a project path and inspect app state under projects/<app>/.",
+        "Root source validators are not conflated with project artifact checks."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/analyze-spec.ps1",
+          "scripts/validate-workflow-receipts.ps1",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-029",
+      "standard_reference": "4.4",
+      "section": "Core vs Project Validator Scope",
+      "title": "Do not retroactively break existing apps",
+      "requirement": "Existing apps are not made retroactively noncompliant because the root workspace later tightens template density or command wording. Their default contract is validator compatibility mode.",
+      "severity": "critical",
+      "applies_to": [
+        "validators",
+        "projects",
+        "templates",
+        "apps"
+      ],
+      "trigger_kinds": [
+        "validator-change",
+        "template-change",
+        "compatibility-mode",
+        "app-validation"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Validator changes preserve compatibility mode for established apps.",
+        "Any stricter app contract is opt-in or limited to new/generated/refreshed apps."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-030",
+      "standard_reference": "4.4",
+      "section": "Core vs Project Validator Scope",
+      "title": "Use current-template mode for new or refreshed apps",
+      "requirement": "Newly generated apps, disposable scaffold verification projects, and explicitly refreshed apps are validated against the current template contract.",
+      "severity": "high",
+      "applies_to": [
+        "validators",
+        "templates",
+        "scaffolding",
+        "projects"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "template-refresh",
+        "scaffold-test",
+        "validator-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "New, disposable, or explicitly refreshed apps are validated against the current template contract.",
+        "Compatibility mode is not used to mask defects in newly generated artifacts."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/check-all.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-031",
+      "standard_reference": "5.1",
+      "section": "CI Model",
+      "title": "Execute CI workflows only from root .github workflows",
+      "requirement": "CI workflows execute only from .github/workflows/ at the repository root. projects/<app>/.github/workflows/ must not exist.",
+      "severity": "critical",
+      "applies_to": [
+        "ci",
+        "projects",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "ci-change",
+        "project-creation",
+        "template-change",
+        "workflow-file"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "CI workflow files exist only under root .github/workflows/.",
+        "No project-local executable workflow directory is introduced."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-workspace.ps1",
+          "scripts/validate-codex-assets.ps1",
+          "scripts/create-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-032",
+      "standard_reference": "5.2",
+      "section": "CI Model",
+      "title": "Use one validation workflow with workspace and app jobs",
+      "requirement": "The validation workflow has workspace-validation and app-validation job families, with app validation running from matrix project working directories.",
+      "severity": "high",
+      "applies_to": [
+        "ci",
+        "projects",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "ci-change",
+        "project-creation",
+        "app-validation"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Validation workflow keeps distinct workspace and app validation job families.",
+        "App jobs run with working-directory set from the project matrix path."
+      ],
+      "automation": {
+        "current": [
+          ".github/workflows/app-dev-validation.yml",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-033",
+      "standard_reference": "5.2",
+      "section": "CI Model",
+      "title": "Add app matrix discovery only after a second app",
+      "requirement": "Matrix entries are hand-listed while one app exists; when the second app lands under projects/, replace the list with a discovery job that emits the matrix from projects/*/package.json.",
+      "severity": "medium",
+      "applies_to": [
+        "ci",
+        "projects",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "ci-change",
+        "matrix-discovery"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "While only one app exists, the CI matrix remains hand-listed.",
+        "When a second app is added, the CI matrix is replaced by project package.json discovery."
+      ],
+      "automation": {
+        "current": [
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": [
+          "scripts/get-app-validation-matrix.mjs"
+        ]
+      }
+    },
+    {
+      "id": "WSP-034",
+      "standard_reference": "5.3",
+      "section": "CI Model",
+      "title": "Keep templates free of executable workflows",
+      "requirement": "Templates do not ship executable workflow files. CI reference snippets live in templates/common/ci/ with non-executable names, and create-app.ps1 excludes .github/ from template copies.",
+      "severity": "critical",
+      "applies_to": [
+        "templates",
+        "ci",
+        "scaffolding"
+      ],
+      "trigger_kinds": [
+        "template-change",
+        "ci-change",
+        "project-creation",
+        "workflow-file"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Template CI examples are non-executable reference snippets under templates/common/ci/.",
+        "create-app.ps1 does not copy template .github/ workflow files into generated apps."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1",
+          "scripts/check-workspace.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-035",
+      "standard_reference": "5.4",
+      "section": "CI Model",
+      "title": "Preserve CI workflow hygiene",
+      "requirement": "CI workflows use concurrency with cancel-in-progress per ref, timeout-minutes on every job, setup-node npm caching keyed to each app lockfile, Playwright browser caching, and failure artifact uploads for playwright-report/ and test-results/.",
+      "severity": "high",
+      "applies_to": [
+        "ci",
+        "apps",
+        "e2e"
+      ],
+      "trigger_kinds": [
+        "ci-change",
+        "e2e-change",
+        "dependency-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "CI jobs include concurrency, timeout-minutes, dependency caching, Playwright caching, and failure artifact upload where applicable."
+      ],
+      "automation": {
+        "current": [
+          ".github/workflows/app-dev-validation.yml",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-036",
+      "standard_reference": "5.5",
+      "section": "CI Model",
+      "title": "Keep ubuntu-latest as the CI portability contract",
+      "requirement": "CI runs on ubuntu-latest; Linux execution is the portability contract.",
+      "severity": "critical",
+      "applies_to": [
+        "ci",
+        "scripts",
+        "apps"
+      ],
+      "trigger_kinds": [
+        "ci-change",
+        "platform-portability",
+        "script-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "CI remains on ubuntu-latest for required validation.",
+        "Windows CI, if added, is additive and does not replace Linux validation."
+      ],
+      "automation": {
+        "current": [
+          ".github/workflows/app-dev-validation.yml",
+          "scripts/lint-portability.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-037",
+      "standard_reference": "5.5",
+      "section": "CI Model",
+      "title": "Run app e2e without backend secrets by default",
+      "requirement": "App e2e in CI runs in the unconfigured-env state by default: no backend secrets in CI, and e2e specs pass against degraded and empty states.",
+      "severity": "critical",
+      "applies_to": [
+        "ci",
+        "apps",
+        "e2e",
+        "secrets"
+      ],
+      "trigger_kinds": [
+        "e2e-change",
+        "ci-change",
+        "env-contract",
+        "secret-handling"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "CI e2e paths do not require backend secrets by default.",
+        "Changed e2e coverage passes against degraded and empty app states where applicable."
+      ],
+      "automation": {
+        "current": [
+          ".github/workflows/app-dev-validation.yml",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-038",
+      "standard_reference": "5.6",
+      "section": "CI Model",
+      "title": "Prove lockfiles with npm ci on Linux",
+      "requirement": "Lockfiles are proven by npm ci on Linux in CI; a lockfile that installs locally but not in CI is defective.",
+      "severity": "high",
+      "applies_to": [
+        "ci",
+        "apps",
+        "lockfiles",
+        "dependencies"
+      ],
+      "trigger_kinds": [
+        "dependency-change",
+        "lockfile",
+        "ci-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed lockfiles are validated by npm ci on Linux CI or equivalent local reproduction when CI is unavailable."
+      ],
+      "automation": {
+        "current": [
+          ".github/workflows/app-dev-validation.yml",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-039",
+      "standard_reference": "6.1",
+      "section": "Command Policy Layering",
+      "title": "Maintain hook and execpolicy layers",
+      "requirement": "Two enforcement layers exist by design: the pre-command hook evaluates matched Codex tool calls, and .codex/rules/default.rules governs commands escalated outside the sandbox.",
+      "severity": "critical",
+      "applies_to": [
+        "codex",
+        "hooks",
+        "rules",
+        "command-policy"
+      ],
+      "trigger_kinds": [
+        "command-policy",
+        "hook-change",
+        "rules-change",
+        "sandbox-policy"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Command policy changes preserve both Codex hook and escalation-rule coverage where applicable.",
+        "The hook remains stricter where its sandbox context requires extra protection."
+      ],
+      "automation": {
+        "current": [
+          ".codex/hooks/pre-command.ps1",
+          ".codex/rules/default.rules",
+          "scripts/test-hooks.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-040",
+      "standard_reference": "6.2",
+      "section": "Command Policy Layering",
+      "title": "Update command policy layers in one commit",
+      "requirement": "When adding a policy, add the hook rule, add the execpolicy rule if the command can be escalated, and add a blocked-case to test-hooks.ps1 in one commit.",
+      "severity": "critical",
+      "applies_to": [
+        "hooks",
+        "rules",
+        "tests",
+        "command-policy"
+      ],
+      "trigger_kinds": [
+        "command-policy",
+        "hook-change",
+        "rules-change",
+        "test-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "New command policy includes hook coverage, escalation-rule coverage where applicable, and a blocked-case test.",
+        "Any accepted layer divergence is only in the hook-stricter direction and is documented."
+      ],
+      "automation": {
+        "current": [
+          "scripts/test-hooks.ps1",
+          ".codex/hooks/pre-command.ps1",
+          ".codex/rules/default.rules"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-041",
+      "standard_reference": "6.3",
+      "section": "Command Policy Layering",
+      "title": "Fail closed on malformed hook input",
+      "requirement": "Hooks fail closed: malformed input produces a block decision, never a crash or silent allow.",
+      "severity": "critical",
+      "applies_to": [
+        "hooks",
+        "codex",
+        "security"
+      ],
+      "trigger_kinds": [
+        "hook-change",
+        "command-policy",
+        "malformed-input"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Hook tests cover malformed input and assert a block decision."
+      ],
+      "automation": {
+        "current": [
+          "scripts/test-hooks.ps1",
+          ".codex/hooks/pre-command.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-042",
+      "standard_reference": "7",
+      "section": "Planning And Spec Workflow",
+      "title": "Use workflow standard and commands as planning pointers",
+      "requirement": "Planning and spec workflow definitions live in standards/spec-driven-workflow.md, execution lives in .agents/commands/, and enforcement runs through the named spec and receipt validators.",
+      "severity": "high",
+      "applies_to": [
+        "workflow",
+        "standards",
+        "commands",
+        "validators",
+        "receipts"
+      ],
+      "trigger_kinds": [
+        "workflow-change",
+        "command-change",
+        "validator-change",
+        "receipt-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "implement",
+        "analyze",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Workflow behavior changes update the owner standard or command file.",
+        "Relevant validators remain wired for spec artifacts, analysis, receipts, and app verification."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/analyze-spec.ps1",
+          "scripts/validate-workflow-receipts.ps1",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-043",
+      "standard_reference": "7",
+      "section": "Planning And Spec Workflow",
+      "title": "Treat workflow receipts as required evidence",
+      "requirement": "workflow-receipts.md in the active spec folder is the required evidence trail; agent narratives are not evidence.",
+      "severity": "critical",
+      "applies_to": [
+        "specs",
+        "receipts",
+        "verification",
+        "projects"
+      ],
+      "trigger_kinds": [
+        "receipt-change",
+        "verification",
+        "app-work",
+        "workflow-change"
+      ],
+      "phases": [
+        "implement",
+        "converge",
+        "verify",
+        "handoff",
+        "release-readiness"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Active spec workflow-receipts.md records required evidence for the slice.",
+        "Final handoff does not substitute chat narrative for receipt evidence."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-workflow-receipts.ps1",
+          ".agents/commands/converge.md",
+          ".agents/commands/verify.md"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-044",
+      "standard_reference": "7",
+      "section": "Planning And Spec Workflow",
+      "title": "Use hosted CI as final referee",
+      "requirement": "Hosted CI on the pushed head is the final referee; local verification does not substitute for a green run.",
+      "severity": "high",
+      "applies_to": [
+        "ci",
+        "verification",
+        "handoff",
+        "release-readiness"
+      ],
+      "trigger_kinds": [
+        "verification",
+        "ci-change",
+        "handoff",
+        "release-readiness"
+      ],
+      "phases": [
+        "verify",
+        "handoff",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Final handoff distinguishes local verification from hosted CI state.",
+        "If hosted CI is unavailable or not yet green, the handoff reports that residual gap."
+      ],
+      "automation": {
+        "current": [
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": [
+          "CI status handoff check"
+        ]
+      }
+    },
+    {
+      "id": "WSP-045",
+      "standard_reference": "8",
+      "section": "Documentation Hygiene",
+      "title": "Use repo-relative forward-slash paths in committed artifacts",
+      "requirement": "All committed docs, ledgers, configs, and generated artifacts use repo-relative forward-slash paths. Absolute local paths are defects, including inside comments.",
+      "severity": "critical",
+      "applies_to": [
+        "docs",
+        "ledgers",
+        "configs",
+        "generated-artifacts",
+        "templates",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "docs-change",
+        "path-handling",
+        "generated-artifact",
+        "template-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed committed artifacts use repo-relative forward-slash paths.",
+        "No absolute local paths are introduced in docs, configs, comments, ledgers, or generated files."
+      ],
+      "automation": {
+        "current": [
+          "scripts/scan-secrets.ps1",
+          "scripts/lint-portability.ps1"
+        ],
+        "target": [
+          "absolute local path scanner"
+        ]
+      }
+    },
+    {
+      "id": "WSP-046",
+      "standard_reference": "8",
+      "section": "Documentation Hygiene",
+      "title": "Use cross-platform README command examples",
+      "requirement": "README command examples use cross-platform pwsh forms such as ./scripts/check-all.ps1 and cd projects/my-app.",
+      "severity": "medium",
+      "applies_to": [
+        "readme",
+        "docs",
+        "commands"
+      ],
+      "trigger_kinds": [
+        "docs-change",
+        "command-example",
+        "readme-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "README command examples use cross-platform pwsh and repo-relative forms."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": [
+          "command example lint"
+        ]
+      }
+    },
+    {
+      "id": "WSP-047",
+      "standard_reference": "8",
+      "section": "Documentation Hygiene",
+      "title": "Append corrections to audit records",
+      "requirement": "Audit records under docs/audit/ are immutable once their slice closes; corrections append, never rewrite.",
+      "severity": "high",
+      "applies_to": [
+        "docs",
+        "audit",
+        "handoff"
+      ],
+      "trigger_kinds": [
+        "audit-doc-change",
+        "closeout",
+        "correction"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Closed audit records are not rewritten for corrections.",
+        "Any correction is appended with clear context."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "audit immutability check"
+        ]
+      }
+    },
+    {
+      "id": "WSP-048",
+      "standard_reference": "8",
+      "section": "Documentation Hygiene",
+      "title": "Fix standard and reality drift in the same change",
+      "requirement": "When reality and a standard diverge, the same commit updates whichever one is wrong. When a normative standard has a matching registry file, reconcile the prose standard and registry in the same slice.",
+      "severity": "critical",
+      "applies_to": [
+        "standards",
+        "repo",
+        "docs",
+        "validators",
+        "templates",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "drift",
+        "standard-change",
+        "validator-change",
+        "template-change",
+        "script-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Detected standard/reality drift is resolved in the same change where practical.",
+        "Normative prose-standard changes reconcile the matching registry file in the same slice unless the change is purely editorial.",
+        "If deferred, the handoff records the exact residual drift and owner."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-all.ps1"
+        ],
+        "target": [
+          "standards drift audit"
+        ]
+      }
+    },
+    {
+      "id": "WSP-049",
+      "standard_reference": "9",
+      "section": "Change Control",
+      "title": "Treat governance surface changes as governance changes",
+      "requirement": "Changes to .codex/, .agents/, root AGENTS.md, standards/, the manifest, templates, CI, or scripts/ are governance changes.",
+      "severity": "critical",
+      "applies_to": [
+        "codex",
+        "agents",
+        "standards",
+        "manifest",
+        "templates",
+        "ci",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "governance-change",
+        "codex-change",
+        "agents-change",
+        "standard-change",
+        "template-change",
+        "ci-change",
+        "script-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Governance changes run the canonical governance check sequence before commit.",
+        "Final handoff identifies governance verification results and any skipped checks."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-all.ps1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "WSP-050",
+      "standard_reference": "9",
+      "section": "Change Control",
+      "title": "Separate governance slices from app feature slices",
+      "requirement": "Governance-layer changes stay in slices separate from app feature slices except where an app-discovered defect is fixed at the template or harness source in the same slice and recorded in the receipt.",
+      "severity": "high",
+      "applies_to": [
+        "governance",
+        "projects",
+        "templates",
+        "scripts",
+        "receipts"
+      ],
+      "trigger_kinds": [
+        "governance-change",
+        "app-feature",
+        "template-change",
+        "harness-fix",
+        "receipt-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Governance and app feature work are separated unless a paired template or harness fix is explicitly recorded.",
+        "Receipts record any allowed pairing between app work and governance source fixes."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "slice scope drift check"
+        ]
+      }
+    }
+  ]
+}

@@ -10,7 +10,7 @@ Use this checklist for auth, payments, secrets, public APIs, data access, file u
 
 - [ ] CHK001 Ambiguous requirements were resolved before implementation.
 - [ ] CHK002 Sensitive operations are described concretely in `spec.md`.
-- [ ] CHK003 Failure and rollback behavior is documented in `PLAN.md`.
+- [ ] CHK003 Failure and rollback behavior is documented in `specs/{{SPEC_DIR}}/plan.md`.
 - [ ] CHK004 Open questions in `spec.md` are closed or explicitly deferred.
 
 ## Security And Data Review

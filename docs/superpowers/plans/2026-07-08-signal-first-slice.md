@@ -14,7 +14,7 @@
 - Keep work on a non-`main` branch.
 - No secrets or service-role keys in repo or browser code.
 - Free-tier-first and no-auth v1 must be documented in project artifacts.
-- Use numbered spec artifacts and keep `AGENTS.md`, `PLAN.md`, `spec.md`, `tasks.md`, `workflow-receipts.md`, and `checklist.md` aligned.
+- Use numbered spec artifacts and keep `AGENTS.md`, `plan.md`, `spec.md`, `tasks.md`, `workflow-receipts.md`, and `checklist.md` aligned.
 - Treat `ui-change-workflow`, `data-change-workflow`, and `release-readiness-workflow` as required for this slice.
 - Reuse template patterns before adding abstractions.
 
@@ -34,12 +34,12 @@
 - [ ] Create branch `codex/signal-first-slice`.
 - [ ] Run the scaffold script to create `projects/signal` from `react-vite-capacitor`.
 - [ ] Review generated `projects/signal/AGENTS.md`, confirm active spec path, and change app identity text from generic scaffold wording to Signal-specific wording.
-- [ ] Verify `projects/signal` contains `PLAN.md` and `specs/001-initial/{spec,tasks,workflow-receipts,checklist}.md`.
+- [ ] Verify `projects/signal` contains `specs/001-initial/plan.md` and `specs/001-initial/{spec,tasks,workflow-receipts,checklist}.md`.
 
 ### Task 2: Replace Placeholder Planning Artifacts With Signal Foundation
 
 **Files:**
-- Modify: `projects/signal/PLAN.md`
+- Modify: `projects/signal/specs/001-initial/plan.md`
 - Modify: `projects/signal/specs/001-initial/spec.md`
 - Modify: `projects/signal/specs/001-initial/tasks.md`
 - Modify: `projects/signal/specs/001-initial/workflow-receipts.md`
@@ -51,7 +51,7 @@
 
 - [ ] Rename the spec title and internal references to `001-signal-foundation` while keeping the folder `001-initial` unless script or validator constraints make that unsafe.
 - [ ] Put the first implementation-slice work as the first task item in `tasks.md`.
-- [ ] Update `PLAN.md` with concrete decisions for no-auth v1, free-tier-first, Supabase persistence, mock ingestion first, and GitHub routine.
+- [ ] Update `plan.md` with concrete decisions for no-auth v1, free-tier-first, Supabase persistence, mock ingestion first, and GitHub routine.
 - [ ] Mark `workflow-receipts.md` for required UI, data, and release-readiness workflows and seed the trigger surfaces.
 - [ ] Update `checklist.md` for data access, RLS posture, secrets, source/API terms, and launch-not-now boundaries.
 
@@ -109,7 +109,7 @@
 **Files:**
 - Modify: `projects/signal/specs/001-initial/workflow-receipts.md`
 - Modify: `projects/signal/specs/001-initial/tasks.md`
-- Modify: `projects/signal/PLAN.md`
+- Modify: `projects/signal/specs/001-initial/plan.md`
 - Create: `projects/signal/specs/001-initial/converge.md` when useful for handoff
 
 **Interfaces:**

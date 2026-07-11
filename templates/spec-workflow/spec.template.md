@@ -4,7 +4,7 @@
 - Risk level: {{RISK_LEVEL}}
 - App: {{APP_NAME}}
 - Created: {{DATE}}
-- Input/source request: TODO: quote or summarize the user request, ticket, audit item, or decision that created this spec.
+- Input/source request: TODO: quote or summarize the user request, ticket, audit item, or product brief that created this spec.
 
 ## Summary
 
@@ -12,7 +12,17 @@ TODO: state the user-visible outcome this feature or workflow slice must deliver
 
 ## Problem
 
-TODO: state the user problem, workflow gap, or governance defect this slice addresses.
+TODO: state the user problem, workflow gap, or product need this slice addresses.
+
+## Scope
+
+### In Scope
+
+- TODO: list the behavior, flows, or outcomes this spec covers.
+
+### Out Of Scope
+
+- TODO: list explicit exclusions that prevent scope drift.
 
 ## User Scenarios And Testing
 
@@ -20,13 +30,13 @@ TODO: state the user problem, workflow gap, or governance defect this slice addr
 
 TODO: describe the independently valuable journey or vertical increment in plain language.
 
-**Why this priority**: TODO: explain why this is the first slice.
+**Why this priority**: TODO: explain why this slice matters first.
 
-**Independent Test**: TODO: describe how this story can be verified by itself.
+**Independent Test**: TODO: describe how this story can be verified on its own.
 
 **Acceptance Scenarios**:
 
-1. **Given** TODO: initial state, **When** TODO: user or agent action, **Then** TODO: observable result.
+1. **Given** TODO: initial state, **When** TODO: user or system action, **Then** TODO: observable result.
 2. **Given** TODO: alternate state, **When** TODO: action, **Then** TODO: observable result.
 
 ### User Story 2 - TODO: short title (Priority: P2)
@@ -43,8 +53,8 @@ TODO: remove this section when the feature has only one independently testable s
 
 ## Edge Cases
 
-- TODO: boundary condition or state none.
-- TODO: failure, empty, permission, offline, or conflict scenario or state none.
+- TODO: boundary condition, failure path, or empty-state scenario.
+- TODO: permission, offline, conflict, timeout, or partial-state scenario.
 
 ## Requirements
 
@@ -52,10 +62,11 @@ TODO: remove this section when the feature has only one independently testable s
 
 - **FR-001**: TODO: system or workflow MUST provide a concrete, testable capability.
 - **FR-002**: TODO: system or workflow MUST provide a second concrete, testable capability.
+- **FR-003**: TODO: system or workflow MUST provide another concrete, testable capability when needed.
 
 ### Key Entities
 
-- **TODO: Entity or artifact name**: TODO: describe the entity, durable artifact, or state affected by this feature. Use "None" when not applicable.
+- **TODO: entity or artifact name**: TODO: describe the entity, durable artifact, or state affected by this feature. Use `None` when not applicable.
 
 ## Success Criteria
 
@@ -63,19 +74,20 @@ TODO: remove this section when the feature has only one independently testable s
 
 - **SC-001**: TODO: measurable or observable success condition independent of implementation details.
 - **SC-002**: TODO: second measurable or observable success condition.
+- **SC-003**: TODO: optional third measurable or observable success condition when needed.
 
-## Data And Permissions
+## Data, Permissions, And Security
 
-- Data model impact: TODO: affected entities, fields, migrations, or state none.
-- Permissions: TODO: roles, access rules, RLS, local file access, or state none.
-- Sensitive operations: TODO: destructive actions, credentials, live services, or state none.
+- Data impact: TODO: affected entities, fields, records, files, or state none.
+- Permissions and access: TODO: roles, access rules, approvals, or state none.
+- Sensitive operations: TODO: destructive actions, credentialed operations, secret handling, external systems, or state none.
 
 ## UX And Platform Notes
 
 - Target surfaces: TODO: desktop web, mobile web, Android, iOS, CLI, docs, or another explicit set.
-- States: TODO: empty, loading, error, success, offline, or state none.
-- Native needs: TODO: device APIs, app-store packaging, or state none.
-- Rendered verification: TODO: desktop/mobile viewport expectations or state not applicable.
+- User states: TODO: empty, loading, error, success, offline, denied, or state none.
+- Native or platform needs: TODO: device APIs, platform wrappers, app-store packaging, or state none.
+- Rendered verification intent: TODO: viewport or flow expectations, or state not applicable.
 
 ## Assumptions
 
@@ -83,12 +95,16 @@ TODO: remove this section when the feature has only one independently testable s
 
 ## Risks And Open Questions
 
-- Risks: TODO: delivery, correctness, security, data, platform, or workflow risk.
-- Open questions: TODO: unresolved decision or state none.
+### Risks
+
+- TODO: delivery, product, data, permission, platform, or workflow risk.
+
+### Open Questions
+
+- TODO: unresolved decision or state none.
 
 ## Verification Intent
 
-- Pre-implementation gate: Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` after updating this spec set.
-- Workflow evidence gate: Keep `workflow-receipts.md` current and run `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` before completion.
-- Completion checks: Run `../../scripts/analyze-spec.ps1 -ProjectPath .`, `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`, `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`, and `../../scripts/verify-app.ps1 -ProjectPath .`.
-- Rendered checks: TODO: first meaningful screen, core interaction, desktop viewport, and mobile viewport when UI work is in scope, or state not applicable.
+- Spec check: TODO: describe what makes this spec ready for planning.
+- Story verification: TODO: describe how the main stories can be verified later.
+- Rendered checks: TODO: note expected rendered verification when UI work is in scope, or state not applicable.

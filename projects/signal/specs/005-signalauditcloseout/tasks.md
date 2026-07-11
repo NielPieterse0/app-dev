@@ -7,7 +7,7 @@
 
 - [x] Confirm the workflow classification in `workflow-receipts.md` and mark the required workflow sections.
 - [x] Confirm `spec.md` is complete and reflects the intended scope.
-- [x] Update `PLAN.md` so architecture and verification choices match this spec.
+- [x] Update the slice plan so architecture and verification choices match this spec.
 - [x] Split dashboard concept promotion from concept listing so the dashboard avoids eager concept reads.
 - [x] Reuse canonical source labels and remove duplicate fixture-label drift.
 - [x] Add clearer GitHub rate-limit handling plus optional internal operator token support.

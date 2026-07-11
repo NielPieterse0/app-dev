@@ -1,0 +1,584 @@
+{
+  "standard": {
+    "id": "stack",
+    "title": "Standard App Stack",
+    "version": "1.0.0",
+    "source_file": "standards/stack.md",
+    "status": "adopted",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in standards/stack.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "STK-001",
+      "standard_reference": "Default",
+      "section": "Default",
+      "title": "Use React Vite and React Router by default",
+      "requirement": "Use React + Vite + React Router for most applications.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "scaffolding",
+        "planning"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "stack-decision",
+        "template-change",
+        "architecture-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "New default apps use the React + Vite + React Router path unless a recorded stack exception applies.",
+        "The active plan records any deviation from the default web/PWA stack."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1",
+          "templates/react-vite-capacitor/package.json"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "STK-002",
+      "standard_reference": "Default",
+      "section": "Default",
+      "title": "Add Capacitor only for mobile packaging or native APIs",
+      "requirement": "Add Capacitor when Android/iOS packaging or native APIs are needed.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "mobile",
+        "capacitor"
+      ],
+      "trigger_kinds": [
+        "mobile-wrapper",
+        "native-api",
+        "app-store-packaging",
+        "stack-decision"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "The plan or receipt records the Android/iOS packaging or native API need that justifies Capacitor.",
+        "Capacitor dependency and native wrapper work remain scoped to the app that needs them."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/capacitor.config.ts",
+          "templates/react-vite-capacitor/scripts/add-native-platforms.ps1",
+          ".agents/skills/mobile-validation-workflow/SKILL.md"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "STK-003",
+      "standard_reference": "Libraries",
+      "section": "Libraries",
+      "title": "Use TypeScript as the app language",
+      "requirement": "TypeScript is the application language.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "source-code"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "template-change",
+        "app-code",
+        "language-choice"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "App and template source use TypeScript unless an app-specific stack exception is recorded.",
+        "TypeScript verification remains part of the app check sequence."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/tsconfig.json",
+          "templates/next-web-app/tsconfig.json",
+          "templates/expo-native-app/tsconfig.json",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "STK-004",
+      "standard_reference": "Libraries",
+      "section": "Libraries",
+      "title": "Use the standard UI styling and component stack",
+      "requirement": "Use Tailwind CSS, CSS variables, shadcn/ui, Radix primitives, and lucide-react for styling, design tokens, editable component source, accessible component behavior, and icons.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "ui",
+        "design-system"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "design-system",
+        "template-change",
+        "component-change",
+        "icon-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "UI implementation uses the standard styling, token, component, primitive, and icon stack where applicable.",
+        "Any replacement UI kit, icon system, or styling framework is recorded as a stack exception."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/tailwind.config.ts",
+          "templates/react-vite-capacitor/components.json",
+          "templates/react-vite-capacitor/package.json"
+        ],
+        "target": [
+          "template dependency drift check"
+        ]
+      }
+    },
+    {
+      "id": "STK-005",
+      "standard_reference": "Libraries",
+      "section": "Libraries",
+      "title": "Use the standard validation form state and data stack",
+      "requirement": "Use Zod for runtime validation and schema inference, React Hook Form for forms, TanStack Query for server/cache state, and Zustand for small local state stores.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "forms",
+        "validation",
+        "state"
+      ],
+      "trigger_kinds": [
+        "form-change",
+        "schema-change",
+        "server-state",
+        "client-state",
+        "dependency-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Form, validation, server-state, and small client-state needs use the standard libraries where applicable.",
+        "Any alternate validation, form, cache, or state library is justified in the project AGENTS.md or active plan."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/package.json"
+        ],
+        "target": [
+          "dependency policy validator"
+        ]
+      }
+    },
+    {
+      "id": "STK-006",
+      "standard_reference": "Libraries",
+      "section": "Libraries",
+      "title": "Use standard table and chart libraries",
+      "requirement": "Use TanStack Table for data tables and Recharts or ECharts for charts.",
+      "severity": "medium",
+      "applies_to": [
+        "apps",
+        "templates",
+        "tables",
+        "charts",
+        "data-visualization"
+      ],
+      "trigger_kinds": [
+        "table-change",
+        "chart-change",
+        "data-visualization",
+        "dependency-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Complex table work uses TanStack Table where applicable.",
+        "Chart work uses Recharts or ECharts unless an alternate library is justified."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "dependency policy validator"
+        ]
+      }
+    },
+    {
+      "id": "STK-007",
+      "standard_reference": "Libraries",
+      "section": "Libraries",
+      "title": "Use Supabase as the default backend",
+      "requirement": "Use Supabase as the default backend, auth, storage, and Postgres provider.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "backend",
+        "auth",
+        "storage",
+        "database"
+      ],
+      "trigger_kinds": [
+        "backend-change",
+        "auth-change",
+        "database-change",
+        "storage-change",
+        "stack-decision"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Backend, auth, storage, and database choices use Supabase by default.",
+        "Any alternate backend provider is recorded as a stack exception with the reason."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/src/lib/supabase.ts",
+          "templates/react-vite-capacitor/supabase/README.md",
+          "templates/react-vite-capacitor/supabase/migrations/001_template_foundation.sql"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "STK-008",
+      "standard_reference": "Libraries",
+      "section": "Libraries",
+      "title": "Use the standard verification libraries",
+      "requirement": "Use Vitest for unit tests, Testing Library for component tests, and Playwright for end-to-end and responsive UI checks.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "templates",
+        "tests",
+        "e2e",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "test-change",
+        "e2e-change",
+        "ui-change",
+        "template-change",
+        "verification"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Unit, component, e2e, and responsive UI checks use the standard verification libraries where applicable.",
+        "Any alternate test runner or browser verification tool is recorded as a stack exception."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/package.json",
+          "templates/next-web-app/tests/smoke.test.ts",
+          "templates/expo-native-app/jest.config.js",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "STK-009",
+      "standard_reference": "Use Next.js When",
+      "section": "Use Next.js When",
+      "title": "Use Next.js only for server-rendered or content-heavy needs",
+      "requirement": "Use Next.js when SEO or public content matters, SSR/server rendering is needed, route-level server functions reduce backend complexity, or the app is content-heavy or ecommerce-like.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "architecture",
+        "frontend"
+      ],
+      "trigger_kinds": [
+        "nextjs",
+        "seo",
+        "ssr",
+        "server-functions",
+        "content-heavy",
+        "ecommerce",
+        "stack-decision"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Next.js adoption records the SEO, SSR, server-function, content-heavy, or ecommerce driver.",
+        "Next.js is not chosen for default web/PWA work without one of the recorded drivers."
+      ],
+      "automation": {
+        "current": [
+          "templates/next-web-app/package.json"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "STK-010",
+      "standard_reference": "Use Expo When",
+      "section": "Use Expo When",
+      "title": "Use Expo only for native-first mobile apps",
+      "requirement": "Use Expo when native mobile UX is central, native device capabilities dominate, or web is secondary.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "mobile",
+        "native"
+      ],
+      "trigger_kinds": [
+        "expo",
+        "native-mobile",
+        "camera",
+        "bluetooth",
+        "background-tasks",
+        "gestures",
+        "native-maps",
+        "offline-mobile",
+        "stack-decision"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Expo adoption records the native-first mobile UX or device-capability reason.",
+        "Expo is not chosen when the app is primarily web/PWA with only packaging needs."
+      ],
+      "automation": {
+        "current": [
+          "templates/expo-native-app/package.json",
+          "templates/expo-native-app/app.json"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "STK-011",
+      "standard_reference": "Use Tauri When",
+      "section": "Use Tauri When",
+      "title": "Use Tauri only for desktop packaging or native desktop capabilities",
+      "requirement": "Use Tauri when desktop packaging is required or native desktop capabilities such as filesystem, tray, updater, or OS shortcuts are necessary.",
+      "severity": "medium",
+      "applies_to": [
+        "apps",
+        "desktop",
+        "architecture",
+        "packaging"
+      ],
+      "trigger_kinds": [
+        "tauri",
+        "desktop-packaging",
+        "native-desktop",
+        "filesystem",
+        "tray",
+        "updater",
+        "os-shortcuts",
+        "stack-decision"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Tauri adoption records the desktop packaging or native desktop capability need.",
+        "Desktop-only dependencies remain scoped to the app requiring desktop packaging."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "desktop stack template"
+        ]
+      }
+    },
+    {
+      "id": "STK-012",
+      "standard_reference": "Dependency Policy",
+      "section": "Dependency Policy",
+      "title": "Install dependencies where they are used",
+      "requirement": "Install dependencies in the package where they are used.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "templates",
+        "packages",
+        "dependencies"
+      ],
+      "trigger_kinds": [
+        "dependency-change",
+        "package-json-change",
+        "project-creation",
+        "template-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "New dependencies are added to the app or package that uses them.",
+        "App dependencies are not installed at the workspace root unless they are root tooling."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-workspace.ps1",
+          "scripts/verify-app.ps1"
+        ],
+        "target": [
+          "root dependency drift check"
+        ]
+      }
+    },
+    {
+      "id": "STK-013",
+      "standard_reference": "Dependency Policy",
+      "section": "Dependency Policy",
+      "title": "Keep root dependencies limited to workspace tooling",
+      "requirement": "Keep root dependencies limited to workspace tooling.",
+      "severity": "high",
+      "applies_to": [
+        "repo",
+        "root-package",
+        "dependencies",
+        "workspace-tooling"
+      ],
+      "trigger_kinds": [
+        "dependency-change",
+        "root-package-json",
+        "workspace-tooling",
+        "governance-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Root dependencies are limited to tooling used by the workspace itself.",
+        "App runtime dependencies are scoped to app packages."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-workspace.ps1"
+        ],
+        "target": [
+          "root package dependency classifier"
+        ]
+      }
+    },
+    {
+      "id": "STK-014",
+      "standard_reference": "Dependency Policy",
+      "section": "Dependency Policy",
+      "title": "Commit lockfiles for reproducibility",
+      "requirement": "Commit lockfiles for reproducibility.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "dependencies",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "dependency-change",
+        "lockfile",
+        "package-json-change",
+        "ci-change"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Dependency changes include matching lockfile updates.",
+        "Lockfiles are validated by the app verification or CI path."
+      ],
+      "automation": {
+        "current": [
+          ".github/workflows/app-dev-validation.yml",
+          "scripts/verify-app.ps1"
+        ],
+        "target": [
+          "lockfile presence validator"
+        ]
+      }
+    }
+  ]
+}

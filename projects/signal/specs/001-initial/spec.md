@@ -31,7 +31,7 @@ app-dev currently has templates and governance, but no real application proving 
 
 ### Acceptance Criteria
 
-1. `projects/signal` contains Signal-specific `AGENTS.md`, `PLAN.md`, `spec.md`, `tasks.md`, `workflow-receipts.md`, and `checklist.md`.
+1. `projects/signal` contains Signal-specific `AGENTS.md`, the slice plan, `spec.md`, `tasks.md`, `workflow-receipts.md`, and `checklist.md`.
 2. The dashboard loads a ranked feed from the repository layer and supports at least one meaningful filter interaction.
 3. The first Supabase migration exists for `source_items` and `source_settings`, with documented free-tier and browser-key constraints.
 4. The settings route reflects source controls and operating-boundary notes rather than template placeholders.

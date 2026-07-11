@@ -36,6 +36,18 @@ function Get-ActiveSpecRelativePath {
   return $null
 }
 
+function Get-ActivePlanRelativePath {
+  param([Parameter(Mandatory=$true)][string]$AgentsPath)
+
+  $activeSpecRelativePath = Get-ActiveSpecRelativePath -AgentsPath $AgentsPath
+  if ([string]::IsNullOrWhiteSpace($activeSpecRelativePath)) {
+    return $null
+  }
+
+  $specDir = Split-Path -Parent $activeSpecRelativePath
+  return (Join-Path $specDir "plan.md") -replace "\\", "/"
+}
+
 function Get-AllowedRiskLevels {
   return @($script:AllowedRiskLevels)
 }
@@ -99,7 +111,7 @@ function Get-FieldValue {
     [Parameter(Mandatory=$true)][string]$Field
   )
 
-  $pattern = "(?im)^-\s+$([regex]::Escape($Field)):\s*(.+)$"
+  $pattern = "(?im)^-\s+(?:\[[ xX]\]\s+)?$([regex]::Escape($Field)):\s*(.+)$"
   $match = [regex]::Match($Section, $pattern)
   if ($match.Success) {
     return $match.Groups[1].Value.Trim()

@@ -68,12 +68,13 @@ if ([string]::IsNullOrWhiteSpace($activeSpecRelative)) {
 
 $specPath = Join-Path $ProjectPath $activeSpecRelative
 $specDir = Split-Path -Parent $specPath
-$planPath = Join-Path $ProjectPath "PLAN.md"
+$planRelative = Get-ActivePlanRelativePath -AgentsPath $agentsPath
+$planPath = if ($planRelative) { Join-Path $ProjectPath $planRelative } else { $null }
 $tasksPath = Join-Path $specDir "tasks.md"
 $receiptsPath = Join-Path $specDir "workflow-receipts.md"
 $checklistPath = Join-Path $specDir "checklist.md"
 
-foreach ($path in @($specPath, $planPath, $tasksPath, $receiptsPath)) {
+foreach ($path in @($specPath, $planPath, $tasksPath, $receiptsPath) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }) {
   if (-not (Test-Path -LiteralPath $path)) {
     Add-Failure "Missing required artifact for spec analysis: $path"
   }
@@ -92,7 +93,7 @@ $specStatus = Get-MarkdownStatus -Content $specContent
 $planStatus = Get-MarkdownStatus -Content $planContent
 
 if ((Test-CompletedStatus -Status $planStatus) -and -not (Test-CompletedStatus -Status $specStatus)) {
-  Add-Failure "PLAN.md is complete while the active spec remains $specStatus."
+  Add-Failure "$planRelative is complete while the active spec remains $specStatus."
 }
 
 if ((Test-ChecklistRequired -SpecContent $specContent) -and -not (Test-Path -LiteralPath $checklistPath)) {

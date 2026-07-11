@@ -19,5 +19,5 @@ The required local workflow is now spec-driven:
 - keep durable app rules in `projects/<app>/AGENTS.md`
 - keep feature intent in `projects/<app>/specs/NNN-<slug>/spec.md`
 - keep implementation sequencing in `projects/<app>/specs/NNN-<slug>/tasks.md`
-- keep architecture and verification decisions in `projects/<app>/PLAN.md`
+- keep architecture and verification decisions in `projects/<app>/specs/NNN-<slug>/plan.md`
 - keep workflow closure evidence in `projects/<app>/specs/NNN-<slug>/workflow-receipts.md`

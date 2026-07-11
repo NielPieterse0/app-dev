@@ -1,0 +1,438 @@
+{
+  "standard": {
+    "id": "security",
+    "title": "Security And Secrets Standard",
+    "version": "1.0.0",
+    "source_file": "standards/security.md",
+    "status": "adopted",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rules": [
+    {
+      "id": "SEC-001",
+      "standard_reference": "Secrets hygiene",
+      "section": "Secrets hygiene",
+      "title": "Never commit secrets or production env files",
+      "requirement": "Never commit secrets, tokens, service-role keys, private certificates, or production .env files.",
+      "severity": "critical",
+      "applies_to": [
+        "repo",
+        "apps",
+        "templates",
+        "docs",
+        "scripts",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "secret-handling",
+        "env-files",
+        "credentials",
+        "config"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "No committed secret-bearing files or values.",
+        "Any required environment contract is represented through safe examples only."
+      ]
+    },
+    {
+      "id": "SEC-002",
+      "standard_reference": "Secrets hygiene",
+      "section": "Secrets hygiene",
+      "title": "Commit safe env examples",
+      "requirement": "Commit .env.example with variable names and safe placeholder values.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "env-contract",
+        "config",
+        "scaffolding"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        ".env.example exists when environment variables are required.",
+        "Example values are safe placeholders rather than real credentials."
+      ]
+    },
+    {
+      "id": "SEC-003",
+      "standard_reference": "Supabase key handling",
+      "section": "Supabase key handling",
+      "title": "Use least-privilege Supabase keys in clients",
+      "requirement": "Use least-privilege Supabase keys in clients. Supabase anon keys are client-safe only when Row Level Security is correct.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "supabase",
+        "auth",
+        "database",
+        "client-config"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Client-side configuration uses only intended low-privilege keys.",
+        "If anon keys are used, corresponding RLS posture is reviewed."
+      ]
+    },
+    {
+      "id": "SEC-004",
+      "standard_reference": "Supabase key handling",
+      "section": "Supabase key handling",
+      "title": "Keep service-role keys server-only",
+      "requirement": "Service role keys are server-only and must never be exposed through Vite, Expo, Next public variables, browser storage, or committed files.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "templates",
+        "docs",
+        "scripts",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "supabase",
+        "service-role",
+        "public-env",
+        "browser-storage",
+        "credentials"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "No service-role key is exposed in public/runtime-client surfaces.",
+        "Server-only credential handling is documented where applicable."
+      ]
+    },
+    {
+      "id": "SEC-005",
+      "standard_reference": "Row Level Security",
+      "section": "Row Level Security",
+      "title": "Require RLS on non-public Supabase tables before production use",
+      "requirement": "Require Row Level Security for every Supabase table that stores user, tenant, customer, financial, operational, or otherwise non-public data before production use.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "database",
+        "migrations"
+      ],
+      "trigger_kinds": [
+        "supabase",
+        "database",
+        "rls",
+        "migration",
+        "data-model"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "RLS state is defined for each non-public table before production release.",
+        "Receipt or review notes identify how RLS was verified."
+      ]
+    },
+    {
+      "id": "SEC-006",
+      "standard_reference": "Browser secret handling",
+      "section": "Browser secret handling",
+      "title": "Keep long-lived privileged secrets out of browser storage",
+      "requirement": "Keep long-lived privileged secrets out of browser storage. Store only short-lived client session material through the platform auth library unless an app-specific security review approves a different design.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "auth",
+        "browser-storage",
+        "session",
+        "credentials"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Privileged long-lived secrets are not stored in browser storage.",
+        "Any exception has an explicit app-specific security review record."
+      ]
+    },
+    {
+      "id": "SEC-007",
+      "standard_reference": "Supply-chain governance",
+      "section": "Supply-chain governance",
+      "title": "Treat Codex skills, hooks, and scripts as executable supply-chain artifacts",
+      "requirement": "Treat Codex skills, hooks, and scripts as executable supply-chain artifacts. Keep them local, reviewed, and minimal.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "skills",
+        "commands",
+        "governance"
+      ],
+      "trigger_kinds": [
+        "codex-governance",
+        "automation",
+        "scripts",
+        "hooks",
+        "skills"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed executable governance surfaces are repo-local.",
+        "The change scope is reviewed and kept minimal."
+      ]
+    },
+    {
+      "id": "SEC-008",
+      "standard_reference": "Approval gates",
+      "section": "Approval gates",
+      "title": "Require explicit approval for destructive or live actions",
+      "requirement": "Require explicit user approval before destructive filesystem commands, publishing, production deploys, or schema migrations against live databases.",
+      "severity": "critical",
+      "applies_to": [
+        "repo",
+        "apps",
+        "scripts",
+        "release-ops"
+      ],
+      "trigger_kinds": [
+        "destructive-action",
+        "publishing",
+        "production-deploy",
+        "live-migration"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "User approval is recorded before the action runs.",
+        "Planned live or destructive operations are identified explicitly."
+      ]
+    },
+    {
+      "id": "SEC-009",
+      "standard_reference": "CI security baseline",
+      "section": "CI security baseline",
+      "title": "Add core security and quality checks in CI beyond prototype stage",
+      "requirement": "Add dependency review, secret scanning, typecheck, lint, tests, and build checks in CI once a project moves beyond prototype stage.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "ci",
+        "prototype-exit",
+        "dependency-review",
+        "secret-scan",
+        "verification"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "CI includes dependency review, secret scanning, typecheck, lint, tests, and build checks when the project is past prototype status.",
+        "Any missing gate is called out explicitly with rationale."
+      ]
+    },
+    {
+      "id": "SEC-010",
+      "standard_reference": "Release operations",
+      "section": "Release operations",
+      "title": "Treat production deploys as release operations",
+      "requirement": "Treat production deploys as release operations.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "release-ops",
+        "deployments"
+      ],
+      "trigger_kinds": [
+        "production-deploy",
+        "release",
+        "live-environment"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Production deployments are handled through release-operation discipline rather than ad hoc execution."
+      ]
+    },
+    {
+      "id": "SEC-011",
+      "standard_reference": "Release operations",
+      "section": "Release operations",
+      "title": "Treat live database migrations as release operations",
+      "requirement": "Treat live database migrations as release operations.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "database",
+        "migrations",
+        "release-ops"
+      ],
+      "trigger_kinds": [
+        "live-migration",
+        "database",
+        "release",
+        "live-environment"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Live database migrations are handled through release-operation discipline rather than ad hoc execution."
+      ]
+    },
+    {
+      "id": "SEC-012",
+      "standard_reference": "Release operations",
+      "section": "Release operations",
+      "title": "Record release-operation details before running live deploys or migrations",
+      "requirement": "Record the target environment, command, expected effect, rollback path, and explicit user approval before running production deploys or live database migrations.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "deployments",
+        "migrations",
+        "release-ops",
+        "workflow-receipts"
+      ],
+      "trigger_kinds": [
+        "production-deploy",
+        "live-migration",
+        "release",
+        "approval"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Target environment is recorded.",
+        "Exact command is recorded.",
+        "Expected effect is recorded.",
+        "Rollback path is recorded.",
+        "Explicit user approval is recorded before execution."
+      ]
+    },
+    {
+      "id": "SEC-013",
+      "standard_reference": "Production readiness review",
+      "section": "Production readiness review",
+      "title": "Review sensitive access and policy surfaces before production readiness",
+      "requirement": "Review authentication, authorization, and RLS policies before production readiness.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "auth",
+        "database",
+        "release-ops"
+      ],
+      "trigger_kinds": [
+        "auth",
+        "authorization",
+        "rls",
+        "production-readiness"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Authentication, authorization, and RLS policy review is completed before production readiness."
+      ]
+    },
+    {
+      "id": "SEC-014",
+      "standard_reference": "Production readiness review",
+      "section": "Production readiness review",
+      "title": "Review high-risk external and data-entry flows before production readiness",
+      "requirement": "Review payment flows, public API routes, file uploads, and AI tool actions before production readiness.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "api",
+        "payments",
+        "uploads",
+        "ai-tooling",
+        "release-ops"
+      ],
+      "trigger_kinds": [
+        "payment-flow",
+        "public-api",
+        "file-upload",
+        "ai-tool-action",
+        "production-readiness"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "High-risk external and user-input flows are reviewed before production readiness."
+      ]
+    }
+  ]
+}

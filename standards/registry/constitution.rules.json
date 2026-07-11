@@ -1,0 +1,472 @@
+{
+  "standard": {
+    "id": "constitution",
+    "title": "app-dev Constitution",
+    "version": "1.0.0",
+    "source_file": "standards/constitution.md",
+    "status": "ratified",
+    "owner": "app-dev",
+    "format_version": "1.0.0",
+    "ratified": "2026-07-08",
+    "last_amended": "2026-07-08"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in standards/constitution.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "CON-001",
+      "standard_reference": "Principles 1",
+      "section": "Principles",
+      "title": "Prefer free-tier infrastructure first",
+      "requirement": "Prefer no-cost or free-tier infrastructure until product proof or a recorded production need justifies expansion.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "backend",
+        "infrastructure",
+        "dependencies",
+        "planning"
+      ],
+      "trigger_kinds": [
+        "infrastructure-change",
+        "backend-change",
+        "paid-service",
+        "deployment",
+        "stack-decision"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Paid or non-free infrastructure choices record the product proof or production need.",
+        "The active plan identifies the simpler free-tier option considered or rejected."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "cost-bearing dependency checklist"
+        ]
+      }
+    },
+    {
+      "id": "CON-002",
+      "standard_reference": "Principles 2",
+      "section": "Principles",
+      "title": "Build vertical modules before framework abstraction",
+      "requirement": "Build applications as explicit vertical modules with clear public boundaries before adding framework-level abstraction.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "source-code",
+        "modules",
+        "architecture"
+      ],
+      "trigger_kinds": [
+        "app-code",
+        "module-boundary",
+        "architecture-change",
+        "shared-code",
+        "abstraction"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "New app functionality is organized around vertical modules with public boundaries.",
+        "New abstractions are justified by real cross-module or cross-app reuse."
+      ],
+      "automation": {
+        "current": [
+          "scripts/enforce-module-boundaries.js",
+          "npm run lint"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CON-003",
+      "standard_reference": "Principles 3",
+      "section": "Principles",
+      "title": "Require evidence before completion",
+      "requirement": "Do not mark work complete until the required spec artifacts, workflow receipts, and verification evidence exist.",
+      "severity": "critical",
+      "applies_to": [
+        "specs",
+        "workflow-receipts",
+        "verification",
+        "handoff",
+        "projects"
+      ],
+      "trigger_kinds": [
+        "completion",
+        "handoff",
+        "verification",
+        "receipt-change",
+        "spec-change"
+      ],
+      "phases": [
+        "tasks",
+        "implement",
+        "verify",
+        "handoff",
+        "release-readiness"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Required spec artifacts exist for the slice.",
+        "workflow-receipts.md records required evidence.",
+        "Verification evidence is present or explicitly reported as blocked."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/validate-workflow-receipts.ps1",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CON-004",
+      "standard_reference": "Principles 4",
+      "section": "Principles",
+      "title": "Match security and compliance review to risk",
+      "requirement": "Gated work requires explicit checklist, migration, permission, and rollback review matched to the actual surface touched.",
+      "severity": "critical",
+      "applies_to": [
+        "security",
+        "compliance",
+        "gated-work",
+        "migrations",
+        "permissions",
+        "rollback"
+      ],
+      "trigger_kinds": [
+        "gated-risk",
+        "security-change",
+        "migration",
+        "permission-change",
+        "rollback",
+        "release-readiness"
+      ],
+      "phases": [
+        "clarify",
+        "spec",
+        "checklist",
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Gated work includes the required checklist and risk classification.",
+        "Migration, permission, and rollback review are recorded when those surfaces are touched."
+      ],
+      "automation": {
+        "current": [
+          "scripts/analyze-spec.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "gated risk checklist validator"
+        ]
+      }
+    },
+    {
+      "id": "CON-005",
+      "standard_reference": "Principles 5",
+      "section": "Principles",
+      "title": "Keep generated apps in the same repo by default",
+      "requirement": "Generated apps under projects/ remain tracked by the root repository unless a later recorded decision splits them.",
+      "severity": "critical",
+      "applies_to": [
+        "repo",
+        "projects",
+        "scaffolding",
+        "planning"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "repo-structure",
+        "repo-split",
+        "scaffolding"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Generated apps are placed under projects/ in the root repository.",
+        "Any repo split decision is recorded before the split and references the governing workspace rule."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1",
+          "scripts/check-workspace.ps1"
+        ],
+        "target": [
+          "nested repository scanner"
+        ]
+      }
+    },
+    {
+      "id": "CON-006",
+      "standard_reference": "Principles 6",
+      "section": "Principles",
+      "title": "Record deviations from simpler defaults",
+      "requirement": "When the simpler default is not used, document the deviation, why it is needed, and what simpler option was rejected.",
+      "severity": "high",
+      "applies_to": [
+        "planning",
+        "architecture",
+        "stack",
+        "dependencies",
+        "governance"
+      ],
+      "trigger_kinds": [
+        "deviation",
+        "architecture-change",
+        "stack-decision",
+        "dependency-change",
+        "governance-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "The active plan or receipt documents any deviation from the simpler default.",
+        "The record includes why the deviation is needed and what simpler option was rejected."
+      ],
+      "automation": {
+        "current": [
+          "scripts/analyze-spec.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "deviation rationale validator"
+        ]
+      }
+    },
+    {
+      "id": "CON-007",
+      "standard_reference": "Delegation",
+      "section": "Delegation",
+      "title": "Delegate workflow mechanics to the workflow standard",
+      "requirement": "Workflow mechanics are delegated to standards/spec-driven-workflow.md.",
+      "severity": "high",
+      "applies_to": [
+        "workflow",
+        "standards",
+        "commands",
+        "docs"
+      ],
+      "trigger_kinds": [
+        "workflow-change",
+        "standard-change",
+        "command-change",
+        "docs-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Workflow mechanics changes are made in standards/spec-driven-workflow.md or the delegated command files.",
+        "The constitution remains a delegation surface rather than a duplicate procedure owner."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1",
+          "scripts/test-workflow-enforcement.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CON-008",
+      "standard_reference": "Delegation",
+      "section": "Delegation",
+      "title": "Delegate workspace model to the workspace standard",
+      "requirement": "Workspace and repository model are delegated to standards/workspace.md.",
+      "severity": "high",
+      "applies_to": [
+        "workspace",
+        "repo",
+        "projects",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "repo-structure",
+        "workspace-change",
+        "project-creation",
+        "standard-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Workspace and repository model changes are made in standards/workspace.md.",
+        "Constitution updates do not duplicate the workspace standard's detailed layout or exception rules."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-workspace.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CON-009",
+      "standard_reference": "Delegation",
+      "section": "Delegation",
+      "title": "Delegate stack defaults to the stack standard",
+      "requirement": "Stack and dependency defaults are delegated to standards/stack.md.",
+      "severity": "high",
+      "applies_to": [
+        "stack",
+        "dependencies",
+        "templates",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "stack-decision",
+        "dependency-change",
+        "template-change",
+        "standard-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Stack and dependency default changes are made in standards/stack.md.",
+        "Constitution updates do not duplicate detailed stack policy."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/package.json",
+          "scripts/create-app.ps1"
+        ],
+        "target": [
+          "stack registry lookup"
+        ]
+      }
+    },
+    {
+      "id": "CON-010",
+      "standard_reference": "Delegation",
+      "section": "Delegation",
+      "title": "Delegate testing to the testing standard",
+      "requirement": "Testing and rendered verification are delegated to standards/testing.md.",
+      "severity": "high",
+      "applies_to": [
+        "testing",
+        "verification",
+        "ui",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "verification",
+        "ui-change",
+        "test-change",
+        "standard-change"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Testing and rendered verification changes are made in standards/testing.md.",
+        "Constitution updates do not duplicate detailed verification checklists."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CON-011",
+      "standard_reference": "Delegation",
+      "section": "Delegation",
+      "title": "Delegate Codex routing to the capabilities standard",
+      "requirement": "Codex routing and optional accelerators are delegated to standards/codex-capabilities.md.",
+      "severity": "medium",
+      "applies_to": [
+        "codex",
+        "skills",
+        "plugins",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "codex-routing",
+        "skill-change",
+        "plugin-guidance",
+        "standard-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Codex routing or optional accelerator changes are made in standards/codex-capabilities.md.",
+        "Constitution updates keep the routing pointer rather than duplicating tool guidance."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": [
+          "capability routing registry lookup"
+        ]
+      }
+    }
+  ]
+}

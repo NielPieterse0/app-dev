@@ -46,7 +46,7 @@
 - Command path used: /verify and release-readiness closeout gates
 - Local workflow used: release-readiness-workflow
 - External skill used or unavailable: `superpowers` available; implemented directly in the current session
-- Files/surfaces reviewed: `.github/workflows/app-dev-validation.yml`, `.codex/config.toml`, `.codex/README.md`, `.codex/rules/default.rules`, `README.md`, `projects/signal/AGENTS.md`, `projects/signal/PLAN.md`, and the slice-006 spec artifacts
+- Files/surfaces reviewed: `.github/workflows/app-dev-validation.yml`, `.codex/config.toml`, `.codex/README.md`, `.codex/rules/default.rules`, `README.md`, `projects/signal/AGENTS.md`, the Signal plan surface, and the slice-006 spec artifacts
 - Verification performed: `./scripts/check-all.ps1`, `../../scripts/analyze-spec.ps1 -ProjectPath .`, `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`, `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`, and `../../scripts/verify-app.ps1 -ProjectPath .` all passed on 2026-07-09. The full Signal app gate passed `typecheck`, `lint`, `test`, `build`, and `e2e`, including `desktop-1440`, `laptop-1280`, `tablet-768`, and `mobile-390`.
 - Outstanding gaps: hosted CI green is not yet confirmed because the branch has not been pushed in this session
 - Decision/closure: partial

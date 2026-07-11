@@ -2,14 +2,14 @@
 
 - Spec: `specs/{{SPEC_DIR}}/spec.md`
 - Tasks: `specs/{{SPEC_DIR}}/tasks.md`
-- Plan: `PLAN.md`
+- Plan: `specs/{{SPEC_DIR}}/plan.md`
 - Receipts: `specs/{{SPEC_DIR}}/workflow-receipts.md`
 - Created: {{DATE}}
 
 ## Convergence Check
 
 - Spec match: TODO: whether implemented behavior satisfies `spec.md` requirements and success criteria.
-- Plan match: TODO: whether `PLAN.md` still reflects architecture, module, data, platform, and verification decisions.
+- Plan match: TODO: whether `specs/{{SPEC_DIR}}/plan.md` still reflects architecture, module, data, platform, and verification decisions.
 - Task status match: TODO: completed tasks, deferred tasks, and any newly discovered work.
 - Receipt closure match: TODO: whether required workflow receipt sections contain implementation evidence, verification evidence, outstanding gaps, and closure state.
 - Documentation drift check: TODO: docs, templates, standards, README, and app instructions reviewed or not applicable.

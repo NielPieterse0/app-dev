@@ -10,7 +10,7 @@ Use this checklist for auth, payments, secrets, public APIs, data access, file u
 
 - [x] Ambiguous requirements were resolved before implementation.
 - [x] Sensitive operations are described concretely in `spec.md`.
-- [x] Failure and rollback behavior is documented in `PLAN.md`.
+- [x] Failure and rollback behavior is documented in the slice plan.
 
 ## Security And Data Review
 

@@ -59,7 +59,7 @@ The weak point is density and repeatability. The current command files are direc
 
 2. Densify the core templates:
    - `templates/spec-workflow/spec.template.md`
-   - `templates/spec-workflow/PLAN.template.md`
+   - `templates/spec-workflow/plan.template.md`
    - `templates/spec-workflow/tasks.template.md`
    - `templates/spec-workflow/workflow-receipts.template.md`
 
@@ -67,9 +67,9 @@ The weak point is density and repeatability. The current command files are direc
    - `templates/spec-workflow/checklist.template.md`
    - `templates/spec-workflow/converge.template.md`
 
-4. Consolidate root planning protocol:
+4. Consolidate root planning-rule ownership:
    - Fold the unique useful content from root `PLANS.md` into `standards/spec-driven-workflow.md`.
-   - Move `templates/PLAN.template.md` into `templates/spec-workflow/PLAN.template.md`.
+   - Move `templates/PLAN.template.md` into `templates/spec-workflow/plan.template.md`.
    - Stop treating `PLANS.md` as a standalone governance owner.
    - Update references and validators that require or point to `PLANS.md` or the old root-level plan-template path.
 
@@ -123,8 +123,8 @@ The sections create a consistent grammar for Codex sessions and provide headings
 `/plan` turns the active spec into an app-level plan. It should:
 
 - confirm `AGENTS.md` points to the active spec
-- read `spec.md`, `tasks.md`, `workflow-receipts.md`, and `templates/spec-workflow/PLAN.template.md`
-- update `PLAN.md`
+- read `spec.md`, `tasks.md`, `workflow-receipts.md`, and `templates/spec-workflow/plan.template.md`
+- update `plan.md`
 - record architecture, module, data, permission, platform, workflow, verification, and deviation decisions
 - run artifact and analysis checks that are safe before implementation
 - stop if required plan fields remain unresolved
@@ -134,7 +134,7 @@ The sections create a consistent grammar for Codex sessions and provide headings
 
 `/tasks` turns the spec and plan into an executable task sequence. It should:
 
-- read `spec.md`, `PLAN.md`, `workflow-receipts.md`, and the task template
+- read `spec.md`, `plan.md`, `workflow-receipts.md`, and the task template
 - organize tasks by setup, foundation, user story or vertical increment, polish, and verification
 - require strict task IDs such as `T001`
 - use `[P]` only for tasks that are truly parallelizable
@@ -160,7 +160,7 @@ The sections create a consistent grammar for Codex sessions and provide headings
 
 `/verify` closes convergence and verification. It should:
 
-- reconcile `spec.md`, `PLAN.md`, `tasks.md`, and `workflow-receipts.md` to the implemented state
+- reconcile `spec.md`, `plan.md`, `tasks.md`, and `workflow-receipts.md` to the implemented state
 - use `converge.template.md` when an explicit convergence note is needed
 - run `analyze-spec.ps1`
 - run `check-spec-artifacts.ps1`
@@ -195,9 +195,9 @@ The spec template should become closer to the upstream spec-kit shape while pres
 
 Placeholders should be explicit and easy for validators to detect. Generated specs must not retain unresolved placeholder text.
 
-### `PLAN.template.md`
+### `plan.template.md`
 
-The app plan template should become the authoritative shape for `projects/<app>/PLAN.md`. It should require:
+The per-spec plan template should become the authoritative shape for `projects/<app>/specs/NNN-<slug>/plan.md`. It should require:
 
 - active spec id and path
 - status
@@ -213,7 +213,7 @@ The app plan template should become the authoritative shape for `projects/<app>/
 - accepted, rejected, and deferred decisions
 - deviations and follow-ups
 
-Root `PLANS.md` should not remain the owner for these rules. The planning protocol belongs in `standards/spec-driven-workflow.md`; the app plan shape belongs in `templates/spec-workflow/PLAN.template.md`.
+Root `PLANS.md` should not remain the owner for these rules. The workflow standard owns the durable phase rules, and the plan shape belongs in `templates/spec-workflow/plan.template.md`.
 
 ### `tasks.template.md`
 
@@ -274,12 +274,12 @@ The convergence template should support `/verify` by requiring:
 - deferred items
 - handoff notes
 
-## Planning Protocol Consolidation
+## Planning Rule Consolidation
 
-Root `PLANS.md` currently duplicates planning protocol that now belongs to the workflow standard and command contract. The implementation slice should:
+Root `PLANS.md` currently duplicates planning-rule ownership that now belongs to the workflow standard and command contract. The implementation slice should:
 
 1. Move unique planning requirements into `standards/spec-driven-workflow.md`.
-2. Move `templates/PLAN.template.md` to `templates/spec-workflow/PLAN.template.md` so all spec-workflow artifact templates live together.
+2. Move `templates/PLAN.template.md` to `templates/spec-workflow/plan.template.md` so all spec-workflow artifact templates live together.
 3. Keep `.agents/commands/plan.md` as the executable `/plan` command contract.
 4. Update `standards/workspace.md`, root `AGENTS.md`, README, manifest rules, generators, and validators so `PLANS.md` is no longer a primary governance surface and the old root-level plan-template path is no longer required.
 5. Remove `PLANS.md` if no compatibility reason remains; otherwise replace it with a short pointer file and record why the pointer remains.
@@ -297,8 +297,8 @@ Validator work in this slice should stay targeted:
 - task items follow the required task ID format when material implementation tasks exist
 - receipts keep `Command path used:`
 - verification evidence is required before completion closure
-- root `PLANS.md` is not required once planning protocol consolidation lands
-- `templates/spec-workflow/PLAN.template.md` is required and the old `templates/PLAN.template.md` path is not required
+- root `PLANS.md` is not required once planning-rule consolidation lands
+- `templates/spec-workflow/plan.template.md` is required and the old `templates/PLAN.template.md` path is not required
 
 Do not use this slice to perform a broad validator rewrite or a full manifest redesign.
 
@@ -309,7 +309,7 @@ The implementation slice is complete only when:
 1. The five vertical path command files share the command contract structure.
 2. The four core templates generate denser, more repeatable artifacts.
 3. Supporting checklist and convergence templates are updated only where needed.
-4. `templates/PLAN.template.md` is folded into `templates/spec-workflow/PLAN.template.md`.
+4. `templates/PLAN.template.md` is folded into `templates/spec-workflow/plan.template.md`.
 5. Root `PLANS.md` is consolidated into the workflow standard or reduced to a justified pointer.
 6. Standards and root docs point to canonical owners instead of duplicating workflow procedure.
 7. Targeted validators enforce the new structure without exact-prose assertions.
@@ -344,4 +344,4 @@ After this vertical path is implemented and verified, the next harness slice sho
 
 ## Recommendation
 
-Proceed with the vertical command and template density slice. Include `/plan`, `templates/spec-workflow/PLAN.template.md`, migration of the old root-level plan template, and root `PLANS.md` consolidation in the same slice because planning is central to the path and the current root protocol file is now an ownership drift candidate.
+Proceed with the vertical command and template density slice. Include `/plan`, `templates/spec-workflow/plan.template.md`, migration of the old root-level plan template, and root `PLANS.md` consolidation in the same slice because planning is central to the path and the current root protocol file is now an ownership drift candidate.

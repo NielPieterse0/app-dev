@@ -82,22 +82,16 @@ $replacements = @{
   "{{DATE}}" = (Get-Date -Format "yyyy-MM-dd")
 }
 
-$files = @("spec.template.md", "tasks.template.md", "workflow-receipts.template.md")
-if (Test-GatedRiskLevel -RiskLevel $RiskLevel) {
-  $files += "checklist.template.md"
+$sourcePath = Join-Path $templateDir "spec.template.md"
+if (-not (Test-Path -LiteralPath $sourcePath)) {
+  Write-Error "Spec workflow template not found: $sourcePath"
 }
 
-foreach ($templateName in $files) {
-  $sourcePath = Join-Path $templateDir $templateName
-  if (-not (Test-Path -LiteralPath $sourcePath)) {
-    Write-Error "Spec workflow template not found: $sourcePath"
-  }
-
-  $targetName = $templateName.Replace(".template", "")
-  $targetPath = Join-Path $specDirPath $targetName
-  $text = Get-Content -LiteralPath $sourcePath -Raw
-  $text = Apply-Replacements -Text $text -Replacements $replacements
-  Set-Content -LiteralPath $targetPath -Encoding UTF8 -Value $text
-}
+$targetPath = Join-Path $specDirPath "spec.md"
+$text = Get-Content -LiteralPath $sourcePath -Raw
+$text = Apply-Replacements -Text $text -Replacements $replacements
+Set-Content -LiteralPath $targetPath -Encoding UTF8 -Value $text
 
 Write-Host "Created spec folder $specDirName in $ProjectPath"
+Write-Host "Created artifact: specs/$specDirName/spec.md"
+Write-Host "Next: update the app active spec pointer if needed, then run /plan to create plan.md and /tasks to create tasks.md, workflow-receipts.md, and any gated checklist."

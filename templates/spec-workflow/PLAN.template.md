@@ -49,6 +49,8 @@ TODO: list explicit exclusions that prevent scope drift.
 - Backend/auth/storage: TODO: backend, auth, storage, and migration choices.
 - UI system: TODO: design system, component library, and token decisions.
 - Implementation constraints: TODO: approvals, workflow constraints, and local standards that affect implementation.
+- Implementation sequencing constraints: TODO: ordering, shared-surface, or same-file constraints that implementation must respect.
+- Documentation alignment constraints: TODO: governed docs, standards, commands, templates, or scripts that must be reconciled during implementation to prevent drift.
 
 ## Project Structure And Ownership
 
@@ -72,10 +74,12 @@ TODO: list explicit exclusions that prevent scope drift.
 
 ## Workflow Classification
 
+- Workflow shape: TODO: lean or gated.
 - UI workflow: TODO: required or not required, with reason.
 - Data workflow: TODO: required or not required, with reason.
 - Mobile workflow: TODO: required or not required, with reason.
 - Release-readiness workflow: TODO: required or not required, with reason.
+- Workflow-specific implementation requirements: TODO: implementation-time obligations from required wrapper workflows, or state none.
 - Receipt owner: `specs/001-initial/workflow-receipts.md`
 
 ## Verification Strategy
@@ -85,6 +89,7 @@ TODO: list explicit exclusions that prevent scope drift.
 - Receipt validation: `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`
 - App verification: `../../scripts/verify-app.ps1 -ProjectPath .`
 - Focused tests: TODO: exact package scripts or test files.
+- Focused implementation checks: TODO: exact checks to run during implementation before `/converge` and `/verify`.
 - Missing scripts policy: Report missing commands instead of inventing them.
 
 ## Rendered UI Verification
@@ -105,6 +110,7 @@ TODO: list explicit exclusions that prevent scope drift.
 ## Complexity Tracking
 
 - Complexity level: TODO: low, medium, or high.
+- Implementation readiness: TODO: what must already be true before `/implement` starts.
 - Main unknowns: TODO: list the unknowns that could change sequencing or scope.
 - Fallback path: TODO: smallest acceptable fallback if the preferred implementation stalls.
 - Rollback or recovery path: TODO: how to recover from migration, deployment, or behavioral regression risk.

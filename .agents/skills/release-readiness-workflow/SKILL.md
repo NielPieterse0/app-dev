@@ -46,16 +46,16 @@ Update the `## Release Readiness Workflow Receipt` section in `workflow-receipts
 - Record exact commands run and exact blockers.
 - Do not mark the receipt complete if required verification evidence is missing.
 
-## Optional External Accelerators
+## External Accelerators
 
-When installed and trusted, this workflow may use:
+This workflow must use:
 
-- `verification-before-completion`
-- `security-scan`
-- `github`
-- `gh-fix-ci`
-- `gh-address-comments`
-- `yeet`
-- `stripe-best-practices`
+- `C:/Users/piete/.codex/skills/verification-before-completion/SKILL.md` when work touches PR, deploy, or production-readiness surfaces
+- `C:/Users/piete/.codex/skills/security-scan/SKILL.md`when work touches auth, payments, or public API surfaces
+- `C:/Users/piete/.codex/skills/github/SKILL.md` when PR or GitHub work is involved
+- `C:/Users/piete/.codex/skills/gh-fix-ci/SKILL.md` when GitHub CI work is involved
+- `C:/Users/piete/.codex/skills/gh-address-comments/SKILL.md` when PR comments are involved
+- `C:/Users/piete/.codex/skills/yeet/SKILL.md` when work touches deploy, secrets, live migrations, or production-readiness surfaces
+- `C:/Users/piete/.codex/skills/stripe-best-practices/SKILL.md` when work touches payments or Stripe surfaces
 
 If none are available, continue with local app-dev standards and record the gap in the receipt.

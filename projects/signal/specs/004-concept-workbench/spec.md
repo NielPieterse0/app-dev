@@ -25,7 +25,7 @@ Complete Signal Slice 4 in two linked parts: first close the remaining Slice 3 v
 ## Acceptance Criteria
 
 1. The connected Supabase project has the Signal schema and RPCs applied through the repository migrations, and Slice 3's live verification blocker is closed with recorded evidence.
-2. `projects/signal/README.md`, `PLAN.md`, and related slice artifacts no longer contain stale Slice 2 wording or outdated scope statements.
+2. `projects/signal/README.md`, the slice plan, and related slice artifacts no longer contain stale Slice 2 wording or outdated scope statements.
 3. Dashboard/product copy uses backend-neutral wording for generic storage-mode disclosures while still keeping Supabase-specific setup and security notes where they matter.
 4. A new `concepts` module exists with schemas, repositories, route logic, and tests.
 5. The dashboard supports inspect-first promotion from a persisted signal into a concept draft.

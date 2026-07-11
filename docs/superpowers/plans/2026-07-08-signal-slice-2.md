@@ -34,7 +34,7 @@
 - Modify `scripts/validate-workflow-receipts.ps1`: consume shared helpers and support bare switch invocation.
 - Modify `scripts/test-workflow-enforcement.ps1` and `scripts/test-workspace.ps1`: assert CLI behavior and run analysis.
 - Create `standards/constitution.md`: versioned principles and delegation map.
-- Modify `templates/PLAN.template.md`: clarification, constitution check, and deviation tracking.
+- Modify `templates/spec-workflow/plan.template.md`: clarification, constitution check, and deviation tracking.
 - Modify root and template `AGENTS.md`, `standards/*.md`, and generated command text: correct switch syntax and same-repo guidance.
 - Modify `.github/workflows/app-dev-validation.yml`: validate Signal from the root workflow.
 - Delete `projects/signal/.github/workflows/verify.yml`: remove inert nested workflow.
@@ -207,7 +207,7 @@ git commit -m "refactor: share workflow harness primitives"
 
 **Interfaces:**
 
-- Consumes: active spec resolved from project `PLAN.md`.
+- Consumes: active spec resolved from the active spec `plan.md`.
 - Produces: exit code `0` with `Spec analysis passed.` or nonzero with one line per contradiction.
 - Checks: status agreement, gated artifact presence, completed-task artifact claims, verification-evidence closure, and unresolved clarification markers at completion.
 
@@ -259,7 +259,7 @@ git commit -m "feat: add cross-artifact spec analysis gate"
 **Files:**
 
 - Create: `standards/constitution.md`
-- Modify: `templates/PLAN.template.md`
+- Modify: `templates/spec-workflow/plan.template.md`
 - Modify: `standards/spec-driven-workflow.md`
 - Modify: `AGENTS.md`
 - Test: `scripts/validate-codex-assets.ps1`
@@ -306,7 +306,7 @@ Use:
 Run the validator and `./scripts/check-workspace.ps1`, then:
 
 ```powershell
-git add AGENTS.md standards templates/PLAN.template.md scripts/validate-codex-assets.ps1
+git add AGENTS.md standards templates/spec-workflow/plan.template.md scripts/validate-codex-assets.ps1
 git commit -m "docs: establish app-dev constitution and deviation tracking"
 ```
 
@@ -316,7 +316,7 @@ git commit -m "docs: establish app-dev constitution and deviation tracking"
 
 - Modify: `standards/workspace.md`
 - Modify: root/template/project `AGENTS.md`
-- Modify: `projects/signal/PLAN.md`
+- Modify: `projects/signal/specs/NNN-<slug>/plan.md`
 - Modify: `.gitignore`
 - Modify: `.github/workflows/app-dev-validation.yml`
 - Delete: `projects/signal/.github/workflows/verify.yml`
@@ -563,7 +563,7 @@ git commit -m "feat(signal): persist source settings from the UI"
 - Modify: `projects/signal/specs/002-live-settings/tasks.md`
 - Modify: `projects/signal/specs/002-live-settings/checklist.md`
 - Modify: `projects/signal/specs/002-live-settings/workflow-receipts.md`
-- Modify: `projects/signal/PLAN.md`
+- Modify: `projects/signal/specs/NNN-<slug>/plan.md`
 
 **Interfaces:**
 

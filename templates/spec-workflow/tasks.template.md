@@ -2,7 +2,7 @@
 
 - Status: draft
 - Spec: `specs/{{SPEC_DIR}}/spec.md`
-- Plan: `PLAN.md`
+- Plan: `specs/{{SPEC_DIR}}/plan.md`
 - Receipts: `specs/{{SPEC_DIR}}/workflow-receipts.md`
 
 ## Task Format
@@ -22,13 +22,13 @@ Use strict checklist rows:
 
 ### Phase 1: Setup
 
-- [ ] T001 Confirm app `AGENTS.md`, `PLAN.md`, and `specs/{{SPEC_DIR}}/spec.md` point to the same active spec.
-- [ ] T002 Confirm workflow classification in `specs/{{SPEC_DIR}}/workflow-receipts.md`.
+- [ ] T001 Confirm app `AGENTS.md`, `specs/{{SPEC_DIR}}/plan.md`, and `specs/{{SPEC_DIR}}/spec.md` point to the same active spec.
+- [ ] T002 Create or confirm workflow classification in `specs/{{SPEC_DIR}}/workflow-receipts.md`.
 - [ ] T003 Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` before implementation planning closes.
 
 ### Phase 2: Foundation
 
-- [ ] T004 Update `PLAN.md` from `templates/spec-workflow/PLAN.template.md` so architecture, module, data, permission, platform, workflow, and verification decisions match this spec.
+- [ ] T004 Reconcile `specs/{{SPEC_DIR}}/plan.md` so architecture, module, data, permission, platform, workflow, and verification decisions match this spec before implementation begins.
 - [ ] T005 Update `specs/{{SPEC_DIR}}/workflow-receipts.md` with `/plan` and `/tasks` command evidence, reviewed files, outstanding gaps, and required local workflows.
 - [ ] T006 Add or update shared foundations named by the plan before user-story work begins.
 
@@ -51,19 +51,20 @@ Use strict checklist rows:
 
 ### Phase 5: Polish And Verification
 
-- [ ] T010 Reconcile `specs/{{SPEC_DIR}}/spec.md`, `PLAN.md`, `specs/{{SPEC_DIR}}/tasks.md`, and `specs/{{SPEC_DIR}}/workflow-receipts.md` to the implemented state.
+- [ ] T010 Reconcile `specs/{{SPEC_DIR}}/spec.md`, `specs/{{SPEC_DIR}}/plan.md`, `specs/{{SPEC_DIR}}/tasks.md`, and `specs/{{SPEC_DIR}}/workflow-receipts.md` to the implemented state.
 - [ ] T011 Run `../../scripts/analyze-spec.ps1 -ProjectPath .`.
-- [ ] T012 Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`.
-- [ ] T013 Run `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`.
-- [ ] T014 Run `../../scripts/verify-app.ps1 -ProjectPath .`.
-- [ ] T015 Record rendered desktop and mobile verification in `specs/{{SPEC_DIR}}/workflow-receipts.md` when UI work is in scope.
+- [ ] T012 Run `/converge` and append remaining work to `specs/{{SPEC_DIR}}/tasks.md` when required before final verification.
+- [ ] T013 Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`.
+- [ ] T014 Run `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`.
+- [ ] T015 Run `../../scripts/verify-app.ps1 -ProjectPath .`.
+- [ ] T016 Record rendered desktop and mobile verification in `specs/{{SPEC_DIR}}/workflow-receipts.md` when UI work is in scope.
 
 ## Dependencies And Order
 
 - Setup tasks block foundation tasks.
 - Foundation tasks block user-story or vertical-increment tasks.
 - User stories should be implemented in priority order unless `[P]` tasks are explicitly independent.
-- Verification tasks run after implementation evidence and task status are current.
+- Verification tasks run after implementation evidence and task status are current and `/converge` has determined whether remaining work still exists.
 
 ## Parallel Opportunities
 

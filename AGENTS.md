@@ -38,7 +38,7 @@ Promote to a pnpm/Turborepo monorepo only after at least two apps share real cod
 - Put durable workspace rules in this file.
 - Put app-specific rules in `projects/<app>/AGENTS.md`.
 - Put feature specifications in `projects/<app>/specs/NNN-<slug>/`.
-- Put task planning protocol in `standards/spec-driven-workflow.md` and per-app plans in `projects/<app>/PLAN.md`.
+- Put workflow planning rules in `standards/spec-driven-workflow.md` and per-spec plans in `projects/<app>/specs/NNN-<slug>/plan.md`.
 - Put repeatable task workflows in `.agents/skills/`.
 - Put repo-owned workflow entry commands in `.agents/commands/`.
 - Put project settings, rules, and hooks in `.codex/`.
@@ -53,9 +53,9 @@ Workflow owner: `standards/spec-driven-workflow.md`.
 
 Execution surface: `.agents/commands/`.
 
-Lean path: `spec -> plan -> tasks -> implement -> analyze -> verify -> handoff`.
+Lean path: `spec -> plan -> tasks -> analyze -> implement -> converge -> verify -> handoff`.
 
-Gated path: `clarify -> spec -> checklist -> plan -> tasks -> implement -> converge -> analyze -> verify -> handoff`.
+Gated path: `clarify -> spec -> checklist -> plan -> tasks -> analyze -> implement -> converge -> verify -> handoff`.
 
 Use the canonical workflow standard for phase requirements and use the command docs for exact commands, working directories, and receipt obligations.
 

@@ -15,7 +15,7 @@ Use this skill for modular app planning, scaffolding, implementation review, and
 
 1. Read root `AGENTS.md`.
 2. Read the app `AGENTS.md` when working inside `projects/<app>`.
-3. Read the app `PLAN.md` when present. Create one from `templates/spec-workflow/PLAN.template.md` for architectural or multi-module work.
+3. Read the active spec's `plan.md` when present. Create one from `templates/spec-workflow/plan.template.md` for architectural or multi-module work.
 4. Load only the reference file needed for the task:
    - `../../../standards/stack.md` for app-type or library decisions.
    - `references/module-contract.md` for module structure.
@@ -33,20 +33,20 @@ App-specific responsibilities in this skill:
 
 1. Capture or confirm durable app identity in app `AGENTS.md` and keep the active spec pointer current.
 2. Select the simplest app type for the requirement set.
-3. Keep `PLAN.md`, `tasks.md`, `workflow-receipts.md`, and `checklist.md` aligned before material implementation.
+3. Keep the active `plan.md`, `tasks.md`, `workflow-receipts.md`, and `checklist.md` aligned before material implementation, and resolve `/analyze` contradictions before starting code changes.
 4. Build the base shell before feature modules, then implement vertical modules with public `@/modules/<module>` boundaries only.
 5. Classify the work into any required local wrapper workflows and keep the matching receipt sections current.
-   - `ui-change-workflow`
-   - `data-change-workflow`
-   - `mobile-validation-workflow`
-   - `release-readiness-workflow`
-6. Reuse standard libraries and local templates, then close with the workflow-required verification and rendered checks.
+   - `ui-change-workflow` and use `.agents/skills/ui-change-workflow/SKILL.md`
+   - `data-change-workflow` and use `.agents/skills/data-change-workflow/SKILL.md`
+   - `mobile-validation-workflow` and use `.agents/skills/mobile-validation-workflow/SKILL.md`
+   - `release-readiness-workflow` and use `.agents/skills/release-readiness-workflow/SKILL.md`
+6. Reuse standard libraries and local templates, close implementation through `/converge`, then finish with the workflow-required verification and rendered checks.
 
-## Optional External Capabilities
+## External Capabilities
 
-The only required local skill in this repo is `cross-platform-app-workflow`. Other skills or plugins are optional external/global capabilities. Use them only when installed, trusted, and relevant; if unavailable, continue with local standards and report the gap.
+Other skills or plugins are external/global capabilities. Use them when relevant; if unavailable, continue with local standards and report the gap.
 
-Consult `standards/codex-capabilities.md` for routing guidance before using optional capabilities for frontend UI, rendered QA, shadcn/ui, React/Next, Supabase, Playwright, security, GitHub, mobile emulators, dashboards, OpenAI API work, payments, or deployment. External skills are accelerators; the local wrapper workflows are the enforceable contract.
+Consult `standards/codex-capabilities.md` for routing guidance before using external/global  capabilities for frontend UI, rendered QA, shadcn/ui, React/Next, Supabase, Playwright, security, GitHub, mobile emulators, dashboards, OpenAI API work, payments, or deployment. External skills are accelerators; the local wrapper workflows are the enforceable contract.
 
 ## Guardrails
 

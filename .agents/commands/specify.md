@@ -2,84 +2,187 @@
 
 ## Purpose
 
-Create or update the active numbered spec surface for one feature or workflow slice.
+Create or update one numbered feature specification from a product feature description or user request.
+
+`/specify` is step one of the workflow. It only creates or updates `specs/NNN-<slug>/spec.md`.
+
+It does not create or update:
+
+- `plan.md`
+- `tasks.md`
+- `workflow-receipts.md`
+- `checklist.md`
+- app `AGENTS.md`
 
 ## Working Directory
 
-Run inside `projects/<app>/`. Do not run this command from the repository root.
+Run inside `projects/<app>/`.
+
+Do not run this command from the repository root.
 
 ## Start Gate
 
-- Confirm the current directory contains app `AGENTS.md` and, when present, `PLAN.md`.
-- Confirm the requested work is one feature or one vertical slice. Split broad requests before creating artifacts.
-- Generate or select a `specs/NNN-<slug>/` folder using monotonically increasing three-digit numbering.
-- Stop if the feature description is empty or if more than three material clarifications are needed.
+- Confirm the current directory contains app `AGENTS.md`.
+- Confirm a concrete product feature description or user request exists.
+- Confirm the requested work is one feature or one vertical slice.
+- Split broad or unrelated requests into separate specs before creating artifacts.
 
 ## Required Reads
 
 - Root `../../AGENTS.md`
 - App `AGENTS.md`
 - `../../standards/spec-driven-workflow.md`
+- `../../standards/constitution.md`
 - `../../standards/command-workflow-contract.md`
+- `../../standards/workspace.md`
+- `../../standards/stack.md`
+- `../../standards/security.md`
+- `../../standards/codex-capabilities.md`
 - `../../templates/spec-workflow/spec.template.md`
-- `../../templates/spec-workflow/tasks.template.md`
-- `../../templates/spec-workflow/workflow-receipts.template.md`
-- `../../templates/spec-workflow/checklist.template.md` when gated risk applies
 
 ## Required Writes
 
 - `specs/NNN-<slug>/spec.md`
-- `specs/NNN-<slug>/tasks.md`
-- `specs/NNN-<slug>/workflow-receipts.md`
-- `specs/NNN-<slug>/checklist.md` when gated risk applies
-- App `AGENTS.md` active specification pointer, when the selected spec becomes active
 
 ## Pre-Step Checks
 
-- Confirm no generated artifact keeps unresolved template tokens after the feature description is applied.
-- Confirm risk level is one of the allowed local risk values.
-- Confirm gated work has a checklist initialized before implementation starts.
-- Confirm `tasks.md` contains `## Task List`.
-- Confirm `workflow-receipts.md` contains `Command path used:` fields.
-- Use `../../scripts/check-spec-artifacts.ps1 -ValidationMode current-template` only for newly generated or explicitly refreshed apps; existing apps stay on the default compatibility contract unless this slice includes a template migration.
+- Confirm the feature description is concrete enough to describe users, outcomes, scope boundaries, and verification intent.
+- Confirm risk level will be classified with one allowed local value: `standard`, `gated`, or `sensitive`.
+- Confirm no generated spec keeps unresolved template tokens after writing.
+- Use the spec-only validation path for `/specify`.
+- Do not require `plan.md`, `tasks.md`, `workflow-receipts.md`, or `checklist.md` at this step.
 
 ## Execution Steps
 
-1. Parse the user request into actors, outcomes, data touched, target platforms, constraints, and explicit exclusions.
-2. Choose a concise slug from durable feature terms.
-3. Create or select `specs/NNN-<slug>/`.
-4. Populate `spec.md` with prioritized scenarios or vertical increments, independent tests, functional requirements, success criteria, data and permission impact, UX/platform notes, assumptions, risks, and verification intent.
-5. Populate `tasks.md` from the task template with initial setup, planning, receipt, and verification tasks. Leave implementation-specific tasks for `/tasks` when details are not yet known.
-6. Populate `workflow-receipts.md`; classify UI, data, mobile, and release-readiness obligations as required or not required.
-7. Populate `checklist.md` for gated work and resolve required clarification, security, data, rollback, and approval items before implementation.
-8. Update app `AGENTS.md` if this is the active spec.
-9. Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .`. Use `-ValidationMode current-template` only when this spec is validating a newly generated or intentionally refreshed app scaffold.
+### Phase 1: Parse The Request
+
+1. Read the product feature description or user request.
+2. Identify:
+   - actors
+   - user outcomes
+   - data touched
+   - target platforms or surfaces
+   - constraints
+   - explicit exclusions
+3. Choose a risk level:
+   - `standard` for ordinary feature work with no sensitive or gated concerns
+   - `gated` for work involving elevated security, auth, data, permission, or live-environment review needs
+   - `sensitive` for the highest-risk work that requires the strongest gated treatment
+4. If key details are missing, make reasonable defaults.
+5. Ask for clarification only when the missing point would materially change scope, security, permissions, or user-visible behavior.
+6. Limit unresolved clarifications to at most three critical items.
+
+### Phase 2: Name The Spec
+
+1. Choose a short, durable slug from the feature terms.
+2. Prefer business or product language over implementation language.
+3. Avoid temporary wording such as `fix`, `misc`, `v2`, or ticket-only names unless the request is truly defect-specific.
+
+### Phase 3: Create Or Select The Spec Folder
+
+1. Create or select `specs/NNN-<slug>/`.
+2. `NNN` is the next monotonically increasing three-digit number.
+3. `<slug>` is the durable feature or workflow-slice name.
+4. Write or update `specs/NNN-<slug>/spec.md` from `../../templates/spec-workflow/spec.template.md`.
+
+### Phase 4: Write The Spec
+
+Populate `spec.md` with concrete content derived from the request.
+
+The spec must include:
+
+- status
+- risk level
+- summary
+- problem
+- scope
+- scoped user scenarios
+- independently testable stories or vertical increments
+- functional requirements
+- key entities when relevant
+- measurable success criteria
+- data, permissions, and sensitive-operation notes
+- UX and platform notes
+- assumptions
+- risks and open questions
+- verification intent
+
+### Phase 5: Apply Spec Quality Rules
+
+When writing the spec:
+
+- Ensure requirement completeness: all necessary requirements are documented.
+- Ensure requirement clarity: requirements are specific and unambiguous.
+- Ensure requirement consistency: requirements do not conflict with each other.
+- Ensure acceptance criteria quality: success criteria are measurable or objectively observable.
+- Ensure scenario coverage: primary, alternate, and relevant exception flows are addressed.
+- Ensure edge-case coverage: boundary conditions and failure cases are described.
+- Ensure non-functional requirements are included when relevant, such as performance, security, accessibility, privacy, or reliability.
+- Ensure dependencies and assumptions are documented and separated from requirements.
+- Surface ambiguities and conflicts explicitly instead of hiding them in vague wording.
+
+Also:
+
+- Prefer product behavior over implementation detail.
+- State what the system must do, not how it will be built.
+- Keep scope bounded.
+- Make each requirement testable and observable.
+- Use stable IDs such as `FR-001` and `SC-001`.
+- Use plain language that a product owner, reviewer, or implementer can all read.
+
+### Phase 6: Run Spec Review
+
+Before finishing, review the spec against this checklist:
+
+- `CHK-01` Does the spec describe one feature or one vertical slice only?
+- `CHK-02` Is the feature scope clearly bounded?
+- `CHK-03` Are exclusions explicit?
+- `CHK-04` Are the primary actors and outcomes clear?
+- `CHK-05` Does each main story have an independent test?
+- `CHK-06` Are stable IDs such as `FR-001` and `SC-001` used?
+- `CHK-07` Is the chosen risk level appropriate to the feature's data, permission, and operational impact?
+- `CHK-08` Are requirements complete for the intended slice?
+- `CHK-09` Are requirements specific, testable, and unambiguous?
+- `CHK-10` Are requirements internally consistent and free of obvious conflicts?
+- `CHK-11` Are success criteria measurable or objectively observable?
+- `CHK-12` Are primary, alternate, and relevant exception scenarios covered?
+- `CHK-13` Are important edge cases addressed?
+- `CHK-14` Are relevant non-functional requirements stated when needed?
+- `CHK-15` Are dependencies and assumptions documented clearly?
+- `CHK-16` Are open questions and unresolved ambiguities clearly separated?
+- `CHK-17` Are data, permission, and sensitive-operation impacts described?
+- `CHK-18` Are all placeholder tokens removed?
 
 ## Post-Step Checks
 
-- `spec.md` has stable `FR-###` and `SC-###` IDs.
-- Each main scenario or vertical increment has an independent test.
-- `workflow-receipts.md` records the workflow classification.
-- Gated risk has a populated `checklist.md`.
-- Artifact validation passes or the blocker is recorded exactly.
+- `spec.md` exists at `specs/NNN-<slug>/spec.md`.
+- No unresolved template placeholders remain.
 
 ## Receipt Updates
 
-- Record `/specify` in `Command path used:` for any workflow section initialized by this command.
-- Record files reviewed and current outstanding gaps.
-- Leave verification evidence as planned or not-run; do not mark closure complete from `/specify`.
+- Do not update `workflow-receipts.md` from `/specify`.
+- Leave workflow classification, implementation evidence, and verification evidence for later owning phases.
 
 ## Stop Conditions
 
 - No concrete feature description was provided.
 - The request spans unrelated features that need separate specs.
-- A gated decision requires user approval before it can be documented.
-- `check-spec-artifacts.ps1` fails and the failure cannot be resolved inside the spec artifacts.
+- More than three material clarifications are required.
+- A critical scope, security, or permission decision cannot be safely defaulted.
+- Spec-only validation fails and the failure cannot be resolved inside `spec.md`.
 
 ## Completion Report
 
-Report the selected spec folder, risk level, workflow classification, files written, artifact check result, unresolved questions, and whether the next step is `/plan`.
+Report:
+
+- selected spec folder
+- spec file path
+- chosen risk level
+- feature scope summary
+- open questions or assumptions
+- spec-only validation result
+- recommended next command
 
 ## Next Command
 
-Run `/plan` after the spec, initial tasks, receipts, and any gated checklist are ready.
+Run `/plan` after `spec.md` is complete and accepted.

@@ -10,18 +10,18 @@ This workspace uses a translated local spec-driven workflow inspired by `spec-ki
 
 - `projects/<app>/AGENTS.md`: durable app identity, stack constraints, verification rules, and active spec pointer
 - `projects/<app>/specs/NNN-<slug>/spec.md`: feature intent, requirements, acceptance criteria, data impact, and risk
+- `projects/<app>/specs/NNN-<slug>/plan.md`: architecture, rollout, verification, and implementation constraints derived from that spec
 - `projects/<app>/specs/NNN-<slug>/tasks.md`: ordered implementation checklist for that feature
-- `projects/<app>/specs/NNN-<slug>/workflow-receipts.md`: workflow classification and closure evidence for UI, data, mobile, and release-readiness obligations
+- `projects/<app>/specs/NNN-<slug>/workflow-receipts.md`: workflow classification, Applicable Standards Checklist evidence, and closure evidence for UI, data, mobile, and release-readiness obligations
 - `projects/<app>/specs/NNN-<slug>/checklist.md`: gated review checklist for sensitive work
-- `projects/<app>/PLAN.md`: architecture, rollout, verification, and implementation constraints derived from the active spec
-- `templates/spec-workflow/PLAN.template.md`: reusable app plan shape for generated and updated app plans
+- `templates/spec-workflow/plan.template.md`: reusable per-spec plan shape for generated and updated plans
 
 ## Numbered Specs
 
 - Start every generated app with `specs/001-initial/`.
 - Later feature work uses `specs/00N-<feature-slug>/`.
 - Numbers are zero-padded to three digits and increase monotonically.
-- `AGENTS.md` and `PLAN.md` must both point to the active spec path before material implementation begins.
+- `AGENTS.md` and the active spec's `plan.md` must both point to the active spec path before material implementation begins.
 
 ## Validation Modes
 
@@ -36,12 +36,13 @@ Use `current-template` only when validating newly generated artifacts or an app 
 
 | Phase | Command owner | Main enforcement |
 |---|---|---|
-| Clarify (gated only) | `.agents/commands/specify.md` gated branch | `check-spec-artifacts.ps1` plus checklist completion |
+| Clarify (gated only) | `.agents/commands/specify.md` gated branch | `check-spec-artifacts.ps1` plus later checklist completion |
 | Spec | `.agents/commands/specify.md` | `check-spec-artifacts.ps1` |
 | Plan | `.agents/commands/plan.md` | `check-spec-artifacts.ps1`, `analyze-spec.ps1` |
 | Tasks | `.agents/commands/tasks.md` | `check-spec-artifacts.ps1`, `validate-workflow-receipts.ps1` |
-| Implement | `.agents/commands/implement.md` | `check-spec-artifacts.ps1` before handoff |
-| Analyze | `.agents/commands/analyze.md` | `analyze-spec.ps1` |
+| Analyze | `.agents/commands/analyze.md` | `analyze-spec.ps1`, `get-applicable-standard-rules.ps1` preflight when relevant |
+| Implement | `.agents/commands/implement.md` | `get-applicable-standard-rules.ps1`, `check-spec-artifacts.ps1` before handoff |
+| Converge | `.agents/commands/converge.md` | `get-applicable-standard-rules.ps1` convergence review when relevant, append-only `tasks.md` updates |
 | Verify | `.agents/commands/verify.md` | `check-spec-artifacts.ps1`, `validate-workflow-receipts.ps1 -RequireVerificationEvidence`, `verify-app.ps1` |
 | Release readiness | `.agents/commands/release-readiness.md` | `validate-workflow-receipts.ps1`, `verify-app.ps1`, any slice-specific release gate |
 
@@ -51,14 +52,18 @@ The standards document owns the phase narrative. Command files own the exact exe
 
 Use the lean path for ordinary app and module work:
 
-`spec -> plan -> tasks -> implement -> analyze -> verify -> handoff`
+`spec -> plan -> tasks -> analyze -> implement -> converge -> verify -> handoff`
 
 Lean-path work still requires:
 
 - a complete `spec.md`
-- a current `PLAN.md`
-- a tracked `tasks.md`
-- a current `workflow-receipts.md`
+- a current `plan.md`
+- a tracked `tasks.md` created during `/tasks`
+- a current `workflow-receipts.md` created during `/tasks`
+- `../../scripts/analyze-spec.ps1 -ProjectPath .` before material implementation starts
+- Analyze-phase registry-rule visibility is reviewed before `/implement` when the active artifacts or task paths trigger relevant `../../standards/registry/*.rules.json` families.
+- applicable implementation rules resolved from `../../standards/registry/*.rules.json` and recorded in `workflow-receipts.md`
+- `/converge` determines whether implementation is actually done or must return to `/implement`
 - `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` before implementation handoff
 - `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` before completion
 - `../../scripts/verify-app.ps1 -ProjectPath .` plus rendered UI checks before completion
@@ -67,12 +72,15 @@ Lean-path work still requires:
 
 Use the gated path for work involving auth, payments, secrets, public APIs, data access, file uploads, RLS, AI tool actions, deployment, or live migrations:
 
-`clarify -> spec -> checklist -> plan -> tasks -> implement -> converge -> analyze -> verify -> handoff`
+`clarify -> spec -> checklist -> plan -> tasks -> analyze -> implement -> converge -> verify -> handoff`
 
 Gated-path work requires:
 
-- a populated `checklist.md`
-- a populated `workflow-receipts.md` with the relevant sections closed
+- a populated `checklist.md` created no earlier than `/tasks` for gated or sensitive work
+- contradictions found by `../../scripts/analyze-spec.ps1 -ProjectPath .` are resolved before material implementation starts
+- Analyze may preflight registry-rule visibility before `/implement`, but implementation-time Applicable Standards Checklist ownership remains in `/implement`
+- `/converge` closes the post-implementation done or not-done decision before `/verify`
+- a populated `workflow-receipts.md` with the Applicable Standards Checklist and relevant workflow sections kept current
 - explicit security, data, and rollback notes
 - explicit user approval before destructive or live-environment operations
 
@@ -81,60 +89,15 @@ Gated-path work requires:
 Convergence is artifact-based in this workspace. Before claiming a feature is complete, confirm:
 
 - implemented scope still matches the active `spec.md`
-- `PLAN.md` reflects the real architecture and verification decisions
+- `plan.md` reflects the real architecture and verification decisions
 - `tasks.md` accurately marks completed and deferred work
 - `workflow-receipts.md` accurately captures which local wrapper workflows were required and what verification evidence exists
+- the Applicable Standards Checklist records how the selected registry rules were applied, deferred, or blocked
+- implementation-time documentation reconciliation already aligned touched governed docs to the implemented state
 - handoff notes capture deviations, skipped checks, and follow-up items
 
 Use `templates/spec-workflow/converge.template.md` as the default handoff structure when a feature needs an explicit convergence note.
 
-In command terms, convergence is closed inside `/verify`: artifacts are reconciled first, then verification evidence is recorded against the converged state.
+In command terms, `/converge` closes the post-implementation done or not-done decision: it refreshes `/analyze` models against implemented reality, appends remaining work to `tasks.md` when needed, and sends the slice back to `/implement` or forward to `/verify`.
 
-## Planning Protocol
-
-Planning protocol is owned here. App plan shape is owned by `templates/spec-workflow/PLAN.template.md`. Root `PLANS.md` is not a standalone governance surface.
-
-### When A Plan Is Required
-
-Create or update `projects/<app>/PLAN.md` before work that changes architecture, data model, authentication, permissions, routing, core UI shell, deployment, migrations, or more than one module.
-
-Create or update a numbered feature spec before material app work, then update `PLAN.md` from that active spec before implementation starts.
-
-A plan is optional for small fixes, documentation edits, formatting changes, or one-file corrections where the next action is obvious.
-
-### Minimum Plan Content
-
-A useful app plan states:
-
-- active spec id and path
-- goal and non-goals
-- target app type and platforms
-- affected modules/files
-- user-visible behavior
-- data/auth/permission/storage impact
-- workflow classification
-- risks and assumptions
-- verification commands and rendered UI checks
-- accepted, rejected, and deferred decisions
-- open decisions, deviations, and follow-ups
-
-### Plan Lifecycle
-
-1. Draft the plan before implementation when the work meets the plan-required threshold.
-2. Confirm the active spec path in app `AGENTS.md` before changing `PLAN.md`.
-3. Keep the plan concise; avoid replacing specs, tasks, or issue tracking.
-4. Mark decisions as accepted, deferred, or rejected.
-5. Update the verification section when commands change.
-6. Replace stale plan content with current active-spec decisions instead of letting outdated guidance accumulate.
-
-### Standard Files
-
-- Planning protocol: `standards/spec-driven-workflow.md`
-- Reusable app plan template: `templates/spec-workflow/PLAN.template.md`
-- Reusable spec templates: `templates/spec-workflow/`
-- Per-app plan: `projects/<app>/PLAN.md`
-- Per-app feature specs: `projects/<app>/specs/NNN-<slug>/`
-
-### Completion Rule
-
-Before claiming a planned task is complete, compare final changes against the plan and call out any deviation, skipped verification, unresolved decision, or deferred item.
+`/verify` assumes convergence is already closed, then records verification evidence, rendered checks, blockers, and final completion closure against the converged state.

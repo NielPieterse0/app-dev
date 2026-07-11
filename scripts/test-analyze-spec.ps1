@@ -55,7 +55,7 @@ function New-AnalyzeFixture {
     "- Spec path: specs/001-initial/spec.md",
     "- Tasks path: specs/001-initial/tasks.md"
   )
-  Write-TextFile -Path (Join-Path $projectPath "PLAN.md") -Content ($planLines -join "`n")
+  Write-TextFile -Path (Join-Path $specDir "plan.md") -Content ($planLines -join "`n")
 
   $specLines = @(
     "# Fixture Spec",
@@ -189,7 +189,7 @@ try {
   Assert-Fails -ProjectPath $fixture
 
   $fixture = New-AnalyzeFixture -Name "planned-spec-open-clarification" -IncludeChecklist -IncludeClarification
-  foreach ($required in @("AGENTS.md", "PLAN.md", "specs/001-initial/spec.md", "specs/001-initial/tasks.md", "specs/001-initial/workflow-receipts.md", "specs/001-initial/checklist.md")) {
+  foreach ($required in @("AGENTS.md", "specs/001-initial/plan.md", "specs/001-initial/spec.md", "specs/001-initial/tasks.md", "specs/001-initial/workflow-receipts.md", "specs/001-initial/checklist.md")) {
     if (-not (Test-Path -LiteralPath (Join-Path $fixture $required))) {
       throw "Fixture generation failed for ${fixture}: missing $required"
     }

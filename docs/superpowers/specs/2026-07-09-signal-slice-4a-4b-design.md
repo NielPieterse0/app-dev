@@ -58,7 +58,7 @@ These items appear fixed already and should become regression targets, not new w
 These should be active Slice 4A work items:
 
 1. **Disposable Supabase smoke verification is still deferred**
-   - `projects/signal/PLAN.md` still records disposable migration and read/write smoke verification as deferred.
+   - the active Signal `plan.md` still records disposable migration and read/write smoke verification as deferred.
    - Slice 4A must close this with a bounded non-production verification path, not carry it forward again.
 
 2. **Signal README drift**
@@ -178,7 +178,7 @@ These do not belong in the core closeout slice:
 Files likely affected:
 
 - `docs/superpowers/specs/2026-07-09-signal-slice-4a-4b-design.md`
-- `projects/signal/PLAN.md`
+- `projects/signal/specs/NNN-<slug>/plan.md`
 - `projects/signal/specs/**`
 - `projects/signal/README.md`
 - root `README.md` and relevant `standards/**` files if drift is found
@@ -197,7 +197,7 @@ Key design decisions:
 
 Files likely affected:
 
-- `projects/signal/PLAN.md`
+- `projects/signal/specs/NNN-<slug>/plan.md`
 - `projects/signal/specs/003-live-ingestion/workflow-receipts.md`
 - root or project verification notes if a durable evidence file is needed
 - possibly `scripts/**` only if the current gates still leave ambiguity

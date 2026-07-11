@@ -10,7 +10,7 @@ Use this checklist for Signal's first slice because it introduces data access, S
 
 - [x] The first slice scope is limited to internal no-auth use, GitHub + Hacker News sources, and fixture-backed ingestion behind a stable repository interface.
 - [x] Sensitive operations are described concretely in `spec.md`.
-- [x] Failure and rollback behavior is documented in `PLAN.md`.
+- [x] Failure and rollback behavior is documented in the slice plan.
 
 ## Security And Data Review
 

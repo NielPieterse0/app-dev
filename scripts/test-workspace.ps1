@@ -9,7 +9,7 @@ $projectMatrix = @(
     Required = @(
       "package.json",
       "AGENTS.md",
-      "PLAN.md",
+      "specs/001-initial/plan.md",
       "specs/001-initial/spec.md",
       "specs/001-initial/tasks.md",
       "specs/001-initial/workflow-receipts.md",
@@ -57,7 +57,7 @@ $projectMatrix = @(
     Required = @(
       "package.json",
       "AGENTS.md",
-      "PLAN.md",
+      "specs/001-initial/plan.md",
       "specs/001-initial/spec.md",
       "specs/001-initial/tasks.md",
       "specs/001-initial/workflow-receipts.md",
@@ -78,7 +78,7 @@ $projectMatrix = @(
     Required = @(
       "package.json",
       "AGENTS.md",
-      "PLAN.md",
+      "specs/001-initial/plan.md",
       "specs/001-initial/spec.md",
       "specs/001-initial/tasks.md",
       "specs/001-initial/workflow-receipts.md",
@@ -132,18 +132,25 @@ function Assert-GeneratedProject {
     Assert-PathExists (Join-Path $projectPath $item)
   }
 
-  $plan = Get-Content -LiteralPath (Join-Path $projectPath "PLAN.md") -Raw
+  $plan = Get-Content -LiteralPath (Join-Path $projectPath "specs/001-initial/plan.md") -Raw
   if ($plan -match "{{APP_NAME}}|{{TEMPLATE}}|{{DATE}}|\bTBD\b") {
-    Write-Error "Generated PLAN.md contains unresolved placeholders for $($Project.Name)."
+    Write-Error "Generated plan.md contains unresolved placeholders for $($Project.Name)."
   }
   if ($plan -notmatch [regex]::Escape($Project.Name)) {
-    Write-Error "Generated PLAN.md does not contain the project name for $($Project.Name)."
+    Write-Error "Generated plan.md does not contain the project name for $($Project.Name)."
   }
 
   $agents = Get-Content -LiteralPath (Join-Path $projectPath "AGENTS.md") -Raw
-  foreach ($required in @("Active Specification", "Done When", "verify-app.ps1 -ProjectPath .", "check-spec-artifacts.ps1 -ProjectPath .", "validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence")) {
+  foreach ($required in @("This file defines the durable app contract for this project.", "Active Specification", "Durable Constraints", "Platform Constraints", "Verification Baseline", "verify-app.ps1 -ProjectPath .", "report the missing script instead of inventing commands")) {
     if ($agents -notmatch [regex]::Escape($required)) {
       Write-Error "Generated AGENTS.md for $($Project.Name) is missing: $required"
+    }
+  }
+
+  $receipts = Get-Content -LiteralPath (Join-Path $projectPath "specs/001-initial/workflow-receipts.md") -Raw
+  foreach ($required in @("## Applicable Standards Checklist", "Selection basis:", "Registry files reviewed:", "Allowed statuses:")) {
+    if ($receipts -notmatch [regex]::Escape($required)) {
+      Write-Error "Generated workflow-receipts.md for $($Project.Name) is missing: $required"
     }
   }
 

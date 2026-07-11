@@ -48,13 +48,13 @@ Repo-specific Codex skills live in `.agents/skills/` so Codex can discover them 
 
 ## Planning
 
-Planning protocol lives in `standards/spec-driven-workflow.md`. New project plans are created from `templates/spec-workflow/PLAN.template.md`.
+Planning protocol lives in `standards/spec-driven-workflow.md`. New per-spec plans are created from `templates/spec-workflow/plan.template.md`.
 
 A generated app should have:
 
 ```text
 projects/<app>/AGENTS.md
-projects/<app>/PLAN.md
+projects/<app>/specs/001-initial/plan.md
 ```
 
 Use the plan for architectural, data model, auth, routing, deployment, migration, or multi-module work.
@@ -108,7 +108,7 @@ To create a project folder from the React/Vite/Capacitor template:
 ./scripts/create-app.ps1 -Name my-app -Template react-vite-capacitor
 ```
 
-Then open `projects/my-app/AGENTS.md` and `projects/my-app/PLAN.md` and define the app-specific modules, decisions, and verification commands. Install dependencies inside the generated project, not at the `app-dev` root:
+Then open `projects/my-app/AGENTS.md` and `projects/my-app/specs/001-initial/plan.md` and define the app-specific modules, decisions, and verification commands. Install dependencies inside the generated project, not at the `app-dev` root:
 
 ```powershell
 cd projects/my-app
