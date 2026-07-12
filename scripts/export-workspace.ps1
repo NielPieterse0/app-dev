@@ -16,15 +16,21 @@ if (-not (Test-Path -LiteralPath $outputDirectory)) {
   New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
 }
 
-$stageRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-export-" + [System.Guid]::NewGuid().ToString("N"))
+$tempDir = Join-Path $Root ".tmp"
+New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+$stageRoot = Join-Path $tempDir ("app-dev-export-" + [System.Guid]::NewGuid().ToString("N"))
 $stageApp = Join-Path $stageRoot "app-dev"
 $excludedDirectoryNames = @(".git", "node_modules", ".pnpm-store", "dist", "build", ".next", "out", "coverage", "playwright-report", "test-results")
 $excludedRelativePrefixes = @("projects/")
 $excludedFilePatterns = @("*.log", "npm-debug.log*", "yarn-debug.log*", "yarn-error.log*", "pnpm-debug.log*")
 
 function Get-RelativePath {
-  param([Parameter(Mandatory=$true)][string]$Path)
-  $rootWithSeparator = $Root
+  param(
+    [Parameter(Mandatory=$true)][string]$BasePath,
+    [Parameter(Mandatory=$true)][string]$Path
+  )
+
+  $rootWithSeparator = $BasePath
   if (-not $rootWithSeparator.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
     $rootWithSeparator += [System.IO.Path]::DirectorySeparatorChar
   }
@@ -34,9 +40,12 @@ function Get-RelativePath {
 }
 
 function Test-IsExcluded {
-  param([Parameter(Mandatory=$true)][System.IO.FileSystemInfo]$Item)
+  param(
+    [Parameter(Mandatory=$true)][string]$BasePath,
+    [Parameter(Mandatory=$true)][System.IO.FileSystemInfo]$Item
+  )
 
-  $relative = Get-RelativePath -Path $Item.FullName
+  $relative = Get-RelativePath -BasePath $BasePath -Path $Item.FullName
   foreach ($prefix in $excludedRelativePrefixes) {
     if ($relative.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase) -and $relative -ne "projects/.gitkeep") {
       return $true
@@ -65,13 +74,13 @@ try {
 
   $items = Get-ChildItem -LiteralPath $Root -Force
   foreach ($item in $items) {
-    if (Test-IsExcluded -Item $item) {
+    if (Test-IsExcluded -BasePath $Root -Item $item) {
       continue
     }
     Copy-Item -LiteralPath $item.FullName -Destination $stageApp -Recurse -Force
   }
 
-  Get-ChildItem -LiteralPath $stageApp -Recurse -Force | Where-Object { Test-IsExcluded -Item $_ } | Sort-Object FullName -Descending | ForEach-Object {
+  Get-ChildItem -LiteralPath $stageApp -Recurse -Force | Where-Object { Test-IsExcluded -BasePath $stageApp -Item $_ } | Sort-Object FullName -Descending | ForEach-Object {
     Remove-Item -LiteralPath $_.FullName -Recurse -Force
   }
 

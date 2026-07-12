@@ -4,11 +4,10 @@ This folder contains active project-level Codex configuration for the `app-dev` 
 
 ## Active Assets
 
-- `config.toml` selects the project permission profile and wires lifecycle hooks.
+- `config.toml` wires lifecycle hooks, selects the `app-dev-workspace` permission profile, and keeps project-level policy in the repo.
 - `rules/default.rules` defines command approval/deny policy for commands Codex requests outside the sandbox.
 - `hooks/pre-command.ps1` blocks destructive shell and edit operations through `PreToolUse` and `PermissionRequest`.
 - `hooks/post-edit.ps1` adds verification reminders after edits and verification commands.
-- `hooks/verify-before-finish.ps1` is a manual final verification helper for generated app projects.
 
 Keep durable behavioral rules in the root `AGENTS.md`; keep repeatable task workflows in `.agents/skills/`.
 
@@ -22,16 +21,15 @@ This project uses inline hook tables in `.codex/config.toml`. Do not add `.codex
 
 ## Permission Model
 
-The active profile is `app-dev-workspace`.
+Project-level `default_permissions` are selected in `.codex/config.toml`.
 
 Default behavior:
 
-- Workspace files are writable for normal app/template/script work.
-- `.codex/` and `.git/` are read-only under the default profile.
-- Common secret-bearing files and key material are denied.
-- Outbound network access is disabled by default.
+- Hooks and rules remain active from project config.
+- The documented `app-dev-workspace` profile is the intended least-privilege default for this repository.
+- Effective file/network permissions still depend on the active Codex runner and trusted workspace session.
 
-For deliberate governance edits under `.codex/`, temporarily use a profile that permits those edits, then restore this profile.
+For deliberate governance edits under `.codex/`, use an approval flow or a session profile that permits those edits, then return to the normal profile.
 
 ## MCP Policy
 
@@ -42,14 +40,11 @@ No project-level MCP server is configured by default. Keep personal documentatio
 Run this after changes to Codex configuration, hooks, skills, or workspace structure:
 
 ```powershell
-.\scripts\validate-codex-assets.ps1
+./scripts/validate-codex-assets.ps1
 ```
 
 Recommended full workspace check:
 
 ```powershell
-.\scripts\check-workspace.ps1
-.\scripts\validate-codex-assets.ps1
-.\scripts\test-hooks.ps1
-.\scripts\test-workspace.ps1
+./scripts/check-all.ps1
 ```

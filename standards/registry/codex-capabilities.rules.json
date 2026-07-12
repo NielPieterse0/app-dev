@@ -1,0 +1,833 @@
+{
+  "standard": {
+    "id": "codex-capabilities",
+    "title": "Codex Capability Routing Standard",
+    "version": "1.0.0",
+    "source_file": "standards/codex-capabilities.md",
+    "status": "adopted",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in standards/codex-capabilities.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "CAP-001",
+      "standard_reference": "Preamble",
+      "section": "Capability Routing",
+      "title": "Use local app-dev assets first",
+      "requirement": "Use local app-dev assets first. Treat all global skills and plugins as optional unless they are actually installed, trusted, and visible in the active Codex session.",
+      "severity": "critical",
+      "applies_to": [
+        "codex",
+        "skills",
+        "plugins",
+        "workflow",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "codex-routing",
+        "skill-use",
+        "plugin-use",
+        "workflow-change",
+        "app-work"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Handoff identifies local app-dev assets used for the work.",
+        "Any global skill or plugin use is conditional on it being installed, trusted, and visible in the active session."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/cross-platform-app-workflow/SKILL.md",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": [
+          "capability routing receipt check"
+        ]
+      }
+    },
+    {
+      "id": "CAP-002",
+      "standard_reference": "Required Local Capability",
+      "section": "Required Local Capability",
+      "title": "Use cross-platform workflow for app-dev work",
+      "requirement": "App planning, scaffolding, module contracts, adaptive layout, and verification use .agents/skills/cross-platform-app-workflow.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "skills",
+        "planning",
+        "scaffolding",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "app-work",
+        "project-creation",
+        "module-contract",
+        "adaptive-layout",
+        "verification"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "App-dev work uses or references the local cross-platform app workflow.",
+        "Workflow receipts capture planning, module, layout, and verification obligations when applicable."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/cross-platform-app-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-003",
+      "standard_reference": "Required Local Capability",
+      "section": "Required Local Capability",
+      "title": "Use local spec workflow assets for numbered specs",
+      "requirement": "Numbered feature specs, tasks, gated-path reviews, and spec-to-plan handoff use templates/spec-workflow/, scripts/new-spec.ps1, scripts/check-spec-artifacts.ps1, and standards/spec-driven-workflow.md.",
+      "severity": "critical",
+      "applies_to": [
+        "specs",
+        "templates",
+        "scripts",
+        "workflow"
+      ],
+      "trigger_kinds": [
+        "spec-change",
+        "task-change",
+        "gated-risk",
+        "spec-to-plan",
+        "workflow-change"
+      ],
+      "phases": [
+        "spec",
+        "checklist",
+        "plan",
+        "tasks",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Numbered spec work uses the local spec workflow templates and scripts.",
+        "Spec artifacts validate through check-spec-artifacts.ps1."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/",
+          "scripts/new-spec.ps1",
+          "scripts/check-spec-artifacts.ps1",
+          "standards/spec-driven-workflow.md"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-004",
+      "standard_reference": "Required Local Capability",
+      "section": "Required Local Capability",
+      "title": "Use UI workflow for user-facing UI changes",
+      "requirement": "User-facing UI changes, rendered QA, and responsive verification use .agents/skills/ui-change-workflow.",
+      "severity": "high",
+      "applies_to": [
+        "ui",
+        "apps",
+        "skills",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "rendered-verification",
+        "responsive-layout",
+        "frontend-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "UI changes route through or reference the local UI change workflow.",
+        "Rendered QA and responsive verification evidence is recorded when UI changes occur."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/ui-change-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-005",
+      "standard_reference": "Required Local Capability",
+      "section": "Required Local Capability",
+      "title": "Use data workflow for schema and Supabase changes",
+      "requirement": "Schema, SQL, Supabase, RLS, migrations, and data access changes use .agents/skills/data-change-workflow.",
+      "severity": "critical",
+      "applies_to": [
+        "data",
+        "database",
+        "supabase",
+        "migrations",
+        "skills"
+      ],
+      "trigger_kinds": [
+        "schema-change",
+        "sql-change",
+        "supabase",
+        "rls",
+        "migration",
+        "data-access"
+      ],
+      "phases": [
+        "spec",
+        "checklist",
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Data-surface work routes through or references the local data change workflow.",
+        "Receipts record migration, RLS, data access, and verification evidence when applicable."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/data-change-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-006",
+      "standard_reference": "Required Local Capability",
+      "section": "Required Local Capability",
+      "title": "Use mobile workflow for native runtime validation",
+      "requirement": "Capacitor, Expo, Android, iOS, and native runtime validation use .agents/skills/mobile-validation-workflow.",
+      "severity": "high",
+      "applies_to": [
+        "mobile",
+        "capacitor",
+        "expo",
+        "android",
+        "ios",
+        "skills"
+      ],
+      "trigger_kinds": [
+        "mobile-change",
+        "capacitor-change",
+        "expo-change",
+        "android",
+        "ios",
+        "native-runtime"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Mobile or native runtime work routes through or references the local mobile validation workflow.",
+        "Native validation scope and any skipped emulator or device checks are recorded."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/mobile-validation-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-007",
+      "standard_reference": "Required Local Capability",
+      "section": "Required Local Capability",
+      "title": "Use release-readiness workflow for completion and risky closure",
+      "requirement": "Completion claims, risky change closure, and release-adjacent verification use .agents/skills/release-readiness-workflow.",
+      "severity": "critical",
+      "applies_to": [
+        "release-readiness",
+        "verification",
+        "handoff",
+        "skills"
+      ],
+      "trigger_kinds": [
+        "completion",
+        "risky-change",
+        "release-readiness",
+        "handoff",
+        "verification"
+      ],
+      "phases": [
+        "verify",
+        "handoff",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Completion or release-adjacent work routes through or references the local release-readiness workflow.",
+        "Handoff records verification state and residual risks."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/release-readiness-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-008",
+      "standard_reference": "Optional External Capabilities",
+      "section": "Optional External Capabilities",
+      "title": "Treat external capabilities as routing hints",
+      "requirement": "Optional external capability names are routing hints, not repository dependencies. Use them when present when required; if missing, proceed with the local wrapper workflow and standards, then state the gap in the handoff.",
+      "severity": "high",
+      "applies_to": [
+        "skills",
+        "plugins",
+        "workflow",
+        "handoff"
+      ],
+      "trigger_kinds": [
+        "optional-skill",
+        "plugin-use",
+        "capability-gap",
+        "handoff"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Optional external capabilities are not represented as repo dependencies.",
+        "Missing optional capabilities are reported as gaps only when relevant to the work."
+      ],
+      "automation": {
+        "current": [
+          "standards/codex-capabilities.md"
+        ],
+        "target": [
+          "optional capability availability receipt check"
+        ]
+      }
+    },
+    {
+      "id": "CAP-009",
+      "standard_reference": "Optional External Capabilities",
+      "section": "Optional External Capabilities",
+      "title": "Route specialist work to matching optional capabilities when present",
+      "requirement": "When present, route specialist work to the matching optional external capability for UI buildout, UI QA, shadcn, React, Supabase, Playwright, completion verification, security, GitHub, mobile validation, data visualization, OpenAI API keys, Stripe, or deployment.",
+      "severity": "medium",
+      "applies_to": [
+        "skills",
+        "plugins",
+        "specialist-work",
+        "workflow"
+      ],
+      "trigger_kinds": [
+        "frontend-build",
+        "frontend-debugging",
+        "shadcn",
+        "react-review",
+        "supabase",
+        "playwright",
+        "security-review",
+        "github-workflow",
+        "mobile-validation",
+        "data-visualization",
+        "openai-api-key",
+        "payments",
+        "deployment"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "advisory",
+      "evidence_required": [
+        "Specialist routing is used when the optional capability is available and materially helpful.",
+        "If local workflows are used instead, handoff remains grounded in local standards and does not imply the optional capability ran."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "capability routing registry lookup"
+        ]
+      }
+    },
+    {
+      "id": "CAP-010",
+      "standard_reference": "Routing Rules",
+      "section": "Routing Rules",
+      "title": "Load cross-platform app workflow first",
+      "requirement": "Load cross-platform-app-workflow first for app-dev work.",
+      "severity": "critical",
+      "applies_to": [
+        "skills",
+        "apps",
+        "workflow"
+      ],
+      "trigger_kinds": [
+        "app-work",
+        "skill-use",
+        "workflow-routing"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "App-dev work identifies cross-platform-app-workflow as the primary local workflow when skill routing is relevant."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/cross-platform-app-workflow/SKILL.md"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-011",
+      "standard_reference": "Routing Rules",
+      "section": "Routing Rules",
+      "title": "Treat triggered local wrappers as required",
+      "requirement": "Route into the local wrapper workflows whenever their surfaces are touched; do not treat them as optional once triggered.",
+      "severity": "critical",
+      "applies_to": [
+        "skills",
+        "workflow",
+        "ui",
+        "data",
+        "mobile",
+        "release-readiness"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "data-change",
+        "mobile-change",
+        "release-readiness",
+        "workflow-routing"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Touched UI, data, mobile, or release-readiness surfaces route through the matching local wrapper.",
+        "Workflow receipts reference the relevant wrapper sections when applicable."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/ui-change-workflow/SKILL.md",
+          ".agents/skills/data-change-workflow/SKILL.md",
+          ".agents/skills/mobile-validation-workflow/SKILL.md",
+          ".agents/skills/release-readiness-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-012",
+      "standard_reference": "Routing Rules",
+      "section": "Routing Rules",
+      "title": "Align workflow taxonomy across commands skills hooks and validators",
+      "requirement": "Keep command templates, wrapper skills, hooks, and validators aligned to the same workflow taxonomy and workflow-receipts.md evidence model.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "skills",
+        "hooks",
+        "validators",
+        "workflow-receipts"
+      ],
+      "trigger_kinds": [
+        "workflow-change",
+        "command-change",
+        "skill-change",
+        "hook-change",
+        "validator-change",
+        "receipt-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Workflow taxonomy changes update commands, wrapper skills, hooks, validators, and receipt templates together where applicable.",
+        "Receipt evidence remains aligned with the workflow taxonomy."
+      ],
+      "automation": {
+        "current": [
+          "scripts/test-workflow-enforcement.ps1",
+          "scripts/validate-workflow-receipts.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-013",
+      "standard_reference": "Routing Rules",
+      "section": "Routing Rules",
+      "title": "Prefer translated local spec-driven assets",
+      "requirement": "Prefer local translated spec-driven assets over vendoring or depending on upstream spec-kit runtime files.",
+      "severity": "high",
+      "applies_to": [
+        "workflow",
+        "templates",
+        "scripts",
+        "dependencies"
+      ],
+      "trigger_kinds": [
+        "spec-kit",
+        "workflow-change",
+        "template-change",
+        "dependency-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Spec-driven workflow changes use local app-dev templates, scripts, and standards.",
+        "No upstream spec-kit runtime files are vendored without a recorded project-specific need."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/",
+          "scripts/new-spec.ps1",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": [
+          "vendored spec-kit scanner"
+        ]
+      }
+    },
+    {
+      "id": "CAP-014",
+      "standard_reference": "Routing Rules",
+      "section": "Routing Rules",
+      "title": "Prefer Browser or IAB for rendered UI checks",
+      "requirement": "Prefer Browser/IAB for rendered UI checks when available. Use Playwright as the fallback and record why.",
+      "severity": "high",
+      "applies_to": [
+        "ui",
+        "browser",
+        "playwright",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "rendered-verification",
+        "browser-verification",
+        "playwright"
+      ],
+      "phases": [
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Rendered UI evidence states whether Browser/IAB or Playwright was used.",
+        "If Playwright was used as fallback, the reason Browser/IAB was unavailable or insufficient is recorded."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CAP-015",
+      "standard_reference": "Routing Rules",
+      "section": "Routing Rules",
+      "title": "Keep deployment capabilities conditional",
+      "requirement": "Keep deployment capabilities conditional until the app chooses a hosting target.",
+      "severity": "medium",
+      "applies_to": [
+        "deployment",
+        "hosting",
+        "plugins",
+        "planning"
+      ],
+      "trigger_kinds": [
+        "deployment",
+        "hosting-target",
+        "cloudflare",
+        "vercel",
+        "release-readiness"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Deployment-specific capability routing is deferred until the app records a hosting target.",
+        "Chosen hosting target and deployment capability are recorded in the active plan or release-readiness evidence."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "hosting target decision check"
+        ]
+      }
+    },
+    {
+      "id": "CAP-016",
+      "standard_reference": "Routing Rules",
+      "section": "Routing Rules",
+      "title": "Keep MCP servers user-level by default",
+      "requirement": "Keep MCP servers user-level by default. Add project-level MCP only for repo-specific tooling, never for personal credentials or secret-bearing env blocks.",
+      "severity": "critical",
+      "applies_to": [
+        "mcp",
+        "codex",
+        "config",
+        "secrets"
+      ],
+      "trigger_kinds": [
+        "mcp-config",
+        "codex-config",
+        "secret-handling",
+        "tooling"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Project-level MCP additions are justified as repo-specific tooling.",
+        "No personal credentials or secret-bearing env blocks are committed in project MCP configuration."
+      ],
+      "automation": {
+        "current": [
+          "scripts/scan-secrets.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": [
+          "project MCP secret scanner"
+        ]
+      }
+    },
+    {
+      "id": "CAP-017",
+      "standard_reference": "Routing Rules",
+      "section": "Routing Rules",
+      "title": "Do not copy global plugin skills into the repo by default",
+      "requirement": "Do not copy global plugin skills into this repository unless the workflow must be project-specific.",
+      "severity": "high",
+      "applies_to": [
+        "skills",
+        "plugins",
+        "repo"
+      ],
+      "trigger_kinds": [
+        "skill-change",
+        "plugin-skill",
+        "vendoring",
+        "workflow-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Any copied global plugin skill is justified as project-specific.",
+        "Local wrapper skills remain thin and do not absorb global plugin procedure text by default."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": [
+          "vendored skill scanner"
+        ]
+      }
+    },
+    {
+      "id": "CAP-018",
+      "standard_reference": "Routing Rules",
+      "section": "Routing Rules",
+      "title": "Keep product decisions in app instructions and plans",
+      "requirement": "Do not let plugin routing replace app-specific AGENTS.md or active-spec plan.md decisions. Product requirements still decide stack, modules, data model, permissions, and target platforms.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "agents",
+        "plans",
+        "plugins",
+        "product-decisions"
+      ],
+      "trigger_kinds": [
+        "plugin-use",
+        "stack-decision",
+        "module-decision",
+        "data-model",
+        "permission-change",
+        "target-platform"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Stack, module, data model, permissions, and platform decisions are recorded in app AGENTS.md or the active spec plan where applicable.",
+        "Plugin routing is not used as a substitute for app-specific product decisions."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/analyze-spec.ps1"
+        ],
+        "target": [
+          "plugin routing decision drift check"
+        ]
+      }
+    },
+    {
+      "id": "CAP-019",
+      "standard_reference": "Future App Review Checklist",
+      "section": "Future App Review Checklist",
+      "title": "Run app capability review before feature work",
+      "requirement": "Use the dry-run checklist before feature work begins in a generated app.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "review",
+        "planning",
+        "specs"
+      ],
+      "trigger_kinds": [
+        "feature-start",
+        "generated-app",
+        "app-review",
+        "planning"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Before generated-app feature work, app review confirms product decision record, active plan when needed, app type, capability routing, receipts, verification command, dependency hygiene, and production-readiness review needs."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/analyze-spec.ps1"
+        ],
+        "target": [
+          "future app review checklist validator"
+        ]
+      }
+    },
+    {
+      "id": "CAP-020",
+      "standard_reference": "Future App Review Checklist",
+      "section": "Future App Review Checklist",
+      "title": "Review production readiness for risky generated-app work",
+      "requirement": "Production-readiness reviews include dependency audit, secret scan, rendered UI verification, and security review of auth, authorization, RLS, public APIs, deploys, and live migrations.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "release-readiness",
+        "security",
+        "verification",
+        "deployment"
+      ],
+      "trigger_kinds": [
+        "production-readiness",
+        "auth",
+        "authorization",
+        "rls",
+        "public-api",
+        "deployment",
+        "live-migration",
+        "secret-handling"
+      ],
+      "phases": [
+        "verify",
+        "release-readiness",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Production-readiness evidence includes dependency audit, secret scan, rendered UI verification, and applicable security review.",
+        "Auth, authorization, RLS, public API, deployment, and live migration surfaces are explicitly reviewed when touched."
+      ],
+      "automation": {
+        "current": [
+          "scripts/scan-secrets.ps1",
+          "scripts/verify-app.ps1",
+          "scripts/validate-workflow-receipts.ps1",
+          ".agents/skills/release-readiness-workflow/SKILL.md"
+        ],
+        "target": [
+          "production-readiness checklist validator"
+        ]
+      }
+    }
+  ]
+}

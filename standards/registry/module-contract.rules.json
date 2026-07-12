@@ -1,0 +1,288 @@
+{
+  "standard": {
+    "id": "module-contract",
+    "title": "Module Contract",
+    "version": "1.0.0",
+    "source_file": ".agents/skills/cross-platform-app-workflow/references/module-contract.md",
+    "status": "adopted",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in .agents/skills/cross-platform-app-workflow/references/module-contract.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "MOD-001",
+      "standard_reference": "Module shape",
+      "section": "Module Shape",
+      "title": "Use the standard module folder shape",
+      "requirement": "Each functional module should own src/modules/<module>/ with components, hooks, routes, schemas, services, state, tests, and index.ts where applicable.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "modules",
+        "source-code",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "new-module",
+        "module-change",
+        "app-code",
+        "template-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "New modules use the standard src/modules/<module>/ shape where applicable.",
+        "Omitted module folders are justified by the module's actual surface."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/cross-platform-app-workflow/references/module-contract.md"
+        ],
+        "target": [
+          "module shape validator"
+        ]
+      }
+    },
+    {
+      "id": "MOD-002",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Export public module APIs from index",
+      "requirement": "Export public module APIs from index.ts.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "modules",
+        "source-code",
+        "typescript"
+      ],
+      "trigger_kinds": [
+        "new-module",
+        "module-api",
+        "export-change",
+        "typescript"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "New or changed module public APIs are exported from the module index.ts.",
+        "Consumers can import the module through its public surface."
+      ],
+      "automation": {
+        "current": [
+          "scripts/enforce-module-boundaries.js",
+          "npm run lint"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "MOD-003",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Import modules only through public surfaces",
+      "requirement": "Import other modules only through their public index.ts surface.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "modules",
+        "imports",
+        "typescript"
+      ],
+      "trigger_kinds": [
+        "cross-module-import",
+        "module-boundary",
+        "app-code",
+        "typescript"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Cross-module imports use the target module public index.ts surface.",
+        "No imports reach into another module's internal components, hooks, routes, schemas, services, state, or tests folders."
+      ],
+      "automation": {
+        "current": [
+          "scripts/enforce-module-boundaries.js",
+          "npm run lint"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "MOD-004",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Use module aliases for React template cross-module imports",
+      "requirement": "In the React/Vite/Capacitor template, use @/modules/<module> for cross-module imports. Deep imports into another module's internals are lint errors.",
+      "severity": "critical",
+      "applies_to": [
+        "templates",
+        "apps",
+        "react-vite-capacitor",
+        "imports",
+        "eslint"
+      ],
+      "trigger_kinds": [
+        "cross-module-import",
+        "template-change",
+        "eslint-rule",
+        "module-boundary"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "React/Vite/Capacitor cross-module imports use @/modules/<module>.",
+        "Lint results show no deep imports into another module's internals."
+      ],
+      "automation": {
+        "current": [
+          "scripts/enforce-module-boundaries.js",
+          "templates/react-vite-capacitor/eslint.config.js",
+          "npm run lint"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "MOD-005",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Keep data schemas close to module behavior",
+      "requirement": "Keep data schemas close to module behavior.",
+      "severity": "medium",
+      "applies_to": [
+        "apps",
+        "modules",
+        "schemas",
+        "validation",
+        "data"
+      ],
+      "trigger_kinds": [
+        "schema-change",
+        "validation",
+        "module-change",
+        "data-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Module-specific schemas live with the module behavior they validate.",
+        "Shared schemas are justified by real cross-module reuse."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "schema locality review check"
+        ]
+      }
+    },
+    {
+      "id": "MOD-006",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Keep generic helpers in src lib",
+      "requirement": "Keep reusable generic helpers in src/lib.",
+      "severity": "medium",
+      "applies_to": [
+        "apps",
+        "modules",
+        "shared-code",
+        "helpers"
+      ],
+      "trigger_kinds": [
+        "shared-code",
+        "helper-change",
+        "module-change",
+        "refactor"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Reusable generic helpers live in src/lib instead of inside a feature module.",
+        "Feature-specific helpers remain local to their owning module."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "shared helper locality check"
+        ]
+      }
+    },
+    {
+      "id": "MOD-007",
+      "standard_reference": "Rules",
+      "section": "Rules",
+      "title": "Scale module tests to risk and shared surface",
+      "requirement": "Add tests proportional to module risk and shared surface area.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "modules",
+        "tests",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "module-change",
+        "test-change",
+        "shared-surface",
+        "risk",
+        "verification"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "New or changed modules include tests proportional to risk and shared API surface.",
+        "If tests are omitted, the handoff records the low-risk rationale or blocker."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1",
+          "npm run test"
+        ],
+        "target": [
+          "module risk test coverage checklist"
+        ]
+      }
+    }
+  ]
+}

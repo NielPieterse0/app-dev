@@ -1,0 +1,365 @@
+{
+  "standard": {
+    "id": "testing",
+    "title": "Testing And Verification Standard",
+    "version": "1.0.0",
+    "source_file": "standards/testing.md",
+    "status": "adopted",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in standards/testing.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "TST-001",
+      "standard_reference": "Required Checks",
+      "section": "Required Checks",
+      "title": "Use the app's existing package manager and scripts",
+      "requirement": "Use the package manager and scripts already present in each app.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "ci",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "verification",
+        "app-code",
+        "template-change",
+        "package-script-change",
+        "ci-change"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Verification used the package manager already present in the app.",
+        "Verification used existing package scripts rather than invented commands."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "TST-002",
+      "standard_reference": "Required Checks",
+      "section": "Required Checks",
+      "title": "Run the standard app check sequence when available",
+      "requirement": "Run typecheck, lint, test, build, and e2e when those scripts are present in the app.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "templates",
+        "ci",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "verification",
+        "app-code",
+        "ui-change",
+        "data-change",
+        "release-readiness",
+        "template-change"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Verification records results for typecheck, lint, test, build, and e2e where present.",
+        "The handoff distinguishes passed checks from checks that were not available."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1",
+          "scripts/validate-workflow-receipts.ps1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "TST-003",
+      "standard_reference": "Required Checks",
+      "section": "Required Checks",
+      "title": "Report missing scripts explicitly",
+      "requirement": "If a script is missing, report it. Do not claim it passed.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "verification",
+        "handoff",
+        "workflow-receipts"
+      ],
+      "trigger_kinds": [
+        "verification",
+        "missing-script",
+        "handoff",
+        "receipt-change"
+      ],
+      "phases": [
+        "verify",
+        "handoff",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Missing package scripts are listed as missing or skipped with the exact script name.",
+        "No final summary claims a missing script passed."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "TST-004",
+      "standard_reference": "Rendered UI Checks",
+      "section": "Rendered UI Checks",
+      "title": "Verify rendered UI for UI work",
+      "requirement": "For UI work, builds are not enough. Verify the rendered app.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "ui",
+        "e2e",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "frontend-change",
+        "rendered-verification",
+        "e2e"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "UI work records rendered verification evidence beyond a successful build.",
+        "Verification identifies the rendered surface or flow that was checked."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "rendered UI receipt validator"
+        ]
+      }
+    },
+    {
+      "id": "TST-005",
+      "standard_reference": "Rendered UI Checks",
+      "section": "Rendered UI Checks",
+      "title": "Check app load, overlays, console, and interaction",
+      "requirement": "Rendered UI verification checks that the app loads to a meaningful screen, no framework error overlay appears, the console has no relevant errors, and a core user interaction changes UI state.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "ui",
+        "browser",
+        "e2e"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "interaction-change",
+        "browser-verification",
+        "e2e"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Rendered verification confirms a meaningful loaded screen.",
+        "Verification records absence of framework overlays and relevant console errors.",
+        "At least one core interaction is exercised when UI behavior changed."
+      ],
+      "automation": {
+        "current": [
+          "npm run e2e",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "TST-006",
+      "standard_reference": "Rendered UI Checks",
+      "section": "Rendered UI Checks",
+      "title": "Verify desktop and mobile layout quality",
+      "requirement": "Rendered UI verification checks desktop and mobile viewport layouts and confirms text and controls do not overlap or clip.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "ui",
+        "responsive-layout",
+        "e2e"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "responsive-layout",
+        "visual-regression",
+        "browser-verification"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Rendered verification covers at least one desktop viewport and one mobile viewport.",
+        "Verification records that text and controls do not overlap or clip."
+      ],
+      "automation": {
+        "current": [
+          "npm run e2e",
+          "scripts/verify-app.ps1"
+        ],
+        "target": [
+          "viewport screenshot receipt validator"
+        ]
+      }
+    },
+    {
+      "id": "TST-007",
+      "standard_reference": "Rendered UI Checks",
+      "section": "Rendered UI Checks",
+      "title": "Prefer Browser plugin and use Playwright as fallback",
+      "requirement": "Use the Browser plugin when available. Use Playwright as fallback.",
+      "severity": "medium",
+      "applies_to": [
+        "apps",
+        "ui",
+        "browser",
+        "e2e",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "ui-change",
+        "rendered-verification",
+        "browser-verification",
+        "tooling"
+      ],
+      "phases": [
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Rendered verification identifies whether Browser plugin or Playwright was used.",
+        "If neither rendered path could run, the blocker is recorded."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "TST-008",
+      "standard_reference": "App Store Wrapper Checks",
+      "section": "App Store Wrapper Checks",
+      "title": "Verify web build before Capacitor wrapper checks",
+      "requirement": "For Capacitor projects, verify web build first, then native wrapper configuration.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "capacitor",
+        "mobile",
+        "build"
+      ],
+      "trigger_kinds": [
+        "capacitor-change",
+        "mobile-wrapper",
+        "native-config",
+        "release-readiness"
+      ],
+      "phases": [
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Capacitor verification records a successful web build before native wrapper checks.",
+        "Native wrapper configuration checks are reported separately from web build checks."
+      ],
+      "automation": {
+        "current": [
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "TST-009",
+      "standard_reference": "App Store Wrapper Checks",
+      "section": "App Store Wrapper Checks",
+      "title": "Scope native emulator or device checks to native behavior",
+      "requirement": "Native emulator or device checks should be scoped to the feature requiring native behavior.",
+      "severity": "medium",
+      "applies_to": [
+        "apps",
+        "capacitor",
+        "mobile",
+        "native-device"
+      ],
+      "trigger_kinds": [
+        "native-feature",
+        "capacitor-change",
+        "mobile-validation",
+        "release-readiness"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Native emulator or device validation is tied to the native behavior changed or required.",
+        "If native behavior was not touched, the handoff states why native emulator or device checks were not run."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/mobile-validation-workflow/SKILL.md"
+        ],
+        "target": [
+          "mobile validation receipt check"
+        ]
+      }
+    }
+  ]
+}

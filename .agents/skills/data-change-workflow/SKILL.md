@@ -49,11 +49,11 @@ Update the `## Data Change Workflow Receipt` section in `workflow-receipts.md` w
 - Record any RLS, migration, or schema review done through `checklist.md`.
 - Record unresolved live-environment or secret-dependent gaps explicitly.
 
-## Optional External Accelerators
+## External Accelerators
 
-When installed and trusted, this workflow may use:
+This workflow must use:
 
-- `supabase-best-practices`
-- `security-scan`
+- `C:/Users/piete/.codex/skills/supabase-best-practices/SKILL.md` when touching Supabase or RLS surfaces
+- `C:/Users/piete/.codex/skills/security-scan/SKILL.md` when touching sensitive data, auth, or API surfaces
 
 If none are available, continue with local app-dev standards and record the gap in the receipt.

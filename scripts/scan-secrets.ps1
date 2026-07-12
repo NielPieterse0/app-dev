@@ -1,6 +1,6 @@
 param(
   [string]$Root = (Split-Path -Parent $PSScriptRoot),
-  [bool]$JsonSummary = $false
+  [switch]$JsonSummary
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,8 +8,7 @@ $Root = (Resolve-Path -LiteralPath $Root).Path
 $findings = New-Object System.Collections.Generic.List[object]
 $warnings = New-Object System.Collections.Generic.List[string]
 
-$excludedDirectoryNames = @(".git", "node_modules", "dist", "build", ".next", "out", "coverage", "playwright-report", "test-results")
-$excludedRelativePrefixes = @("projects/")
+$excludedDirectoryNames = @(".git", "node_modules", "dist", "build", ".next", "out", "coverage", "playwright-report", "test-results", ".tmp")
 $allowedFileNames = @(".env.example")
 $textExtensions = @(".md", ".txt", ".json", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".yml", ".yaml", ".toml", ".ps1", ".css", ".html", ".config", ".example")
 
@@ -18,11 +17,72 @@ $textExtensions = @(".md", ".txt", ".json", ".js", ".jsx", ".ts", ".tsx", ".mjs"
 $patterns = @(
   @{ Name = "OpenAI API key"; Regex = "sk-[A-Za-z0-9_-]{20,}" },
   @{ Name = "GitHub token"; Regex = "gh[pousr]_[A-Za-z0-9_]{20,}" },
+  @{ Name = "Supabase secret key"; Regex = "sb_secret_[A-Za-z0-9_-]{20,}" },
+  @{ Name = "Supabase publishable key"; Regex = "sb_publishable_[A-Za-z0-9_-]{20,}" },
   @{ Name = "Supabase service role JWT"; Regex = "eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}" },
   @{ Name = "Private key block"; Regex = "-----BEGIN (RSA |OPENSSH |EC |DSA |PRIVATE )?PRIVATE KEY-----" },
   @{ Name = "AWS access key"; Regex = "AKIA[0-9A-Z]{16}" },
   @{ Name = "Secret assignment"; Regex = "(?i)(api[_-]?key|secret|token|password)\s*[:=]\s*['""][^'""]{12,}['""]" }
 )
+
+function Test-GitleaksExecutable {
+  param([Parameter(Mandatory=$true)][string]$Path)
+
+  if (-not (Test-Path -LiteralPath $Path)) {
+    return $false
+  }
+
+  try {
+    & $Path version *> $null
+    return $LASTEXITCODE -eq 0
+  } catch {
+    return $false
+  }
+}
+
+function Get-GitleaksCommand {
+  $candidates = New-Object System.Collections.Generic.List[object]
+  $seen = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
+
+  function Add-Candidate {
+    param(
+      [string]$Path,
+      [Parameter(Mandatory=$true)][string]$Source
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+      return
+    }
+
+    if ($seen.Add($Path)) {
+      $candidates.Add([pscustomobject]@{
+        Path = $Path
+        Source = $Source
+      }) | Out-Null
+    }
+  }
+
+  Add-Candidate -Path $env:GITLEAKS_PATH -Source "GITLEAKS_PATH"
+  Add-Candidate -Path "C:/Tools/gitleaks/gitleaks.exe" -Source "default standalone install"
+  Add-Candidate -Path (Join-Path $Root "tools/gitleaks/gitleaks.exe") -Source "workspace tools"
+
+  $resolvedCommand = Get-Command gitleaks -ErrorAction SilentlyContinue
+  if ($resolvedCommand) {
+    Add-Candidate -Path $resolvedCommand.Source -Source "PATH"
+  }
+
+  foreach ($candidate in $candidates) {
+    if (Test-GitleaksExecutable -Path $candidate.Path) {
+      return $candidate
+    }
+
+    if (Test-Path -LiteralPath $candidate.Path) {
+      $warnings.Add("Skipped unusable gitleaks executable from $($candidate.Source): $($candidate.Path). Set GITLEAKS_PATH to a runnable standalone binary to restore native scanning.") | Out-Null
+    }
+  }
+
+  return $null
+}
 
 function Get-RelativePath {
   param([Parameter(Mandatory=$true)][string]$Path)
@@ -77,10 +137,9 @@ function Test-IsExcludedPath {
   param([Parameter(Mandatory=$true)][System.IO.FileInfo]$File)
 
   $relative = Get-RelativePath -Path $File.FullName
-  foreach ($prefix in $excludedRelativePrefixes) {
-    if ($relative.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-      return $true
-    }
+
+  if ($relative -match "(?i)^projects/__verify-[^/]+(/|$)") {
+    return $true
   }
 
   if ($allowedFileNames -contains $File.Name) {
@@ -110,6 +169,40 @@ function Test-IsTextFile {
     return $true
   }
   return $false
+}
+
+function Get-ScannableFiles {
+  $result = New-Object System.Collections.Generic.List[System.IO.FileInfo]
+  $pending = New-Object System.Collections.Generic.Stack[System.IO.DirectoryInfo]
+  $pending.Push((Get-Item -LiteralPath $Root))
+
+  while ($pending.Count -gt 0) {
+    $directory = $pending.Pop()
+
+    try {
+      $children = Get-ChildItem -LiteralPath $directory.FullName -Force -ErrorAction Stop
+    } catch {
+      $warnings.Add("Skipped unreadable path during secret scan: $($directory.FullName)") | Out-Null
+      continue
+    }
+
+    foreach ($child in $children) {
+      if ($child.PSIsContainer) {
+        if ($excludedDirectoryNames -contains $child.Name) {
+          continue
+        }
+
+        $pending.Push($child)
+        continue
+      }
+
+      if (-not (Test-IsExcludedPath -File $child) -and (Test-IsTextFile -File $child)) {
+        $result.Add($child) | Out-Null
+      }
+    }
+  }
+
+  return $result
 }
 
 function Get-LineText {
@@ -177,14 +270,15 @@ function Test-IsAllowedPlaceholderLine {
 
   $lineText = [string]$Line
 
-  # Do not allow concrete high-confidence secret shapes, even in Markdown.
+  if ($lineText -match "(?i)sb_(publishable|secret)_(your|example|sample|dummy|fake|placeholder)") { return $true }
   if ($lineText -match "sk-[A-Za-z0-9_-]{20,}") { return $false }
   if ($lineText -match "gh[pousr]_[A-Za-z0-9_]{20,}") { return $false }
+  if ($lineText -match "sb_secret_[A-Za-z0-9_-]{20,}") { return $false }
+  if ($lineText -match "sb_publishable_[A-Za-z0-9_-]{20,}") { return $false }
   if ($lineText -match "AKIA[0-9A-Z]{16}") { return $false }
   if ($lineText -match "eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}") { return $false }
   if ($lineText -match "-----BEGIN (RSA |OPENSSH |EC |DSA |PRIVATE )?PRIVATE KEY-----") { return $false }
 
-  # Safe documentation/code references to environment variables.
   if ($lineText -match "(?i)process\.env\.[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*") { return $true }
   if ($lineText -match "(?i)os\.environ(\.get)?\(\s*['""][A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*['""]") { return $true }
   if ($lineText -match "(?i)os\.environ\[\s*['""][A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*['""]\s*\]") { return $true }
@@ -192,22 +286,16 @@ function Test-IsAllowedPlaceholderLine {
   if ($lineText -match "\$[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*") { return $true }
   if ($lineText -match "\$\{[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*\}") { return $true }
 
-  # Safe placeholder values in examples and docs.
-  if ($lineText -match "(?i)(your|example|sample|dummy|fake|placeholder)[-_ ]?(token|secret|password|api[-_ ]?key|key)") { return $true }
+  if ($lineText -match "(?i)(your|example|sample|dummy|fake|placeholder|publishable)[-_ ]?(token|secret|password|api[-_ ]?key|key)") { return $true }
+  if ($lineText -match "(?i)(your|example|sample|dummy|fake|placeholder)[-_ ]?(publishable|secret)[-_ ]?key") { return $true }
   if ($lineText -match "(?i)<[^>]*(token|secret|password|api[-_ ]?key|key)[^>]*>") { return $true }
   if ($lineText -match "(?i)\{[^}]*(token|secret|password|api[-_ ]?key|key)[^}]*\}") { return $true }
   if ($lineText -match "(?i)(account-id|zone-id|record-id|dns_record_id|user@example\.com|example\.com)") { return $true }
 
-  # Gitleaks may redact or partially report the matching curl/header text. For
-  # agent skill reference documentation only, allow known documentation-example
-  # rule classes after the concrete high-confidence secret checks above have run.
-  # This is intentionally scoped to .agents/skills/* reference docs and SKILL.md,
-  # not generated app code, scripts, configs, or environment files.
   if ($RelativePath -match "(?i)^\.agents/skills/.+/(references/|SKILL\.md$)" -and $FindingType -match "(?i)(authorization token|curl command header|OpenAI API key|Generic API Key|Secret assignment)") {
     return $true
   }
 
-  # Markdown/code documentation may mention env var names without assigning values.
   if ($RelativePath -match "\.md$" -and $lineText -match "\b[A-Z0-9_]*(API[_-]?KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*\b") {
     if ($lineText -notmatch "['""]\s*(sk-|gh[pousr]_|AKIA|eyJ)[A-Za-z0-9_\.-]+['""]") {
       return $true
@@ -236,17 +324,13 @@ function Add-SecretFinding {
     }
   }
 
-  # Gitleaks can flag skill documentation based on rule names even when the
-  # reported line is empty, redacted, or unrelated to the rule label. Keep this
-  # narrow: only allow known documentation/example rule classes inside agent
-  # skill reference docs or SKILL.md files, after concrete secret-shape checks
-  # in Test-IsAllowedPlaceholderLine have already had a chance to reject real
-  # tokens.
   $isAgentSkillDoc = $safeFile -match "(?i)^\.?agents/skills/[^/]+/(references/.+|SKILL\.md)$"
   $isDocumentationRule = $Type -match "(?i)(authorization token|curl command header|OpenAI API key|Generic API Key|Secret assignment)"
   $hasConcreteSecretShape = (
     $safeLineText -match "sk-[A-Za-z0-9_-]{20,}" -or
     $safeLineText -match "gh[pousr]_[A-Za-z0-9_]{20,}" -or
+    $safeLineText -match "sb_secret_[A-Za-z0-9_-]{20,}" -or
+    $safeLineText -match "sb_publishable_[A-Za-z0-9_-]{20,}" -or
     $safeLineText -match "AKIA[0-9A-Z]{16}" -or
     $safeLineText -match "eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}" -or
     $safeLineText -match "-----BEGIN (RSA |OPENSSH |EC |DSA |PRIVATE )?PRIVATE KEY-----"
@@ -268,13 +352,15 @@ function Add-SecretFinding {
   }) | Out-Null
 }
 
-$gitleaks = Get-Command gitleaks -ErrorAction SilentlyContinue
+$gitleaks = Get-GitleaksCommand
 if ($null -ne $gitleaks) {
-  $reportPath = Join-Path ([System.IO.Path]::GetTempPath()) ("app-dev-gitleaks-{0}.json" -f ([System.Guid]::NewGuid().ToString("N")))
+  $tempDir = Join-Path $Root ".tmp"
+  New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+  $reportPath = Join-Path $tempDir ("app-dev-gitleaks-{0}.json" -f ([System.Guid]::NewGuid().ToString("N")))
   Push-Location $Root
   try {
     try {
-      & $gitleaks.Source detect --no-git --redact --source $Root --report-format json --report-path $reportPath | Out-Null
+      & $gitleaks.Path detect --no-git --redact --source $Root --report-format json --report-path $reportPath | Out-Null
       $gitleaksExitCode = $LASTEXITCODE
 
       if ($gitleaksExitCode -ne 0) {
@@ -312,19 +398,17 @@ if ($null -ne $gitleaks) {
         }
       }
     } catch {
-      $warnings.Add("gitleaks was found but could not execute; using local regex fallback scan. $($_.Exception.Message)") | Out-Null
+      $warnings.Add("gitleaks from $($gitleaks.Source) could not execute; using local regex fallback scan. $($_.Exception.Message)") | Out-Null
     }
   } finally {
     Pop-Location
     Remove-Item -LiteralPath $reportPath -Force -ErrorAction SilentlyContinue
   }
 } else {
-  $warnings.Add("gitleaks not found; using local regex fallback scan.") | Out-Null
+  $warnings.Add("No runnable gitleaks executable was found; using local regex fallback scan. Set GITLEAKS_PATH or install a standalone binary at C:/Tools/gitleaks/gitleaks.exe to restore native scanning.") | Out-Null
 }
 
-$files = Get-ChildItem -LiteralPath $Root -Recurse -File -Force -ErrorAction SilentlyContinue | Where-Object {
-  -not (Test-IsExcludedPath -File $_) -and (Test-IsTextFile -File $_)
-}
+$files = Get-ScannableFiles
 
 foreach ($file in $files) {
   $relativePath = Get-RelativePath -Path $file.FullName
@@ -338,21 +422,7 @@ foreach ($file in $files) {
   }
 }
 
-# Known false positive:
-# gitleaks can flag the data-visualization skill reference list as "OpenAI API key"
-# even though the uploaded/current SKILL.md line is only a documentation reference line.
-# Keep this suppression exact so real OpenAI keys elsewhere still fail.
-$reportableFindings = @(
-  $findings | Where-Object {
-    -not (
-      $_.file -eq ".agents/skills/data-visualization/SKILL.md" -and
-      [int]$_.line -eq 79 -and
-      $_.type -eq "OpenAI API key"
-    )
-  }
-)
-
-$findingArray = @($reportableFindings)
+$findingArray = $findings.ToArray()
 $warningArray = $warnings.ToArray()
 
 $summary = [ordered]@{

@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.tmp/
+
+.env
+.env.local
+.env.*.local
+
+android/
+ios/
+.capacitor/
+
+.DS_Store
+Thumbs.db

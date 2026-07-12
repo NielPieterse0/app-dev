@@ -49,14 +49,14 @@ Update the `## UI Change Workflow Receipt` section in `workflow-receipts.md` wit
 - Record rendered desktop and mobile checks.
 - Record the first meaningful screen and one core interaction path.
 
-## Optional External Accelerators
+## External Accelerators
 
-When installed and trusted, this workflow may use:
+This workflow must use:
 
-- `frontend-app-builder`
-- `frontend-testing-debugging`
-- `react-best-practices`
-- `shadcn-best-practices`
-- `playwright`
+- `C:/Users/piete/.codex/skills/frontend-app-builder/SKILL.md` when work touches React, Next.js, Expo, or Capacitor app scaffolding, routing, or module boundaries
+- `C:/Users/piete/.codex/skills/rontend-testing-debugging/SKILL.md` when work touches rendered UI, Playwright, or testing/debugging surfaces
+- `C:/Users/piete/.codex/skills/react-best-practices/SKILL.md` when work touches React app scaffolding, routing, or module boundaries
+- `C:/Users/piete/.codex/skills/shadcn-best-practices/SKILL.md` when work touches shadcn/ui, Radix, or Tailwind surfaces
+- `C:/Users/piete/.codex/skills/playwright/SKILL.md` when work touches rendered UI, Playwright, or testing/debugging surfaces
 
 If none are available, continue with local app-dev standards and record the gap in the receipt.

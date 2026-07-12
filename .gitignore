@@ -10,6 +10,7 @@ out/
 coverage/
 playwright-report/
 test-results/
+.tmp/
 
 # Local env
 .env
@@ -29,13 +30,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Generated app workspaces
-projects/*
-!projects/.gitkeep
-
 # Local root install noise
 /package-lock.json
 
 # Template-local native scaffolds stay per generated app, not in the shared template
 templates/react-vite-capacitor/android/
 templates/react-vite-capacitor/ios/
+
+# Generated app workspaces
+# App source under projects/ is tracked by the root repository by default.

@@ -48,11 +48,11 @@ Update the `## Mobile Validation Workflow Receipt` section in `workflow-receipts
 - Record Android and iOS validation status separately.
 - If emulator or simulator verification is unavailable, record the exact blocker.
 
-## Optional External Accelerators
+## External Accelerators
 
-When installed and trusted, this workflow may use:
+This workflow must use:
 
-- `android-emulator-qa`
-- `ios-debugger-agent`
+- `C:/Users/piete/.codex/skills/android-emulator-qa/SKILL.md`when work touches Android or Android Capacitor surfaces
+- `C:/Users/piete/.codex/skills/ios-debugger-agent/SKILL.md` when work touches iOS or iOS Capacitor surfaces
 
 If none are available, continue with local app-dev standards and record the gap in the receipt.

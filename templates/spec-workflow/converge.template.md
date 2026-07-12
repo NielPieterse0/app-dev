@@ -2,16 +2,21 @@
 
 - Spec: `specs/{{SPEC_DIR}}/spec.md`
 - Tasks: `specs/{{SPEC_DIR}}/tasks.md`
-- Plan: `PLAN.md`
+- Plan: `specs/{{SPEC_DIR}}/plan.md`
+- Receipts: `specs/{{SPEC_DIR}}/workflow-receipts.md`
+- Created: {{DATE}}
 
 ## Convergence Check
 
-- Scope match: Replace with whether the implemented behavior matches the current spec.
-- Architecture match: Replace with whether `PLAN.md` still reflects the implementation.
-- Task status: Replace with completed, deferred, or follow-up items.
-- Verification evidence: Replace with the commands run and any skipped checks.
+- Spec match: TODO: whether implemented behavior satisfies `spec.md` requirements and success criteria.
+- Plan match: TODO: whether `specs/{{SPEC_DIR}}/plan.md` still reflects architecture, module, data, platform, and verification decisions.
+- Task status match: TODO: completed tasks, deferred tasks, and any newly discovered work.
+- Receipt closure match: TODO: whether required workflow receipt sections contain implementation evidence, verification evidence, outstanding gaps, and closure state.
+- Documentation drift check: TODO: docs, templates, standards, README, and app instructions reviewed or not applicable.
+- Verification evidence: TODO: commands run, rendered checks, failures, and skipped checks.
 
 ## Handoff Notes
 
-- Deviations: Replace with intentional differences from the spec or plan.
-- Follow-ups: Replace with remaining work items or state none.
+- Deviations: TODO: intentional differences from the spec or plan, or state none.
+- Deferred items: TODO: remaining tasks, owners, and reason for deferral, or state none.
+- Follow-ups: TODO: next slice or release-readiness work, or state none.

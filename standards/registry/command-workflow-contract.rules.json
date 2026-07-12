@@ -1,0 +1,683 @@
+{
+  "standard": {
+    "id": "command-workflow-contract",
+    "title": "Command Workflow Contract",
+    "version": "1.0.0",
+    "source_file": "standards/command-workflow-contract.md",
+    "status": "adopted",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in standards/command-workflow-contract.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "CWC-001",
+      "standard_reference": "Preamble",
+      "section": "Command Gate Model",
+      "title": "Use commands as workflow gates",
+      "requirement": "This workspace uses local command templates as workflow gates, not as lightweight prompt shortcuts.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "workflow",
+        "skills",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "command-change",
+        "workflow-change",
+        "skill-change",
+        "validator-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "analyze",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Command changes preserve gate behavior and do not reduce commands to prompt shortcuts.",
+        "Phase commands keep their artifact prerequisites and closure obligations explicit."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/",
+          "scripts/test-workflow-enforcement.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-002",
+      "standard_reference": "Required Behavior",
+      "section": "Required Behavior",
+      "title": "Route commands through numbered specs in phase order",
+      "requirement": "Commands must route through numbered specs and then create later artifacts in phase order rather than assuming they already exist.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "specs",
+        "workflow",
+        "artifacts"
+      ],
+      "trigger_kinds": [
+        "command-change",
+        "spec-change",
+        "artifact-generation",
+        "phase-order"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "analyze",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Commands create or update workflow artifacts in phase order.",
+        "Commands do not assume later artifacts exist before the owning phase creates them."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/",
+          "scripts/test-workflow-enforcement.ps1",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-003",
+      "standard_reference": "Required Behavior",
+      "section": "Required Behavior",
+      "title": "Use the local workflow taxonomy",
+      "requirement": "Commands must use the same workflow taxonomy as local workflow skills: UI, Data, Mobile, and Release readiness.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "skills",
+        "workflow-receipts",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "command-change",
+        "skill-change",
+        "workflow-taxonomy",
+        "receipt-change"
+      ],
+      "phases": [
+        "plan",
+        "tasks",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Command templates and workflow receipts use UI, Data, Mobile, and Release readiness taxonomy consistently.",
+        "Local wrapper skill changes remain aligned with command taxonomy."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/ui-change-workflow/SKILL.md",
+          ".agents/skills/data-change-workflow/SKILL.md",
+          ".agents/skills/mobile-validation-workflow/SKILL.md",
+          ".agents/skills/release-readiness-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-004",
+      "standard_reference": "Required Behavior",
+      "section": "Required Behavior",
+      "title": "Do not require external skills at runtime",
+      "requirement": "Commands must not treat external or global skills as required runtime dependencies.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "skills",
+        "plugins",
+        "workflow"
+      ],
+      "trigger_kinds": [
+        "command-change",
+        "optional-skill",
+        "plugin-use",
+        "capability-routing"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Commands remain executable with local repo assets when external or global skills are unavailable.",
+        "External capabilities are described as optional routing, not required runtime dependencies."
+      ],
+      "automation": {
+        "current": [
+          "standards/codex-capabilities.md",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": [
+          "external skill dependency scanner"
+        ]
+      }
+    },
+    {
+      "id": "CWC-005",
+      "standard_reference": "Required Behavior",
+      "section": "Required Behavior",
+      "title": "Route optional capabilities through local wrappers",
+      "requirement": "Commands may reference optional external capabilities only through the local workflow wrappers and must record the fallback when unavailable.",
+      "severity": "high",
+      "applies_to": [
+        "commands",
+        "skills",
+        "plugins",
+        "workflow-receipts",
+        "handoff"
+      ],
+      "trigger_kinds": [
+        "optional-skill",
+        "plugin-use",
+        "capability-gap",
+        "fallback",
+        "command-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Optional external capability references flow through local workflow wrappers.",
+        "Fallback path is recorded when an optional capability is unavailable."
+      ],
+      "automation": {
+        "current": [
+          ".agents/skills/",
+          "standards/codex-capabilities.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "optional capability fallback receipt check"
+        ]
+      }
+    },
+    {
+      "id": "CWC-006",
+      "standard_reference": "Command Responsibilities",
+      "section": "Command Responsibilities",
+      "title": "Specify owns only active spec creation or update",
+      "requirement": "specify creates or updates the active numbered spec.md only.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "specs",
+        "specify"
+      ],
+      "trigger_kinds": [
+        "specify-command",
+        "spec-change",
+        "artifact-generation"
+      ],
+      "phases": [
+        "spec",
+        "clarify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "The specify command creates or updates the active numbered spec.md.",
+        "Specify does not create later-phase artifacts except through documented gated clarification behavior."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/specify.md",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/test-workflow-enforcement.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-007",
+      "standard_reference": "Command Responsibilities",
+      "section": "Command Responsibilities",
+      "title": "Plan owns only plan creation or update",
+      "requirement": "plan requires the active spec and creates or updates plan.md only.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "plans",
+        "specs"
+      ],
+      "trigger_kinds": [
+        "plan-command",
+        "plan-change",
+        "active-spec",
+        "artifact-generation"
+      ],
+      "phases": [
+        "plan"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "The plan command requires an active spec.",
+        "The plan command creates or updates plan.md without owning tasks, receipts, or checklist artifacts."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/plan.md",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/analyze-spec.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-008",
+      "standard_reference": "Command Responsibilities",
+      "section": "Command Responsibilities",
+      "title": "Tasks owns tasks receipts and gated checklist creation",
+      "requirement": "tasks requires the active spec and plan.md, then creates or updates tasks.md, workflow-receipts.md, and checklist.md when gated or sensitive risk applies.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "tasks",
+        "workflow-receipts",
+        "checklists",
+        "gated-work"
+      ],
+      "trigger_kinds": [
+        "tasks-command",
+        "tasks-change",
+        "receipt-change",
+        "checklist",
+        "gated-risk"
+      ],
+      "phases": [
+        "tasks",
+        "checklist"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "The tasks command requires active spec and plan.md.",
+        "The tasks command creates or updates tasks.md and workflow-receipts.md, plus checklist.md when gated or sensitive risk applies."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/tasks.md",
+          "templates/spec-workflow/tasks.template.md",
+          "templates/spec-workflow/workflow-receipts.template.md",
+          "templates/spec-workflow/checklist.template.md",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-009",
+      "standard_reference": "Command Responsibilities",
+      "section": "Command Responsibilities",
+      "title": "Analyze resolves contradictions before implementation",
+      "requirement": "analyze requires the active spec, active plan.md, active tasks.md, initialized workflow-receipts.md, and gated checklist.md when required; it resolves contradictions, surfaces implementation blockers, and preflights likely implementation-time rule visibility before implementation starts.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "analysis",
+        "specs",
+        "plans",
+        "tasks",
+        "workflow-receipts",
+        "checklists",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "analyze-command",
+        "contradiction",
+        "pre-implementation",
+        "spec-change",
+        "plan-change",
+        "receipt-change",
+        "gated-risk",
+        "validator-change"
+      ],
+      "phases": [
+        "analyze",
+        "implement"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Analyze command requires active spec, plan.md, tasks.md, initialized workflow-receipts.md, and gated checklist.md when required.",
+        "Contradictions are resolved before material implementation starts.",
+        "Analyze remains read-only by default and does not claim implementation or verification closure.",
+        "Any Analyze-phase registry preflight reports likely implementation blockers without marking implementation evidence applied."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/analyze.md",
+          "scripts/analyze-spec.ps1",
+          "scripts/get-applicable-standard-rules.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-010",
+      "standard_reference": "Command Responsibilities",
+      "section": "Command Responsibilities",
+      "title": "Implement requires tasks and initialized receipts",
+      "requirement": "implement requires current tasks plus initialized workflow receipts, resolves applicable registry rules, records the Applicable Standards Checklist, executes implementation in dependency order, keeps implementation evidence current, stops on blocked critical rules or missing validator evidence, reconciles documentation and artifacts, and hands off to /converge.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "implementation",
+        "tasks",
+        "workflow-receipts",
+        "docs",
+        "handoff"
+      ],
+      "trigger_kinds": [
+        "implement-command",
+        "implementation",
+        "receipt-change",
+        "docs-change",
+        "artifact-reconciliation"
+      ],
+      "phases": [
+        "implement",
+        "converge"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Implement command confirms current tasks and initialized workflow receipts before work proceeds.",
+        "Applicable registry rules are selected and recorded in the Applicable Standards Checklist.",
+        "Implementation evidence, documentation reconciliation, artifact reconciliation, and /converge handoff are recorded."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/implement.md",
+          "scripts/get-applicable-standard-rules.ps1",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-010A",
+      "standard_reference": "Command Responsibilities",
+      "section": "Command Responsibilities",
+      "title": "Converge closes the post-implementation done or not-done decision",
+      "requirement": "converge requires the active spec package plus implemented surfaces, refreshes the analysis models established by /analyze, reviews applicable registry pressure for the converged state, appends remaining work to tasks.md when needed, and hands off either back to /implement or forward to /verify.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "convergence",
+        "analysis",
+        "tasks",
+        "workflow-receipts",
+        "handoff"
+      ],
+      "trigger_kinds": [
+        "converge-command",
+        "convergence",
+        "post-implementation",
+        "tasks-change",
+        "receipt-change",
+        "handoff"
+      ],
+      "phases": [
+        "converge",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Converge command refreshes analyze-built models against implemented reality.",
+        "Converge appends remaining work to tasks.md without rewriting prior task phases.",
+        "Converge reports unresolved critical or high rule pressure without marking implementation evidence applied.",
+        "Converge hands off only to /implement or /verify."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/converge.md",
+          ".agents/commands/analyze.md",
+          "scripts/get-applicable-standard-rules.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-011",
+      "standard_reference": "Command Responsibilities",
+      "section": "Command Responsibilities",
+      "title": "Verify requires receipts and verification evidence",
+      "requirement": "verify requires a converged state plus current workflow receipts and verification evidence.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "verify",
+        "workflow-receipts",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "verify-command",
+        "verification",
+        "receipt-change",
+        "completion"
+      ],
+      "phases": [
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Verify command requires current workflow receipts.",
+        "Converged state is confirmed before verification evidence is recorded.",
+        "Verification evidence is recorded before completion is claimed."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/verify.md",
+          "scripts/validate-workflow-receipts.ps1",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-012",
+      "standard_reference": "Command Responsibilities",
+      "section": "Command Responsibilities",
+      "title": "Release readiness requires closure and unresolved-gap reporting",
+      "requirement": "release-readiness requires workflow closure and unresolved-gap reporting before completion claims.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "release-readiness",
+        "workflow-receipts",
+        "handoff"
+      ],
+      "trigger_kinds": [
+        "release-readiness-command",
+        "completion",
+        "unresolved-gap",
+        "handoff"
+      ],
+      "phases": [
+        "release-readiness",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Release-readiness command confirms workflow closure.",
+        "Unresolved gaps are reported before completion claims."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/release-readiness.md",
+          ".agents/skills/release-readiness-workflow/SKILL.md",
+          "scripts/validate-workflow-receipts.ps1",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-013",
+      "standard_reference": "Evidence Model",
+      "section": "Evidence Model",
+      "title": "Use workflow receipts as closure evidence",
+      "requirement": "The workflow evidence artifact is specs/NNN-<slug>/workflow-receipts.md, including the Applicable Standards Checklist generated during implementation.",
+      "severity": "critical",
+      "applies_to": [
+        "workflow-receipts",
+        "specs",
+        "evidence",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "receipt-change",
+        "verification",
+        "completion",
+        "artifact-generation"
+      ],
+      "phases": [
+        "tasks",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Workflow closure evidence is recorded in specs/NNN-<slug>/workflow-receipts.md.",
+        "Implementation-time registry evidence is recorded in the Applicable Standards Checklist when standards selection is in scope.",
+        "Completion claims cite receipt state rather than chat-only narrative."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/workflow-receipts.template.md",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "CWC-014",
+      "standard_reference": "Evidence Model",
+      "section": "Evidence Model",
+      "title": "Align commands skills hooks validators and CI on receipts",
+      "requirement": "Commands, local workflow skills, hooks, validators, and CI must all agree on workflow-receipts.md as the source of workflow closure evidence.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "skills",
+        "hooks",
+        "validators",
+        "ci",
+        "workflow-receipts"
+      ],
+      "trigger_kinds": [
+        "command-change",
+        "skill-change",
+        "hook-change",
+        "validator-change",
+        "ci-change",
+        "receipt-change"
+      ],
+      "phases": [
+        "tasks",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Commands, skills, hooks, validators, and CI reference workflow-receipts.md consistently.",
+        "Receipt model changes update all consuming surfaces in the same governance slice."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/",
+          ".agents/skills/",
+          ".codex/hooks/",
+          "scripts/validate-workflow-receipts.ps1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": [
+          "workflow receipt consumer drift check"
+        ]
+      }
+    },
+    {
+      "id": "CWC-015",
+      "standard_reference": "Evidence Model",
+      "section": "Evidence Model",
+      "title": "Keep command contract local to app-dev",
+      "requirement": "This contract is local to app-dev and does not require vendored upstream spec-kit runtime files.",
+      "severity": "high",
+      "applies_to": [
+        "commands",
+        "workflow",
+        "repo",
+        "dependencies"
+      ],
+      "trigger_kinds": [
+        "spec-kit",
+        "workflow-change",
+        "dependency-change",
+        "vendoring"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Command workflow changes remain local to app-dev assets.",
+        "No upstream spec-kit runtime files are vendored unless a recorded exception exists."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1",
+          "standards/spec-driven-workflow.md"
+        ],
+        "target": [
+          "vendored spec-kit runtime scanner"
+        ]
+      }
+    }
+  ]
+}

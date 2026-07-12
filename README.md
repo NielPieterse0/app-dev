@@ -2,14 +2,13 @@
 
 Control workspace for building modular cross-platform apps with Codex.
 
-This folder is not intended to be one giant application. It holds shared development standards, Codex instructions, reusable skills, scripts, starter templates, planning templates, and validation workflow files. Real apps should live under `projects/`, normally as independent git repositories.
+This folder is not intended to be one giant application. It holds shared development standards, Codex instructions, reusable skills, scripts, starter templates, planning templates, and validation workflow files. Real apps live under `projects/` and stay tracked in this root repository by default unless a recorded decision later splits a project into its own repository.
 
 ## Layout
 
 ```text
 app-dev/
   AGENTS.md
-  PLANS.md
   .codex/
   .agents/
   .github/workflows/
@@ -49,49 +48,49 @@ Repo-specific Codex skills live in `.agents/skills/` so Codex can discover them 
 
 ## Planning
 
-Root planning protocol lives in `PLANS.md`. New project plans are created from `templates/PLAN.template.md`.
+Planning protocol lives in `standards/spec-driven-workflow.md`. New per-spec plans are created from `templates/spec-workflow/plan.template.md`.
 
 A generated app should have:
 
 ```text
 projects/<app>/AGENTS.md
-projects/<app>/PLAN.md
+projects/<app>/specs/001-initial/plan.md
 ```
 
 Use the plan for architectural, data model, auth, routing, deployment, migration, or multi-module work.
 
 ## Codex Governance Checks
 
-The `.codex/config.toml` file is active. It enables project hooks, selects the least-privilege `app-dev-workspace` permission profile, and relies on `.codex/rules/default.rules` for command policy outside the sandbox. Project-local Codex assets load only after the repository is trusted in Codex.
+The `.codex/config.toml` file is active. It enables project hooks and relies on `.codex/rules/default.rules` for command policy outside the sandbox. Project-level `default_permissions` are currently disabled on Windows until the runner is stable, so this repo is not presently selecting the `app-dev-workspace` permission profile from project config. Project-local Codex assets load only after the repository is trusted in Codex.
 
 Run Codex asset validation after changing `.codex/`, `.agents/skills/`, `AGENTS.md`, planning templates, CI, or workspace scripts:
 
 ```powershell
-.\scripts\validate-codex-assets.ps1
+./scripts/validate-codex-assets.ps1
 ```
 
 Run workflow receipt validation inside a generated app before claiming work is complete:
 
 ```powershell
-..\..\scripts\validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence
+../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence
 ```
 
-Run hook policy tests separately:
+Run the full governance check sequence:
 
 ```powershell
-.\scripts\test-hooks.ps1
+./scripts/check-all.ps1
 ```
 
 Run the local secret scan before distributing or pushing workspace changes:
 
 ```powershell
-.\scripts\scan-secrets.ps1
+./scripts/scan-secrets.ps1
 ```
 
 Create a distributable workspace archive without `.git/`, generated projects, dependencies, logs, or reports:
 
 ```powershell
-.\scripts\export-workspace.ps1
+./scripts/export-workspace.ps1
 ```
 
 ## First Commands
@@ -99,32 +98,30 @@ Create a distributable workspace archive without `.git/`, generated projects, de
 From this folder:
 
 ```powershell
-.\scripts\check-workspace.ps1
-.\scripts\validate-codex-assets.ps1
-.\scripts\test-hooks.ps1
-.\scripts\scan-secrets.ps1
+./scripts/check-all.ps1
+./scripts/scan-secrets.ps1
 ```
 
 To create a project folder from the React/Vite/Capacitor template:
 
 ```powershell
-.\scripts\create-app.ps1 -Name my-app -Template react-vite-capacitor
+./scripts/create-app.ps1 -Name my-app -Template react-vite-capacitor
 ```
 
-Then open `projects/my-app/AGENTS.md` and `projects/my-app/PLAN.md` and define the app-specific modules, decisions, and verification commands. Install dependencies inside the generated project, not at the `app-dev` root:
+Then open `projects/my-app/AGENTS.md` and `projects/my-app/specs/001-initial/plan.md` and define the app-specific modules, decisions, and verification commands. Install dependencies inside the generated project, not at the `app-dev` root:
 
 ```powershell
-cd projects\my-app
+cd projects/my-app
 npm install
-..\..\scripts\verify-app.ps1 -ProjectPath .
+../../scripts/verify-app.ps1 -ProjectPath .
 ```
 
 To run control-workspace checks:
 
 ```powershell
-.\scripts\test-workspace.ps1
+./scripts/test-workspace.ps1
 ```
 
 ## CI
 
-`.github/workflows/app-dev-validation.yml` runs the control-workspace validation scripts on push, pull request, and manual dispatch. The workflow validates Codex assets, hooks, project generation, and the React template structure without installing template dependencies.
+`.github/workflows/app-dev-validation.yml` runs the control-workspace validation scripts on push, pull request, and manual dispatch. The workflow validates Codex assets, hooks, project generation, and tracked app projects through a project matrix instead of hardcoding a single app working directory.

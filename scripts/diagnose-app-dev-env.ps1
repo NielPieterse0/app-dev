@@ -3,7 +3,7 @@
   Read-only environment diagnostic for the app-dev / Codex workspace.
 
 .USAGE
-  pwsh -NoProfile -ExecutionPolicy Bypass -File .\diagnose-app-dev-env.ps1
+  pwsh -NoProfile -ExecutionPolicy Bypass -File ./diagnose-app-dev-env.ps1
 
 .NOTES
   - Does not install anything.
@@ -238,9 +238,9 @@ if ($androidHome -and (Test-Path $androidHome)) {
   Add-Row -Category "Mobile" -Tool "Android SDK env" -Need "Optional / Android" -Status "MISSING" -Note "Needed for Capacitor/Expo Android emulator/device validation."
 }
 Test-PathTool -Category "Mobile" -Tool "Android Studio" -Need "Optional / Android" -CandidatePaths @(
-  "$env:ProgramFiles\Android\Android Studio\bin\studio64.exe",
-  "${env:ProgramFiles(x86)}\Android\Android Studio\bin\studio64.exe",
-  "$env:LOCALAPPDATA\Programs\Android Studio\bin\studio64.exe"
+  (Join-Path $env:ProgramFiles "Android/Android Studio/bin/studio64.exe"),
+  (Join-Path ${env:ProgramFiles(x86)} "Android/Android Studio/bin/studio64.exe"),
+  (Join-Path $env:LOCALAPPDATA "Programs/Android Studio/bin/studio64.exe")
 ) -MissingNote "Needed for Android emulator and SDK management."
 Test-CommandTool -Category "Mobile" -Tool "Java / JDK" -Command "java" -Need "Optional / Android" -VersionArgs @("-version") -MissingNote "Needed for Android builds. Install JDK through Android Studio or separately."
 Test-CommandTool -Category "Mobile" -Tool "ADB" -Command "adb" -Need "Optional / Android" -VersionArgs @("version") -MissingNote "Install Android SDK Platform Tools and add to PATH."
@@ -265,19 +265,19 @@ if ($root) {
   $rootPath = $root.Path
   $expectedPaths = @(
     "AGENTS.md",
-    "PLANS.md",
-    ".codex\config.toml",
-    ".codex\rules\default.rules",
-    ".codex\hooks\pre-command.ps1",
-    ".agents\skills\cross-platform-app-workflow\SKILL.md",
-    "scripts\check-workspace.ps1",
-    "scripts\validate-codex-assets.ps1",
-    "scripts\test-hooks.ps1",
-    "scripts\test-workspace.ps1",
-    "templates\react-vite-capacitor\package.json",
-    "templates\next-web-app\package.json",
-    "templates\expo-native-app\package.json",
-    ".github\workflows\app-dev-validation.yml"
+    "standards/spec-driven-workflow.md",
+    ".codex/config.toml",
+    ".codex/rules/default.rules",
+    ".codex/hooks/pre-command.ps1",
+    ".agents/skills/cross-platform-app-workflow/SKILL.md",
+    "scripts/check-workspace.ps1",
+    "scripts/validate-codex-assets.ps1",
+    "scripts/test-hooks.ps1",
+    "scripts/test-workspace.ps1",
+    "templates/react-vite-capacitor/package.json",
+    "templates/next-web-app/package.json",
+    "templates/expo-native-app/package.json",
+    ".github/workflows/app-dev-validation.yml"
   )
   foreach ($rel in $expectedPaths) {
     $full = Join-Path $rootPath $rel
@@ -285,7 +285,7 @@ if ($root) {
   }
 
   if ($RunRepoValidation) {
-    $validator = Join-Path $rootPath "scripts\validate-codex-assets.ps1"
+    $validator = Join-Path $rootPath "scripts/validate-codex-assets.ps1"
     if (Test-Path $validator) {
       try {
         $validationOutput = & pwsh -NoProfile -ExecutionPolicy Bypass -File $validator -RequirePythonToml:$false 2>&1

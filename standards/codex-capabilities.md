@@ -15,7 +15,7 @@ Use local app-dev assets first. Treat all global skills and plugins as optional 
 
 ## Optional External Capabilities
 
-These names are routing hints, not repository dependencies. Use them only when present in the active Codex environment. If they are missing, proceed with the local wrapper workflow and standards, then state the gap in the handoff.
+These names are routing hints, not repository dependencies. Use them when present when required. They live in `C:/Users/piete/.codex/skills/`. If they are missing, proceed with the local wrapper workflow and standards, then state the gap in the handoff.
 
 | Task | Optional external capability |
 | --- | --- |
@@ -46,14 +46,14 @@ These names are routing hints, not repository dependencies. Use them only when p
 - Keep deployment capabilities conditional until the app chooses a hosting target.
 - Keep MCP servers user-level by default. Add project-level MCP only for repo-specific tooling, never for personal credentials or secret-bearing env blocks.
 - Do not copy global plugin skills into this repository unless the workflow must be project-specific.
-- Do not let plugin routing replace app-specific `AGENTS.md` or `PLAN.md` decisions. Product requirements still decide stack, modules, data model, permissions, and target platforms.
+- Do not let plugin routing replace app-specific `AGENTS.md` or active-spec `plan.md` decisions. Product requirements still decide stack, modules, data model, permissions, and target platforms.
 
 ## Future App Review Checklist
 
 Use this dry-run checklist before feature work begins in a generated app:
 
 - Product decision record is present in `projects/<app>/AGENTS.md`.
-- `projects/<app>/PLAN.md` exists for architectural or multi-module work.
+- `projects/<app>/specs/NNN-<slug>/plan.md` exists for architectural or multi-module work.
 - App type is selected: React/Vite/Capacitor, Next.js, or Expo.
 - Capability routing is visible in the app instructions without treating optional global skills as required.
 - `workflow-receipts.md` exists in the active spec and the relevant sections are current.

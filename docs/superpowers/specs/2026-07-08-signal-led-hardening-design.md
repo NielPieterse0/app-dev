@@ -46,7 +46,7 @@ The app-dev core constitution is the standing rule set for the root workspace: s
 
 All generated apps must start on free or no-cost tiers until product proof or production need justifies a paid service. Product proof may be user validation, revenue path, customer-facing uptime need, hard quota exhaustion, or a compliance/security requirement that cannot be met on a free plan.
 
-Paid-service adoption requires a recorded decision in the app `PLAN.md`, the active spec when relevant, and any launch-readiness checklist that applies.
+Paid-service adoption requires a recorded decision in the active spec `plan.md`, the active spec when relevant, and any launch-readiness checklist that applies.
 
 This rule applies to Supabase, GitHub, hosting, analytics, email, AI APIs, monitoring, storage, and future services added to the standard stack.
 
@@ -151,12 +151,12 @@ When CircleCI is used, its config must follow the CircleCI config workflow: esta
 
 ### Project GitHub Routine
 
-Each real app under `projects/<app>` should normally become its own repository once it is more than a local scaffold. Before that split, app-dev owns its assembly evidence.
+Each real app under `projects/<app>` remains tracked in the app-dev root repository by default. A project may move to a separate repository only through a recorded decision justified by ownership, release, access-control, scale, or lifecycle needs.
 
-Project repos should preserve:
+Each tracked project should preserve:
 
 - project `AGENTS.md`
-- `PLAN.md`
+- `plan.md`
 - numbered specs under `specs/`
 - workflow receipts
 - app-local CI checks
@@ -187,7 +187,7 @@ The projects core is the method for turning a scoped product into a built app un
 
 ### Assembly Evidence
 
-Each project should maintain assembly evidence in its active spec, `PLAN.md`, or workflow receipts:
+Each project should maintain assembly evidence in its active spec, `plan.md`, or workflow receipts:
 
 - which template was used and why
 - which modules were reused unchanged
@@ -206,7 +206,7 @@ The intake pipeline is:
 1. Idea capture: raw Signal finding, source evidence, trend cluster, target user, problem, opportunity, and confidence.
 2. Concept brief: who it is for, what problem it solves, why now, what already exists, smallest useful version, and kill risks.
 3. Product shaping: user workflows, platform target, data model, modules, compliance/security class, free-tier services, monetization assumption, and proof target.
-4. App-dev import: create `projects/<app>` from the selected template, import the product spec into `projects/<app>/specs/001-<slug>/spec.md`, update `PLAN.md`, initialize `tasks.md`, `workflow-receipts.md`, and add required compliance checklist items.
+4. App-dev import: create `projects/<app>` from the selected template, import the product spec into `projects/<app>/specs/001-<slug>/spec.md`, update `plan.md`, initialize `tasks.md`, `workflow-receipts.md`, and add required compliance checklist items.
 5. Assembly plan: choose existing modules first, approved libraries second, and new custom modules last.
 6. Development loop: build vertical slices, verify them, and backport reusable improvements.
 
@@ -242,7 +242,7 @@ V1 technical scope:
 - data-quality checks for duplicate source items, malformed payloads, stale sources, and scoring edge cases
 - product-proof metrics for idea volume, source coverage, ranking usefulness, and concept conversion rate
 
-Supabase Free tier is allowed for Signal because this is a personal/internal MVP. The app must document free-tier operating boundaries, including the risk that a free project can pause after inactivity and that free quotas can change. Before production or public use, the live Supabase pricing page must be checked and the app `PLAN.md` must record whether Free remains acceptable or Pro is required.
+Supabase Free tier is allowed for Signal because this is a personal/internal MVP. The app must document free-tier operating boundaries, including the risk that a free project can pause after inactivity and that free quotas can change. Before production or public use, the live Supabase pricing page must be checked and the active spec `plan.md` must record whether Free remains acceptable or Pro is required.
 
 Signal database work must follow Supabase/Postgres guardrails:
 
@@ -259,7 +259,7 @@ The first implementation slice should produce both product value and harness evi
 
 1. Create `projects/signal` from the React/Vite/Capacitor template.
 2. Update the initial scaffold spec into a Signal-specific `001-signal-foundation` spec.
-3. Define the Signal `PLAN.md` decisions for Supabase, free-tier boundaries, no-auth v1, source adapters, and GitHub routine.
+3. Define the Signal `plan.md` decisions for Supabase, free-tier boundaries, no-auth v1, source adapters, and GitHub routine.
 4. Add the first Supabase schema/migration artifacts for persisted source items and settings.
 5. Add local mock ingestion for GitHub and Hacker News payloads before depending on scheduled production ingestion.
 6. Build the initial ranked feed from persisted or fixture-backed items.
@@ -267,6 +267,49 @@ The first implementation slice should produce both product value and harness evi
 8. Run app-dev project artifact checks and app verification.
 9. Record every harness gap as either fixed immediately, deferred, or rejected as not general enough.
 10. Record plugin accelerators used or unavailable in the relevant receipts.
+
+## Second Implementation Slice
+
+Slice 2 is a convergence slice. It must remove defects and contradictions exposed by Slice 1 before widening Signal to more sources, scheduled ingestion, auth, or public launch.
+
+### Slice 2A: Harness Convergence
+
+Slice 2A hardens the app-dev control surface:
+
+1. Replace command-line Boolean toggles in `scripts/*.ps1` with PowerShell switches while retaining ordinary Boolean parameters inside helper functions.
+2. Extract shared failure collection, path resolution, and risk vocabulary into `scripts/common.ps1`.
+3. Add `scripts/analyze-spec.ps1` to detect contradictions among `spec.md`, `plan.md`, `tasks.md`, gated review artifacts, and the live file tree.
+4. Treat `sensitive` and `gated` as equivalent gated-path risk terms until the repository adopts one canonical term.
+5. Add focused harness regression tests for switch invocation, risk classification, stale status, false-complete removal tasks, and missing verification evidence.
+6. Make script failures identify the exact corrective command or artifact.
+7. Add explicit `NEEDS CLARIFICATION` and complexity/deviation fields to the planning template.
+8. Add a versioned `standards/constitution.md` that delegates detailed rules to existing standards rather than duplicating them.
+9. Move Signal CI responsibility to the root GitHub Actions workflow and validate the tracked `projects/signal` app from the root repository.
+10. Reconcile stale same-repo versus nested-repo guidance, obsolete ignore assumptions, and broken command examples across root and Signal documentation.
+
+Renaming gated `checklist.md` files is deferred unless it can be completed atomically across scripts, templates, tests, generated apps, and documentation. The existing filename remains a contract during Slice 2A.
+
+### Slice 2B: Signal Live Settings Persistence
+
+Slice 2B proves the hardened harness through one narrow product path:
+
+1. Remove orphaned auth module files and remaining template identity.
+2. Add a browser-safe Supabase repository for source settings and keyword filters.
+3. Keep a deterministic fixture/local fallback for missing, paused, or unavailable free-tier Supabase.
+4. Add deliberate RLS policies before browser reads or writes are enabled.
+5. Hydrate settings through TanStack Query and persist mutations with explicit pending, success, and error states.
+6. Verify persistence behavior, fallback behavior, no-auth security assumptions, and desktop/mobile settings flows.
+7. Record whether the settings repository is reusable enough to backport; do not promote it based on one use without evidence.
+
+### Slice 2 Exit Criteria
+
+- Root governance and workflow gates pass.
+- `analyze-spec.ps1` passes for Signal spec 002 and fails its contradiction fixtures.
+- Root GitHub Actions validates both app-dev and Signal.
+- Signal source settings persist through Supabase when configured and degrade explicitly when unavailable.
+- No auth module or template package identity remains in Signal.
+- Signal typecheck, lint, tests, build, e2e, rendered desktop/mobile checks, workflow receipts, secret scan, and migration/RLS review are complete.
+- Every audit finding in scope is closed, deferred with a reason, or rejected with evidence.
 
 ## Non-Goals
 

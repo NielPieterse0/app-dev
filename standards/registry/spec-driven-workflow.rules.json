@@ -1,0 +1,983 @@
+{
+  "standard": {
+    "id": "spec-driven-workflow",
+    "title": "Spec-Driven Workflow Standard",
+    "version": "1.0.0",
+    "source_file": "standards/spec-driven-workflow.md",
+    "status": "adopted",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in standards/spec-driven-workflow.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "SDW-001",
+      "standard_reference": "Preamble",
+      "section": "Workflow Model",
+      "title": "Use the local app-dev spec workflow",
+      "requirement": "This workspace uses a translated local spec-driven workflow inspired by spec-kit and does not require specify-cli, a vendored .specify tree, or upstream workflow runtime support.",
+      "severity": "critical",
+      "applies_to": [
+        "workflow",
+        "templates",
+        "scripts",
+        "skills",
+        "repo"
+      ],
+      "trigger_kinds": [
+        "workflow-change",
+        "spec-kit",
+        "template-change",
+        "script-change",
+        "skill-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Workflow changes use local app-dev standards, commands, scripts, and templates.",
+        "No dependency on specify-cli, upstream .specify runtime files, or vendored workflow runtime is introduced without a recorded exception."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/",
+          "scripts/new-spec.ps1",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": [
+          "upstream spec-kit runtime scanner"
+        ]
+      }
+    },
+    {
+      "id": "SDW-002",
+      "standard_reference": "Constitution",
+      "section": "Constitution",
+      "title": "Keep principles in constitution and mechanics in delegated standards",
+      "requirement": "standards/constitution.md is the stable principle set. Keep operational mechanics in this workflow standard and other delegated standards instead of duplicating them in the constitution.",
+      "severity": "high",
+      "applies_to": [
+        "standards",
+        "constitution",
+        "workflow",
+        "docs"
+      ],
+      "trigger_kinds": [
+        "standard-change",
+        "constitution-change",
+        "workflow-change",
+        "docs-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Principle changes are kept in standards/constitution.md.",
+        "Operational workflow mechanics are kept in standards/spec-driven-workflow.md or delegated standards."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": [
+          "constitution mechanics duplication check"
+        ]
+      }
+    },
+    {
+      "id": "SDW-003",
+      "standard_reference": "Artifact Roles",
+      "section": "Artifact Roles",
+      "title": "Keep app AGENTS as durable app identity and active spec pointer",
+      "requirement": "projects/<app>/AGENTS.md owns durable app identity, stack constraints, verification rules, and the active spec pointer.",
+      "severity": "high",
+      "applies_to": [
+        "projects",
+        "app-agents",
+        "specs",
+        "planning"
+      ],
+      "trigger_kinds": [
+        "app-agents-change",
+        "active-spec",
+        "project-creation",
+        "spec-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "App AGENTS.md contains current app identity, stack constraints, verification rules, and active spec pointer.",
+        "Active spec pointer is updated before material implementation begins."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-004",
+      "standard_reference": "Artifact Roles",
+      "section": "Artifact Roles",
+      "title": "Keep spec intent in spec.md",
+      "requirement": "projects/<app>/specs/NNN-<slug>/spec.md owns feature intent, requirements, acceptance criteria, data impact, and risk.",
+      "severity": "critical",
+      "applies_to": [
+        "specs",
+        "requirements",
+        "risk",
+        "projects"
+      ],
+      "trigger_kinds": [
+        "spec-change",
+        "requirements",
+        "acceptance-criteria",
+        "data-impact",
+        "risk"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Feature intent, requirements, acceptance criteria, data impact, and risk are captured in spec.md.",
+        "Plan and implementation remain traceable to the active spec."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/spec.template.md",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/analyze-spec.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-005",
+      "standard_reference": "Artifact Roles",
+      "section": "Artifact Roles",
+      "title": "Keep architecture rollout and verification decisions in plan.md",
+      "requirement": "projects/<app>/specs/NNN-<slug>/plan.md owns architecture, rollout, verification, and implementation constraints derived from that spec.",
+      "severity": "critical",
+      "applies_to": [
+        "plans",
+        "specs",
+        "architecture",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "plan-change",
+        "architecture-change",
+        "rollout",
+        "verification",
+        "implementation-constraints"
+      ],
+      "phases": [
+        "plan",
+        "tasks",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Plan.md records architecture, rollout, verification, and implementation constraints derived from the active spec.",
+        "Plan.md is current before material implementation begins."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/plan.template.md",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/analyze-spec.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-006",
+      "standard_reference": "Artifact Roles",
+      "section": "Artifact Roles",
+      "title": "Keep implementation checklist in tasks.md",
+      "requirement": "projects/<app>/specs/NNN-<slug>/tasks.md owns the ordered implementation checklist for that feature.",
+      "severity": "high",
+      "applies_to": [
+        "tasks",
+        "specs",
+        "implementation"
+      ],
+      "trigger_kinds": [
+        "tasks-change",
+        "implementation-checklist",
+        "spec-change"
+      ],
+      "phases": [
+        "tasks",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Tasks.md contains an ordered implementation checklist for the active feature.",
+        "Completed and deferred task state is accurate before handoff."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/tasks.template.md",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-007",
+      "standard_reference": "Artifact Roles",
+      "section": "Artifact Roles",
+      "title": "Keep workflow evidence in workflow-receipts.md",
+      "requirement": "projects/<app>/specs/NNN-<slug>/workflow-receipts.md owns workflow classification, Applicable Standards Checklist evidence, and closure evidence for UI, data, mobile, and release-readiness obligations.",
+      "severity": "critical",
+      "applies_to": [
+        "workflow-receipts",
+        "specs",
+        "verification",
+        "ui",
+        "data",
+        "mobile",
+        "release-readiness"
+      ],
+      "trigger_kinds": [
+        "receipt-change",
+        "ui-change",
+        "data-change",
+        "mobile-change",
+        "release-readiness",
+        "verification"
+      ],
+      "phases": [
+        "tasks",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "workflow-receipts.md records applicable UI, data, mobile, and release-readiness workflow obligations.",
+        "workflow-receipts.md records the Applicable Standards Checklist when implementation standards selection is in scope.",
+        "Closure evidence is populated before completion is claimed."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/workflow-receipts.template.md",
+          "scripts/get-applicable-standard-rules.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-008",
+      "standard_reference": "Artifact Roles",
+      "section": "Artifact Roles",
+      "title": "Use checklist.md for gated sensitive work",
+      "requirement": "projects/<app>/specs/NNN-<slug>/checklist.md owns the gated review checklist for sensitive work.",
+      "severity": "critical",
+      "applies_to": [
+        "checklists",
+        "gated-work",
+        "security",
+        "specs"
+      ],
+      "trigger_kinds": [
+        "gated-risk",
+        "security-change",
+        "sensitive-work",
+        "checklist"
+      ],
+      "phases": [
+        "clarify",
+        "checklist",
+        "plan",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Gated or sensitive work includes a populated checklist.md in the active spec folder.",
+        "Checklist content is created no earlier than the tasks phase when required by the gated path."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/checklist.template.md",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/analyze-spec.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-009",
+      "standard_reference": "Artifact Roles",
+      "section": "Artifact Roles",
+      "title": "Use the spec workflow plan template for per-spec plans",
+      "requirement": "templates/spec-workflow/plan.template.md is the reusable per-spec plan shape for generated and updated plans.",
+      "severity": "high",
+      "applies_to": [
+        "templates",
+        "plans",
+        "specs",
+        "scaffolding"
+      ],
+      "trigger_kinds": [
+        "plan-template",
+        "project-creation",
+        "spec-change",
+        "template-change"
+      ],
+      "phases": [
+        "plan",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Generated or refreshed per-spec plans use templates/spec-workflow/plan.template.md as the plan shape.",
+        "Template drift is validated when plan template ownership changes."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/plan.template.md",
+          "scripts/create-app.ps1",
+          "scripts/new-spec.ps1",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-010",
+      "standard_reference": "Numbered Specs",
+      "section": "Numbered Specs",
+      "title": "Start generated apps with specs 001 initial",
+      "requirement": "Start every generated app with specs/001-initial/.",
+      "severity": "critical",
+      "applies_to": [
+        "projects",
+        "specs",
+        "scaffolding"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "spec-numbering",
+        "scaffolding"
+      ],
+      "phases": [
+        "spec",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Generated apps include projects/<app>/specs/001-initial/.",
+        "Initial spec artifacts pass current-template validation for generated apps."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-011",
+      "standard_reference": "Numbered Specs",
+      "section": "Numbered Specs",
+      "title": "Use monotonically increasing zero-padded spec numbers",
+      "requirement": "Later feature work uses specs/00N-<feature-slug>/, with numbers zero-padded to three digits and increasing monotonically.",
+      "severity": "critical",
+      "applies_to": [
+        "specs",
+        "projects",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "new-spec",
+        "spec-numbering",
+        "feature-work"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "New feature specs use specs/00N-<feature-slug>/ format.",
+        "Spec numbers are zero-padded to three digits and increase monotonically."
+      ],
+      "automation": {
+        "current": [
+          "scripts/new-spec.ps1",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-012",
+      "standard_reference": "Numbered Specs",
+      "section": "Numbered Specs",
+      "title": "Point AGENTS and active plan to active spec before implementation",
+      "requirement": "AGENTS.md and the active spec's plan.md must both point to the active spec path before material implementation begins.",
+      "severity": "critical",
+      "applies_to": [
+        "app-agents",
+        "plans",
+        "specs",
+        "implementation"
+      ],
+      "trigger_kinds": [
+        "active-spec",
+        "plan-change",
+        "app-agents-change",
+        "implementation"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "projects/<app>/AGENTS.md points to the active spec path.",
+        "The active spec plan.md points to the same active spec path before material implementation begins."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/analyze-spec.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-013",
+      "standard_reference": "Validation Modes",
+      "section": "Validation Modes",
+      "title": "Use compatibility mode for established apps",
+      "requirement": "compatibility is the default validation mode for existing apps under projects/<app>/ and enforces the durable minimum contract without retroactively failing older apps because app-dev later densified a template, command, or validator.",
+      "severity": "critical",
+      "applies_to": [
+        "validators",
+        "projects",
+        "apps",
+        "specs"
+      ],
+      "trigger_kinds": [
+        "validator-change",
+        "existing-app",
+        "compatibility-mode",
+        "template-density"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Ordinary work on established apps uses compatibility validation unless a migration is explicitly in scope.",
+        "Validator changes do not retroactively fail older app artifacts solely due to template densification."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-014",
+      "standard_reference": "Validation Modes",
+      "section": "Validation Modes",
+      "title": "Use current-template mode only for generated or refreshed artifacts",
+      "requirement": "current-template is the source-of-truth contract for newly generated apps, disposable scaffold verification, and apps explicitly refreshed to the current template shape.",
+      "severity": "critical",
+      "applies_to": [
+        "validators",
+        "templates",
+        "scaffolding",
+        "projects"
+      ],
+      "trigger_kinds": [
+        "project-creation",
+        "scaffold-test",
+        "template-refresh",
+        "current-template"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Newly generated, disposable scaffold, or explicitly refreshed apps use current-template validation.",
+        "current-template validation is not applied to established apps unless an opt-in migration is recorded."
+      ],
+      "automation": {
+        "current": [
+          "scripts/create-app.ps1",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/check-all.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-015",
+      "standard_reference": "Phase To Command Map",
+      "section": "Phase To Command Map",
+      "title": "Keep phase execution in command files",
+      "requirement": "The standards document owns the phase narrative. Command files own exact execution steps, working directory, and receipt obligations.",
+      "severity": "critical",
+      "applies_to": [
+        "standards",
+        "commands",
+        "workflow",
+        "receipts"
+      ],
+      "trigger_kinds": [
+        "workflow-change",
+        "command-change",
+        "standard-change",
+        "receipt-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "analyze",
+        "implement",
+        "converge",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Phase semantics are updated in standards/spec-driven-workflow.md.",
+        "Exact execution steps, working directories, and receipt obligations are updated in .agents/commands/<phase>.md."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/",
+          "scripts/test-workflow-enforcement.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-016",
+      "standard_reference": "Phase To Command Map",
+      "section": "Phase To Command Map",
+      "title": "Map every workflow phase to its command and enforcement",
+      "requirement": "Clarify, Spec, Plan, Tasks, Analyze, Implement, Converge, Verify, and Release readiness phases each have a command owner and main enforcement surface.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "scripts",
+        "workflow",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "workflow-change",
+        "command-change",
+        "validator-change",
+        "phase-map"
+      ],
+      "phases": [
+        "clarify",
+        "spec",
+        "plan",
+        "tasks",
+        "analyze",
+        "implement",
+        "converge",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Every workflow phase has an owning .agents/commands/<phase>.md file or documented gated branch.",
+        "Main enforcement scripts remain aligned with the phase map."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/specify.md",
+          ".agents/commands/plan.md",
+          ".agents/commands/tasks.md",
+          ".agents/commands/analyze.md",
+          ".agents/commands/implement.md",
+          ".agents/commands/converge.md",
+          ".agents/commands/verify.md",
+          ".agents/commands/release-readiness.md",
+          "scripts/test-workflow-enforcement.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-017",
+      "standard_reference": "Lean Path",
+      "section": "Lean Path",
+      "title": "Use lean path for ordinary app and module work",
+      "requirement": "Use spec -> plan -> tasks -> analyze -> implement -> converge -> verify -> handoff for ordinary app and module work.",
+      "severity": "high",
+      "applies_to": [
+        "workflow",
+        "apps",
+        "modules",
+        "specs"
+      ],
+      "trigger_kinds": [
+        "ordinary-work",
+        "app-work",
+        "module-change",
+        "lean-path"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "analyze",
+        "implement",
+        "converge",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Ordinary app and module work follows the lean path unless gated triggers apply.",
+        "Handoff identifies the command path used."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-018",
+      "standard_reference": "Lean Path",
+      "section": "Lean Path",
+      "title": "Require lean path artifacts, registry selection, and checks",
+      "requirement": "Lean-path work requires a complete spec.md, current plan.md, tracked tasks.md, current workflow-receipts.md, analyze-spec before material implementation, Analyze-phase visibility into likely implementation-time registry pressure when triggered, applicable registry rules resolved during implementation, converge before verify so remaining work returns to implement when needed, check-spec-artifacts before final verification handoff, validate-workflow-receipts with verification evidence before completion, and verify-app plus rendered UI checks before completion.",
+      "severity": "critical",
+      "applies_to": [
+        "workflow",
+        "specs",
+        "tasks",
+        "workflow-receipts",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "lean-path",
+        "verification",
+        "receipt-change",
+        "handoff",
+        "ui-change"
+      ],
+      "phases": [
+        "spec",
+        "plan",
+        "tasks",
+        "analyze",
+        "implement",
+        "converge",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Lean-path required artifacts exist and are current.",
+        "Analyze reports likely critical or high implementation-time rule pressure before /implement when relevant registry families are triggered.",
+        "Applicable registry rules are resolved and recorded during implementation.",
+        "Converge closes the done or not-done decision before /verify.",
+        "analyze-spec, check-spec-artifacts, validate-workflow-receipts -RequireVerificationEvidence, and verify-app results are recorded before completion.",
+        "Rendered UI checks are recorded when UI is in scope."
+      ],
+      "automation": {
+        "current": [
+          "scripts/analyze-spec.ps1",
+          "scripts/get-applicable-standard-rules.ps1",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/validate-workflow-receipts.ps1",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-019",
+      "standard_reference": "Gated Path",
+      "section": "Gated Path",
+      "title": "Use gated path for sensitive work",
+      "requirement": "Use clarify -> spec -> checklist -> plan -> tasks -> analyze -> implement -> converge -> verify -> handoff for work involving auth, payments, secrets, public APIs, data access, file uploads, RLS, AI tool actions, deployment, or live migrations.",
+      "severity": "critical",
+      "applies_to": [
+        "workflow",
+        "security",
+        "data",
+        "deployment",
+        "ai-tool-actions",
+        "live-migrations"
+      ],
+      "trigger_kinds": [
+        "auth",
+        "payments",
+        "secrets",
+        "public-api",
+        "data-access",
+        "file-upload",
+        "rls",
+        "ai-tool-action",
+        "deployment",
+        "live-migration",
+        "gated-risk"
+      ],
+      "phases": [
+        "clarify",
+        "spec",
+        "checklist",
+        "plan",
+        "tasks",
+        "analyze",
+        "implement",
+        "converge",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Sensitive work follows the gated path.",
+        "The triggering sensitive surface is identified in the active spec, plan, checklist, or receipt."
+      ],
+      "automation": {
+        "current": [
+          "scripts/analyze-spec.ps1",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "gated trigger classifier"
+        ]
+      }
+    },
+    {
+      "id": "SDW-020",
+      "standard_reference": "Gated Path",
+      "section": "Gated Path",
+      "title": "Require gated checklist and closure evidence",
+      "requirement": "Gated-path work requires a populated checklist.md created no earlier than /tasks, resolved analyze-spec contradictions before material implementation, Analyze-phase visibility into likely implementation-time registry pressure when relevant, converge before verify so remaining implementation work returns to /implement, populated workflow-receipts.md with relevant sections closed, explicit security, data, and rollback notes, and explicit user approval before destructive or live-environment operations.",
+      "severity": "critical",
+      "applies_to": [
+        "gated-work",
+        "checklists",
+        "workflow-receipts",
+        "security",
+        "data",
+        "rollback",
+        "approvals"
+      ],
+      "trigger_kinds": [
+        "gated-risk",
+        "checklist",
+        "contradiction",
+        "security-review",
+        "data-review",
+        "rollback",
+        "destructive-operation",
+        "live-environment"
+      ],
+      "phases": [
+        "checklist",
+        "tasks",
+        "analyze",
+        "implement",
+        "converge",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Gated checklist is populated no earlier than /tasks.",
+        "Analyze-spec contradictions are resolved before material implementation.",
+        "Analyze may preflight likely implementation-time registry blockers without taking ownership of implementation evidence.",
+        "Converge closes the post-implementation done or not-done decision before /verify.",
+        "Security, data, rollback, and approval evidence is recorded for relevant gated surfaces."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/checklist.template.md",
+          "scripts/analyze-spec.ps1",
+          "scripts/validate-workflow-receipts.ps1"
+        ],
+        "target": [
+          "gated closure evidence validator"
+        ]
+      }
+    },
+    {
+      "id": "SDW-021",
+      "standard_reference": "Convergence",
+      "section": "Convergence",
+      "title": "Close convergence through artifact reconciliation",
+      "requirement": "Convergence is artifact-based. Before claiming a feature is complete, reconcile implemented scope, plan architecture and verification decisions, task state, workflow receipts, governed docs, and handoff notes.",
+      "severity": "critical",
+      "applies_to": [
+        "convergence",
+        "specs",
+        "plans",
+        "tasks",
+        "workflow-receipts",
+        "docs",
+        "handoff"
+      ],
+      "trigger_kinds": [
+        "convergence",
+        "completion",
+        "handoff",
+        "docs-change",
+        "verification"
+      ],
+      "phases": [
+        "converge",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Implemented scope still matches active spec.md.",
+        "plan.md, tasks.md, workflow-receipts.md, touched governed docs, and handoff notes reflect the implemented state before completion."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/converge.md",
+          ".agents/commands/analyze.md",
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/get-applicable-standard-rules.ps1"
+        ],
+        "target": [
+          "convergence artifact drift check"
+        ]
+      }
+    },
+    {
+      "id": "SDW-022",
+      "standard_reference": "Convergence",
+      "section": "Convergence",
+      "title": "Use converge template for explicit convergence notes",
+      "requirement": "Use templates/spec-workflow/converge.template.md as the default handoff structure when a feature needs an explicit convergence note.",
+      "severity": "medium",
+      "applies_to": [
+        "convergence",
+        "templates",
+        "handoff",
+        "specs"
+      ],
+      "trigger_kinds": [
+        "convergence",
+        "handoff",
+        "explicit-convergence-note",
+        "template-change"
+      ],
+      "phases": [
+        "converge",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Explicit convergence notes use the converge template structure unless a specific reason is recorded."
+      ],
+      "automation": {
+        "current": [
+          "templates/spec-workflow/converge.template.md"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SDW-023",
+      "standard_reference": "Convergence",
+      "section": "Convergence",
+      "title": "Verify only after convergence is closed",
+      "requirement": "In command terms, /converge closes the post-implementation done or not-done decision first, and /verify then records verification evidence against that converged state.",
+      "severity": "critical",
+      "applies_to": [
+        "commands",
+        "converge",
+        "verify",
+        "workflow-receipts",
+        "verification"
+      ],
+      "trigger_kinds": [
+        "converge-command",
+        "verify-command",
+        "convergence",
+        "receipt-change",
+        "verification"
+      ],
+      "phases": [
+        "converge",
+        "verify",
+        "handoff"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Converge closes remaining implementation work before verification evidence is recorded.",
+        "Verify command assumes a converged state and does not re-own remaining-work discovery."
+      ],
+      "automation": {
+        "current": [
+          ".agents/commands/converge.md",
+          ".agents/commands/verify.md",
+          "scripts/validate-workflow-receipts.ps1",
+          "scripts/test-workflow-enforcement.ps1"
+        ],
+        "target": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,2189 @@
+{
+  "standard": {
+    "id": "scripting",
+    "title": "app-dev Scripting And Coding Standard",
+    "version": "1.0.0",
+    "source_file": "standards/scripting.md",
+    "status": "adopted",
+    "owner": "app-dev",
+    "format_version": "1.0.0"
+  },
+  "rule_schema": {
+    "id": "Stable registry rule id.",
+    "standard_reference": "Exact section or rule reference in standards/scripting.md.",
+    "section": "Human section name from the standard.",
+    "title": "Short operational title.",
+    "requirement": "Normative requirement extracted from the standard.",
+    "severity": "critical, high, medium, or advisory.",
+    "applies_to": "Repo surfaces where the rule applies.",
+    "trigger_kinds": "Change categories that should pull this rule into an applicable checklist.",
+    "phases": "Workflow phases where this rule is relevant.",
+    "enforcement_mode": "validator-required, checklist-required, checklist-and-validator, advisory, or backlog.",
+    "evidence_required": "What an implementation or verification receipt should record when applicable.",
+    "automation": "Current or intended mechanical enforcement owner."
+  },
+  "rules": [
+    {
+      "id": "SCR-001",
+      "standard_reference": "1",
+      "section": "Prime Directive",
+      "title": "Scripts run identically on Linux CI and Windows workstations",
+      "requirement": "Every script runs identically on ubuntu-latest and on a Windows workstation, invoked as pwsh -File <script>.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "template-scripts",
+        "project-scripts",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "powershell",
+        "script-change",
+        "hook-change",
+        "ci-change",
+        "template-script-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed scripts were evaluated against the Linux portability contract.",
+        "CI or local governance checks cover the changed script surface."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1",
+          "scripts/check-all.ps1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": [
+          "PSScriptAnalyzer in CI"
+        ]
+      }
+    },
+    {
+      "id": "SCR-002",
+      "standard_reference": "1",
+      "section": "Prime Directive",
+      "title": "Linux CI is the canonical execution environment",
+      "requirement": "Linux CI is the canonical execution environment and the contract. Windows-local execution is a developer convenience.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "ci",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "ci-change",
+        "script-change",
+        "platform-portability"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Any script or CI change preserves ubuntu-latest execution as the required contract.",
+        "Windows-only assumptions are absent or explicitly blocked."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-003",
+      "standard_reference": "2.1",
+      "section": "Cross-Platform Rules",
+      "title": "Use forward slashes in path literals",
+      "requirement": "Path literals use forward slashes only. PowerShell normalizes forward slashes on Windows; backslash is a literal filename character on Linux.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "templates",
+        "ci",
+        "docs-with-command-examples"
+      ],
+      "trigger_kinds": [
+        "path-handling",
+        "powershell",
+        "script-change",
+        "template-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Changed path literals use forward slashes.",
+        "Portability lint was run for changed script surfaces."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-004",
+      "standard_reference": "2.2",
+      "section": "Cross-Platform Rules",
+      "title": "Do not use shell wrappers to run tools",
+      "requirement": "Never call cmd.exe, powershell, bash -c, or any shell wrapper to run a tool. Invoke native tools directly.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "ci",
+        "package-scripts",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "native-tool-invocation",
+        "shell-command",
+        "powershell",
+        "ci-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Native tools are invoked directly without shell wrapper indirection."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1"
+        ],
+        "target": [
+          "PSScriptAnalyzer custom rule"
+        ]
+      }
+    },
+    {
+      "id": "SCR-005",
+      "standard_reference": "2.3",
+      "section": "Cross-Platform Rules",
+      "title": "Suppress native stderr with PowerShell null redirection",
+      "requirement": "Suppress native stderr with 2>$null, never 2>nul.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "ci",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "native-tool-invocation",
+        "stderr-handling",
+        "powershell"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Changed stderr suppression uses 2>$null."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-006",
+      "standard_reference": "2.4",
+      "section": "Cross-Platform Rules",
+      "title": "Use pwsh as the PowerShell binary",
+      "requirement": "The cross-platform binary is pwsh. The name powershell must not appear as an invoked binary in any script, package.json script, workflow, hook config, or generated artifact.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "ci",
+        "package-scripts",
+        "templates",
+        "generated-artifacts",
+        "docs-with-command-examples"
+      ],
+      "trigger_kinds": [
+        "powershell",
+        "script-invocation",
+        "ci-change",
+        "package-script-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "PowerShell invocations use pwsh.",
+        "No changed artifact invokes powershell or powershell.exe."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1",
+          "scripts/test-hooks.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-007",
+      "standard_reference": "2.5",
+      "section": "Cross-Platform Rules",
+      "title": "Do not post-process path separators",
+      "requirement": "Never post-process paths with Replace(\"/\", \"\\\\\") or the inverse. Produce forward-slash relative paths at the source and keep them that way.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "templates",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "path-handling",
+        "normalization",
+        "validator-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Path separator conversion is absent from changed logic.",
+        "Forward-slash paths are produced at the source."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1",
+          "scripts/check-spec-artifacts.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-008",
+      "standard_reference": "2.6",
+      "section": "Cross-Platform Rules",
+      "title": "Match on-disk casing exactly",
+      "requirement": "File references in scripts and manifests match on-disk casing exactly.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "manifests",
+        "templates",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "path-handling",
+        "manifest-change",
+        "template-change",
+        "ci-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed file references were checked against on-disk casing."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "case-sensitive path validator"
+        ]
+      }
+    },
+    {
+      "id": "SCR-009",
+      "standard_reference": "2.7",
+      "section": "Cross-Platform Rules",
+      "title": "Use UTF-8 writes and cross-platform newline regexes",
+      "requirement": "Write files with Set-Content -Encoding UTF8; regexes match \\r?\\n, never bare \\r\\n or \\n assumptions.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "generators",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "file-write",
+        "text-processing",
+        "regex",
+        "generator-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed file writes specify UTF-8.",
+        "Line-ending regexes are cross-platform."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "scripting lint rule"
+        ]
+      }
+    },
+    {
+      "id": "SCR-010",
+      "standard_reference": "2.8",
+      "section": "Cross-Platform Rules",
+      "title": "Use GUID temp directories with cleanup",
+      "requirement": "Temp locations use [System.IO.Path]::GetTempPath() plus GUID suffix, cleaned in try/finally.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "tests",
+        "hooks",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "temp-files",
+        "test-script",
+        "filesystem"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Temporary files or directories are under system temp with a GUID suffix.",
+        "Cleanup happens in try/finally."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "scripting lint rule"
+        ]
+      }
+    },
+    {
+      "id": "SCR-011",
+      "standard_reference": "2.9",
+      "section": "Cross-Platform Rules",
+      "title": "No absolute local paths in committed artifacts",
+      "requirement": "No absolute local paths in any committed artifact. Use repo-relative paths only.",
+      "severity": "critical",
+      "applies_to": [
+        "repo",
+        "scripts",
+        "docs",
+        "ledgers",
+        "comments",
+        "templates",
+        "generated-artifacts"
+      ],
+      "trigger_kinds": [
+        "path-handling",
+        "docs-change",
+        "template-change",
+        "generated-artifact"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed artifacts contain repo-relative paths only."
+      ],
+      "automation": {
+        "current": [
+          "scripts/scan-secrets.ps1"
+        ],
+        "target": [
+          "absolute-local-path scanner"
+        ]
+      }
+    },
+    {
+      "id": "SCR-012",
+      "standard_reference": "3.1",
+      "section": "Parameter Contract",
+      "title": "Use switch parameters for boolean intent",
+      "requirement": "Boolean intent is always [switch]. Never [bool] and never [object] coercion except for documented GitHub Actions coercion.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "template-scripts"
+      ],
+      "trigger_kinds": [
+        "powershell-params",
+        "script-api"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Boolean-like script parameters use [switch]."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-013",
+      "standard_reference": "3.2",
+      "section": "Parameter Contract",
+      "title": "Do not default switch parameters to true",
+      "requirement": "A [switch] never defaults to $true. If default behavior is on, name the switch for the opt-out.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "template-scripts"
+      ],
+      "trigger_kinds": [
+        "powershell-params",
+        "script-api"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Switch parameters are not initialized to $true.",
+        "Opt-out behavior uses an opt-out switch name such as SkipE2E."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-014",
+      "standard_reference": "3.3",
+      "section": "Parameter Contract",
+      "title": "Invoke switches with bare or colon syntax",
+      "requirement": "CI and docs invoke switches bare or with colon syntax, never space-separated $true or $false.",
+      "severity": "high",
+      "applies_to": [
+        "ci",
+        "docs-with-command-examples",
+        "package-scripts",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "script-invocation",
+        "ci-change",
+        "docs-change",
+        "package-script-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Switch invocation examples use bare or colon syntax."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "command-example lint rule"
+        ]
+      }
+    },
+    {
+      "id": "SCR-015",
+      "standard_reference": "3.4",
+      "section": "Parameter Contract",
+      "title": "Limit GitHub Actions string coercion to documented sites",
+      "requirement": "Where a GitHub Actions expression must pass a value, accept it as [string] with explicit documented coercion at the top of the script. This is the only sanctioned coercion site.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "github-actions",
+        "powershell-params",
+        "script-api"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Any [string] coercion for CI booleans is documented at the top of the script.",
+        "No undocumented [object] or ad hoc boolean coercion was introduced."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "script parameter contract lint"
+        ]
+      }
+    },
+    {
+      "id": "SCR-016",
+      "standard_reference": "3.5",
+      "section": "Parameter Contract",
+      "title": "Read ValidateSet values from the vocabulary registry",
+      "requirement": "ValidateSet values come from the vocabulary registry, never a second hand-typed list.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "templates"
+      ],
+      "trigger_kinds": [
+        "vocabulary",
+        "script-api",
+        "validator-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed ValidateSet mirrors read from the shared vocabulary registry or are reconciled with it."
+      ],
+      "automation": {
+        "current": [
+          "scripts/common.ps1"
+        ],
+        "target": [
+          "ValidateSet registry drift check"
+        ]
+      }
+    },
+    {
+      "id": "SCR-017",
+      "standard_reference": "3.6",
+      "section": "Parameter Contract",
+      "title": "Start scripts with param then ErrorActionPreference",
+      "requirement": "Every script begins with param() then $ErrorActionPreference = \"Stop\", before any other statement.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "template-scripts"
+      ],
+      "trigger_kinds": [
+        "powershell",
+        "script-change",
+        "hook-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed scripts begin with param() followed by ErrorActionPreference."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "PSScriptAnalyzer custom rule",
+          "scripting lint rule"
+        ]
+      }
+    },
+    {
+      "id": "SCR-018",
+      "standard_reference": "4.1",
+      "section": "Execution And Exit Contract",
+      "title": "Aggregate multi-check failures before failing",
+      "requirement": "Collect problems into a failures list, report all, emit one Write-Error, and exit non-zero. Multi-check scripts must not fail on the first finding.",
+      "severity": "high",
+      "applies_to": [
+        "validators",
+        "check-scripts",
+        "test-scripts"
+      ],
+      "trigger_kinds": [
+        "validator-change",
+        "check-script",
+        "failure-reporting"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Multi-check script changes preserve aggregate failure reporting."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "validator behavior tests"
+        ]
+      }
+    },
+    {
+      "id": "SCR-019",
+      "standard_reference": "4.2",
+      "section": "Execution And Exit Contract",
+      "title": "Print one final success summary",
+      "requirement": "Success prints exactly one final summary line.",
+      "severity": "medium",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "check-scripts"
+      ],
+      "trigger_kinds": [
+        "script-output",
+        "validator-change",
+        "check-script"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed check scripts retain a single final success summary line."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "script output contract tests"
+        ]
+      }
+    },
+    {
+      "id": "SCR-020",
+      "standard_reference": "4.3",
+      "section": "Execution And Exit Contract",
+      "title": "Support JsonSummary on every check script",
+      "requirement": "JsonSummary is supported by every check script and emits one JSON object with at minimum root/projectPath, failures, warnings, failureCount, and warningCount.",
+      "severity": "high",
+      "applies_to": [
+        "check-scripts",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "json-summary",
+        "check-script",
+        "machine-output"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed check scripts expose -JsonSummary with the required fields.",
+        "Machine consumers parse JSON instead of prose."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "JsonSummary contract test"
+        ]
+      }
+    },
+    {
+      "id": "SCR-021",
+      "standard_reference": "4.4",
+      "section": "Execution And Exit Contract",
+      "title": "Check LASTEXITCODE after native tool invocations",
+      "requirement": "After every native tool invocation, check $LASTEXITCODE explicitly.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "validators",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "native-tool-invocation",
+        "exit-code",
+        "script-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Native command calls are followed by explicit LASTEXITCODE handling."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "PSScriptAnalyzer custom rule",
+          "native invocation lint"
+        ]
+      }
+    },
+    {
+      "id": "SCR-022",
+      "standard_reference": "4.5",
+      "section": "Execution And Exit Contract",
+      "title": "Probe optional tools and degrade predictably",
+      "requirement": "Optional external tools are probed with Get-Command; absence degrades to a recorded warning when optional and a failure when a Require switch is set.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "external-tool",
+        "dependency-probe",
+        "optional-tool"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Optional external tools are checked with Get-Command.",
+        "Missing optional tools produce warnings unless explicitly required."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "external tool probe lint"
+        ]
+      }
+    },
+    {
+      "id": "SCR-023",
+      "standard_reference": "4.6",
+      "section": "Execution And Exit Contract",
+      "title": "Fail closed on malformed input",
+      "requirement": "Malformed input errors. Hooks emit the block-decision JSON rather than crashing.",
+      "severity": "critical",
+      "applies_to": [
+        "hooks",
+        "validators",
+        "scripts"
+      ],
+      "trigger_kinds": [
+        "input-parsing",
+        "hook-change",
+        "json-input",
+        "failure-mode"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Malformed input paths fail closed.",
+        "Hook changes preserve block-decision JSON behavior."
+      ],
+      "automation": {
+        "current": [
+          "scripts/test-hooks.ps1"
+        ],
+        "target": [
+          "malformed input tests per parser"
+        ]
+      }
+    },
+    {
+      "id": "SCR-024",
+      "standard_reference": "5.1",
+      "section": "Data Over Code",
+      "title": "Store required paths and content rules in the manifest",
+      "requirement": "Required paths, required-content rules, and CI-content rules live in one declarative manifest consumed by both check-workspace.ps1 and validate-codex-assets.ps1.",
+      "severity": "high",
+      "applies_to": [
+        "manifest",
+        "validators",
+        "workspace-structure"
+      ],
+      "trigger_kinds": [
+        "manifest-change",
+        "validator-change",
+        "required-path",
+        "content-rule"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "New required paths or content rules are added through the declarative manifest when applicable."
+      ],
+      "automation": {
+        "current": [
+          "standards/workspace-manifest.psd1",
+          "scripts/check-workspace.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-025",
+      "standard_reference": "5.2",
+      "section": "Data Over Code",
+      "title": "Content rules assert structure and patterns",
+      "requirement": "Content rules assert structure and patterns, not prose. Exact-wording assertions require a recorded reason in the manifest entry.",
+      "severity": "high",
+      "applies_to": [
+        "manifest",
+        "validators",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "content-rule",
+        "validator-change",
+        "manifest-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "New validation rules use path, heading, field, token, pattern, max-bytes, or frontmatter-schema checks.",
+        "Any exact wording assertion has a recorded reason."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "validator exact-phrase assertion detector"
+        ]
+      }
+    },
+    {
+      "id": "SCR-026",
+      "standard_reference": "5.3",
+      "section": "Data Over Code",
+      "title": "Use token-only template substitution",
+      "requirement": "Template substitution uses {{TOKEN}} placeholders exclusively. Prose-matching replacement chains are forbidden; generation fails if any token remains unresolved in output.",
+      "severity": "critical",
+      "applies_to": [
+        "generators",
+        "templates",
+        "scaffolding"
+      ],
+      "trigger_kinds": [
+        "template-change",
+        "generator-change",
+        "scaffolding"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Template generation uses token placeholders rather than prose replacement.",
+        "Generation fails or reports unresolved tokens."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "template token substitution validator"
+        ]
+      }
+    },
+    {
+      "id": "SCR-027",
+      "standard_reference": "5.4",
+      "section": "Data Over Code",
+      "title": "Define vocabularies once",
+      "requirement": "Vocabularies are defined once in the registry and referenced everywhere.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "templates",
+        "docs"
+      ],
+      "trigger_kinds": [
+        "vocabulary",
+        "registry-change",
+        "validator-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "New or changed vocabulary values are defined in one registry and referenced by consumers."
+      ],
+      "automation": {
+        "current": [
+          "scripts/common.ps1"
+        ],
+        "target": [
+          "vocabulary drift validator"
+        ]
+      }
+    },
+    {
+      "id": "SCR-028",
+      "standard_reference": "5.5",
+      "section": "Data Over Code",
+      "title": "Key suppressions by path and pattern with justification",
+      "requirement": "Suppressions and allowlists are keyed by path plus pattern with a mandatory inline justification, never by line number.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "linters",
+        "manifests"
+      ],
+      "trigger_kinds": [
+        "suppression",
+        "allowlist",
+        "lint-change",
+        "validator-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "New suppressions or allowlists use path plus pattern.",
+        "Each suppression includes a justification."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "suppression format validator"
+        ]
+      }
+    },
+    {
+      "id": "SCR-029",
+      "standard_reference": "5.6",
+      "section": "Data Over Code",
+      "title": "Separate root source and app artifact enforcement",
+      "requirement": "Validator scope must distinguish root source enforcement from app artifact enforcement. Root source validators may tighten immediately against current standards, commands, templates, and scripts.",
+      "severity": "high",
+      "applies_to": [
+        "validators",
+        "templates",
+        "projects"
+      ],
+      "trigger_kinds": [
+        "validator-change",
+        "template-change",
+        "compatibility-mode"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Validator changes state whether they affect root source surfaces or project artifacts."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/validate-codex-assets.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-030",
+      "standard_reference": "5.7",
+      "section": "Data Over Code",
+      "title": "Use compatibility mode for established apps",
+      "requirement": "Project artifact validators default to compatibility for existing apps. A stricter current-template mode is required only for newly generated apps, disposable scaffold tests, and explicit template-refresh migrations.",
+      "severity": "high",
+      "applies_to": [
+        "validators",
+        "projects",
+        "templates",
+        "scaffolding"
+      ],
+      "trigger_kinds": [
+        "validator-change",
+        "template-change",
+        "compatibility-mode",
+        "scaffold-test"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Existing app validation remains in compatibility mode unless a template-refresh migration is explicit.",
+        "New scaffold validation uses current-template mode."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-spec-artifacts.ps1",
+          "scripts/test-workspace.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-031",
+      "standard_reference": "6.1",
+      "section": "Shared Code And Single Truth",
+      "title": "Put shared root script helpers in common.ps1",
+      "requirement": "scripts/common.ps1 is the only shared-helper location for root scripts. Anything used by two or more scripts moves there in the commit that creates the second use.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "test-scripts"
+      ],
+      "trigger_kinds": [
+        "shared-helper",
+        "duplication",
+        "script-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "New helper logic reused by two or more root scripts is placed in scripts/common.ps1."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "shared helper duplication detector"
+        ]
+      }
+    },
+    {
+      "id": "SCR-032",
+      "standard_reference": "6.2",
+      "section": "Shared Code And Single Truth",
+      "title": "Do not reimplement helpers inline",
+      "requirement": "Reimplementing a helper inline is a defect even before drift occurs.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "test-scripts"
+      ],
+      "trigger_kinds": [
+        "shared-helper",
+        "duplication",
+        "script-change",
+        "validator-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed scripts reuse existing helpers instead of duplicating them.",
+        "Known duplicate helper instances are either left untouched intentionally or consolidated when in scope."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "known duplicate helper detector"
+        ]
+      }
+    },
+    {
+      "id": "SCR-033",
+      "standard_reference": "6.3",
+      "section": "Shared Code And Single Truth",
+      "title": "Host shared vocabularies in common.ps1",
+      "requirement": "common.ps1 hosts the vocabulary registry: risk levels, gated levels, completed states, and invalid verification states. Test-GatedRiskLevel and ValidateSet mirrors read from it.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "templates",
+        "docs"
+      ],
+      "trigger_kinds": [
+        "vocabulary",
+        "common-helper",
+        "validator-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed vocabulary consumers read from common.ps1 or are reconciled against it."
+      ],
+      "automation": {
+        "current": [
+          "scripts/common.ps1"
+        ],
+        "target": [
+          "vocabulary consumer drift check"
+        ]
+      }
+    },
+    {
+      "id": "SCR-034",
+      "standard_reference": "6.4",
+      "section": "Shared Code And Single Truth",
+      "title": "Helpers return forward-slash repo-relative paths",
+      "requirement": "Helpers return forward-slash repo-relative paths. Path-shape conversion is not a helper responsibility.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "common-helpers"
+      ],
+      "trigger_kinds": [
+        "path-handling",
+        "shared-helper",
+        "common-helper"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed helpers return forward-slash repo-relative paths where they return paths."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "helper return shape tests"
+        ]
+      }
+    },
+    {
+      "id": "SCR-035",
+      "standard_reference": "7.1",
+      "section": "Script Size, Shape, Naming",
+      "title": "Use verb-noun kebab-case script names",
+      "requirement": "Use verb-noun kebab-case filenames. test-<x>.ps1 tests exactly <x> or the subsystem it names.",
+      "severity": "medium",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "test-scripts",
+        "template-scripts"
+      ],
+      "trigger_kinds": [
+        "new-script",
+        "script-rename",
+        "test-script"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "New or renamed script files follow verb-noun kebab-case naming.",
+        "Test script names map clearly to their target."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "script filename validator"
+        ]
+      }
+    },
+    {
+      "id": "SCR-036",
+      "standard_reference": "7.2",
+      "section": "Script Size, Shape, Naming",
+      "title": "Treat large scripts as refactor signals",
+      "requirement": "A script exceeding roughly 300 lines signals that checks belong in manifest data or the script has multiple responsibilities.",
+      "severity": "advisory",
+      "applies_to": [
+        "scripts",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "script-growth",
+        "validator-change",
+        "manifest-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "advisory",
+      "evidence_required": [
+        "If a changed script exceeds roughly 300 lines, record whether the growth is intentional or should move to manifest data or another script."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "script size warning"
+        ]
+      }
+    },
+    {
+      "id": "SCR-037",
+      "standard_reference": "7.3",
+      "section": "Script Size, Shape, Naming",
+      "title": "Keep one responsibility per script",
+      "requirement": "One responsibility per script; composition happens in CI steps and hooks.",
+      "severity": "medium",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "ci",
+        "hooks"
+      ],
+      "trigger_kinds": [
+        "script-change",
+        "ci-change",
+        "composition"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "New script responsibilities are scoped to one purpose.",
+        "Cross-script composition stays in CI steps or hooks."
+      ],
+      "automation": {
+        "current": [],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-038",
+      "standard_reference": "7.4",
+      "section": "Script Size, Shape, Naming",
+      "title": "Test every enforcement script by rule family",
+      "requirement": "Every enforcement script has a test script exercising at least one pass fixture and one fail fixture per rule family, using GUID temp dirs and try/finally cleanup.",
+      "severity": "high",
+      "applies_to": [
+        "enforcement-scripts",
+        "test-scripts"
+      ],
+      "trigger_kinds": [
+        "enforcement-script",
+        "test-script",
+        "validator-change",
+        "lint-rule"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed enforcement rules have pass and fail fixtures for each touched rule family.",
+        "Test fixtures use GUID temp directories with try/finally cleanup."
+      ],
+      "automation": {
+        "current": [
+          "scripts/test-lint-portability.ps1",
+          "scripts/test-workflow-enforcement.ps1",
+          "scripts/test-analyze-spec.ps1",
+          "scripts/test-workspace.ps1"
+        ],
+        "target": [
+          "enforcement script coverage validator"
+        ]
+      }
+    },
+    {
+      "id": "SCR-039",
+      "standard_reference": "7.5",
+      "section": "Script Size, Shape, Naming",
+      "title": "Invoke test targets exactly as CI invokes them",
+      "requirement": "Test scripts invoke targets exactly as CI invokes them - same binary, same parameter syntax.",
+      "severity": "high",
+      "applies_to": [
+        "test-scripts",
+        "ci",
+        "enforcement-scripts"
+      ],
+      "trigger_kinds": [
+        "test-script",
+        "ci-change",
+        "script-invocation"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Test script invocations match CI binary and parameter syntax."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "CI/test invocation parity check"
+        ]
+      }
+    },
+    {
+      "id": "SCR-040",
+      "standard_reference": "8.1",
+      "section": "Git Interaction",
+      "title": "Invoke git directly with explicit exit-code checks",
+      "requirement": "Invoke git directly with explicit LASTEXITCODE checks, never via a shell wrapper.",
+      "severity": "critical",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "git",
+        "native-tool-invocation",
+        "exit-code"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Git commands are invoked directly.",
+        "Git command failures are handled through explicit LASTEXITCODE checks."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1"
+        ],
+        "target": [
+          "git invocation lint"
+        ]
+      }
+    },
+    {
+      "id": "SCR-041",
+      "standard_reference": "8.2",
+      "section": "Git Interaction",
+      "title": "Support working-tree, committed-range, and explicit-file diff modes",
+      "requirement": "Diff-based logic supports three labeled modes: working-tree, committed-range, and explicit file list. CI and post-hoc audits use committed-range.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "git",
+        "diff-based-logic",
+        "ci-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "New diff-based logic declares and supports the appropriate modes.",
+        "CI or post-hoc audit usage does not rely only on working-tree state."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "diff mode contract tests"
+        ]
+      }
+    },
+    {
+      "id": "SCR-042",
+      "standard_reference": "8.3",
+      "section": "Git Interaction",
+      "title": "Parse only git plumbing output",
+      "requirement": "Parse git plumbing output only, such as --name-only or --porcelain.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "git",
+        "output-parsing",
+        "diff-based-logic"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed git parsing uses stable plumbing output."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "git parsing lint"
+        ]
+      }
+    },
+    {
+      "id": "SCR-043",
+      "standard_reference": "9",
+      "section": "Enforcement",
+      "title": "Ship defect-class gates with first-instance fixes",
+      "requirement": "The gate for a defect class ships with the fix for its first instance.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "validators",
+        "standards",
+        "tests"
+      ],
+      "trigger_kinds": [
+        "defect-fix",
+        "enforcement-script",
+        "lint-rule",
+        "validator-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "When a new defect class is fixed, a matching gate or explicit follow-up is recorded."
+      ],
+      "automation": {
+        "current": [],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-044",
+      "standard_reference": "9.1",
+      "section": "Enforcement",
+      "title": "Run portability lint first in CI",
+      "requirement": "scripts/lint-portability.ps1 runs as the first CI script step and fails on the forbidden portability idioms listed in the standard.",
+      "severity": "critical",
+      "applies_to": [
+        "ci",
+        "scripts",
+        "hooks"
+      ],
+      "trigger_kinds": [
+        "ci-change",
+        "lint-rule",
+        "portability"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "CI still runs lint-portability before later governance checks.",
+        "New portability defect classes are represented in the lint or recorded as follow-up."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-045",
+      "standard_reference": "9.2",
+      "section": "Enforcement",
+      "title": "Run PSScriptAnalyzer with committed settings",
+      "requirement": "PSScriptAnalyzer runs in CI over scripts/ and .codex/hooks/ with a committed settings file; suppressions are inline with justification.",
+      "severity": "high",
+      "applies_to": [
+        "scripts",
+        "hooks",
+        "ci",
+        "linters"
+      ],
+      "trigger_kinds": [
+        "ci-change",
+        "powershell",
+        "lint-rule",
+        "suppression"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "PSScriptAnalyzer remains wired to scripts/ and .codex/hooks/ in CI.",
+        "Suppressions include inline justification."
+      ],
+      "automation": {
+        "current": [
+          "scripts/PSScriptAnalyzerSettings.psd1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-046",
+      "standard_reference": "9.3",
+      "section": "Enforcement",
+      "title": "Do not add exact-phrase assertions before manifest refactor",
+      "requirement": "Until the manifest refactor lands, no new exact-phrase assertions may be added to validate-codex-assets.ps1.",
+      "severity": "high",
+      "applies_to": [
+        "validators",
+        "manifest",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "validator-change",
+        "exact-phrase-assertion",
+        "manifest-refactor"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "validate-codex-assets.ps1 changes do not add new exact-phrase assertions unless the manifest refactor is in scope."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "exact-phrase assertion detector"
+        ]
+      }
+    },
+    {
+      "id": "SCR-047",
+      "standard_reference": "9.4",
+      "section": "Enforcement",
+      "title": "Keep ubuntu-latest CI as the required leg",
+      "requirement": "CI script steps run on ubuntu-latest. A Windows matrix leg may be added; it never replaces the Linux leg.",
+      "severity": "critical",
+      "applies_to": [
+        "ci"
+      ],
+      "trigger_kinds": [
+        "ci-change",
+        "platform-portability"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "CI still includes an ubuntu-latest script-step path.",
+        "Any Windows leg is additive."
+      ],
+      "automation": {
+        "current": [
+          "scripts/validate-codex-assets.ps1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-048",
+      "standard_reference": "10",
+      "section": "Adoption Sequence",
+      "title": "Track remediation through the adopted closeout spec",
+      "requirement": "Scripting remediation is tracked through projects/signal/specs/007-code-script-closeout/ in the sequence recorded by the standard.",
+      "severity": "medium",
+      "applies_to": [
+        "projects",
+        "spec-artifacts",
+        "scripts",
+        "standards"
+      ],
+      "trigger_kinds": [
+        "remediation",
+        "script-closeout",
+        "governance-change"
+      ],
+      "phases": [
+        "plan",
+        "tasks",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Scripting-standard remediation work is tied to the closeout spec or a later recorded successor."
+      ],
+      "automation": {
+        "current": [],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-049",
+      "standard_reference": "B.1",
+      "section": "Template And Application Code",
+      "title": "Validate environment access lazily",
+      "requirement": "Environment access is lazy and validated: no module-scope env parsing; exported parse, require, and isConfigured functions; backend-only key names and sb_secret_ shapes rejected at parse time.",
+      "severity": "critical",
+      "applies_to": [
+        "templates",
+        "apps",
+        "typescript",
+        "env-modules"
+      ],
+      "trigger_kinds": [
+        "env-contract",
+        "typescript",
+        "template-change",
+        "app-code"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Environment parsing is lazy and validated.",
+        "Backend-only key names and sb_secret_ shapes are rejected where env parsing is touched."
+      ],
+      "automation": {
+        "current": [
+          "templates/react-vite-capacitor/src/env.ts",
+          "npm run test"
+        ],
+        "target": [
+          "env contract lint/test"
+        ]
+      }
+    },
+    {
+      "id": "SCR-050",
+      "standard_reference": "B.2",
+      "section": "Template And Application Code",
+      "title": "Use router-aware navigation",
+      "requirement": "Navigation is router-aware through NavLink or Link; active-state derives from the router, not a parallel prop.",
+      "severity": "medium",
+      "applies_to": [
+        "templates",
+        "apps",
+        "typescript",
+        "react"
+      ],
+      "trigger_kinds": [
+        "navigation",
+        "routing",
+        "react-component"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Changed navigation derives links and active state from the router."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "navigation lint rule"
+        ]
+      }
+    },
+    {
+      "id": "SCR-051",
+      "standard_reference": "B.3",
+      "section": "Template And Application Code",
+      "title": "Set explicit QueryClient defaults",
+      "requirement": "QueryClient defaults for retry and refetchOnWindowFocus are deliberate for queries and mutations; staleTime is chosen consciously per app.",
+      "severity": "medium",
+      "applies_to": [
+        "templates",
+        "apps",
+        "typescript",
+        "react-query"
+      ],
+      "trigger_kinds": [
+        "query-client",
+        "data-fetching",
+        "template-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "QueryClient default changes are intentional and documented in code or receipts when material."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "QueryClient config test"
+        ]
+      }
+    },
+    {
+      "id": "SCR-052",
+      "standard_reference": "B.4",
+      "section": "Template And Application Code",
+      "title": "Enforce module boundaries",
+      "requirement": "Module boundaries are lint-enforced: cross-module imports only through @/modules/<module>; every new module ships its index.ts public surface.",
+      "severity": "high",
+      "applies_to": [
+        "templates",
+        "apps",
+        "typescript",
+        "eslint"
+      ],
+      "trigger_kinds": [
+        "module-boundary",
+        "typescript",
+        "new-module",
+        "lint-rule"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "validator-required",
+      "evidence_required": [
+        "Cross-module imports go through public module index surfaces.",
+        "New modules include index.ts where applicable."
+      ],
+      "automation": {
+        "current": [
+          "npm run lint",
+          "scripts/enforce-module-boundaries.js"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-053",
+      "standard_reference": "B.5",
+      "section": "Template And Application Code",
+      "title": "Render complete data states",
+      "requirement": "Every data surface renders empty, loading, and error states; e2e specs pass in the unconfigured-env state, asserting the degraded UI.",
+      "severity": "high",
+      "applies_to": [
+        "templates",
+        "apps",
+        "typescript",
+        "ui",
+        "e2e"
+      ],
+      "trigger_kinds": [
+        "data-surface",
+        "ui-change",
+        "e2e",
+        "unconfigured-env"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed data surfaces include empty, loading, and error states.",
+        "E2E coverage remains valid without configured backend secrets where applicable."
+      ],
+      "automation": {
+        "current": [
+          "npm run e2e",
+          "scripts/verify-app.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-054",
+      "standard_reference": "B.6",
+      "section": "Template And Application Code",
+      "title": "Use append-only secure migrations",
+      "requirement": "Migrations are append-only and numbered, idempotent where re-runnable, security posture is recorded via comment on, and security definer functions set search_path.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "database",
+        "migrations",
+        "supabase"
+      ],
+      "trigger_kinds": [
+        "migration",
+        "database",
+        "rls",
+        "security-definer"
+      ],
+      "phases": [
+        "plan",
+        "tasks",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Migration chain is append-only and numbered.",
+        "Re-runnable migration behavior is idempotent where applicable.",
+        "Security posture comments and search_path on security definer functions are reviewed."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "migration lint"
+        ]
+      }
+    },
+    {
+      "id": "SCR-055",
+      "standard_reference": "B.6",
+      "section": "Template And Application Code",
+      "title": "Gate anonymous-write grants",
+      "requirement": "Anonymous-write grants require the comment, release-gate coverage, and gated risk classification.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "database",
+        "migrations",
+        "release-readiness",
+        "workflow-receipts"
+      ],
+      "trigger_kinds": [
+        "anonymous-write",
+        "grant",
+        "migration",
+        "gated-risk"
+      ],
+      "phases": [
+        "plan",
+        "tasks",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Anonymous-write grants include comments, release-gate coverage, and gated risk classification."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "grant posture validator"
+        ]
+      }
+    },
+    {
+      "id": "SCR-056",
+      "standard_reference": "B.7",
+      "section": "Template And Application Code",
+      "title": "Release gates check state rather than prose",
+      "requirement": "Release gates check state, not prose: net grant state across all migrations or live verification. Text-pinned patterns against specific files are interim only and recorded as such.",
+      "severity": "high",
+      "applies_to": [
+        "release-readiness",
+        "database",
+        "migrations",
+        "validators"
+      ],
+      "trigger_kinds": [
+        "release-gate",
+        "migration",
+        "grant",
+        "validator-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify",
+        "release-readiness"
+      ],
+      "enforcement_mode": "checklist-required",
+      "evidence_required": [
+        "Release gates inspect actual state or record any text-pinned interim check as temporary."
+      ],
+      "automation": {
+        "current": [],
+        "target": [
+          "state-based release gate"
+        ]
+      }
+    },
+    {
+      "id": "SCR-057",
+      "standard_reference": "B.8",
+      "section": "Template And Application Code",
+      "title": "Prove lockfiles on Linux and avoid OS-specific package scripts",
+      "requirement": "Lockfiles are CI-proven on Linux. package.json scripts contain no OS-specific binaries; use pwsh, never powershell.",
+      "severity": "high",
+      "applies_to": [
+        "apps",
+        "templates",
+        "package-scripts",
+        "lockfiles",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "dependency-change",
+        "package-script-change",
+        "lockfile",
+        "ci-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed lockfiles are compatible with Linux CI.",
+        "package.json scripts do not invoke powershell or OS-specific binaries."
+      ],
+      "automation": {
+        "current": [
+          "scripts/lint-portability.ps1",
+          ".github/workflows/app-dev-validation.yml"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-058",
+      "standard_reference": "B.9",
+      "section": "Template And Application Code",
+      "title": "Keep template parity auditable",
+      "requirement": "Template parity is auditable: a manifest of template-owned files is diffed against each app; unrecorded drift is a CI warning. Fixing a template defect without propagating or recording divergence is incomplete.",
+      "severity": "high",
+      "applies_to": [
+        "templates",
+        "apps",
+        "manifest",
+        "ci"
+      ],
+      "trigger_kinds": [
+        "template-change",
+        "template-parity",
+        "app-drift",
+        "manifest-change"
+      ],
+      "phases": [
+        "plan",
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Template-owned file changes are propagated or divergence is recorded.",
+        "Template parity check remains active."
+      ],
+      "automation": {
+        "current": [
+          "scripts/check-template-parity.ps1"
+        ],
+        "target": []
+      }
+    },
+    {
+      "id": "SCR-059",
+      "standard_reference": "B.10",
+      "section": "Template And Application Code",
+      "title": "No absolute or machine-local paths in app artifacts",
+      "requirement": "No absolute or machine-local paths in any committed app artifact.",
+      "severity": "critical",
+      "applies_to": [
+        "apps",
+        "templates",
+        "docs",
+        "generated-artifacts"
+      ],
+      "trigger_kinds": [
+        "path-handling",
+        "app-artifact",
+        "template-change",
+        "docs-change"
+      ],
+      "phases": [
+        "implement",
+        "verify"
+      ],
+      "enforcement_mode": "checklist-and-validator",
+      "evidence_required": [
+        "Changed app artifacts contain no absolute or machine-local paths."
+      ],
+      "automation": {
+        "current": [
+          "scripts/scan-secrets.ps1"
+        ],
+        "target": [
+          "absolute path scanner"
+        ]
+      }
+    }
+  ],
+  "appendix_mappings": [
+    {
+      "forbidden": "Join-Path $root \"a\\b\\c.ps1\"",
+      "use_instead": "Join-Path $root \"a/b/c.ps1\"",
+      "rule_ids": [
+        "SCR-003"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "& cmd.exe /d /c \"git diff ... 2>nul\"",
+      "use_instead": "& git diff --name-only $range 2>$null",
+      "rule_ids": [
+        "SCR-004",
+        "SCR-005",
+        "SCR-040"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "powershell -NoProfile -File x.ps1",
+      "use_instead": "pwsh -NoProfile -File x.ps1",
+      "rule_ids": [
+        "SCR-006"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "$path.Replace(\"/\", \"\\\\\")",
+      "use_instead": "keep forward slashes end-to-end",
+      "rule_ids": [
+        "SCR-007"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "[bool]$Flag",
+      "use_instead": "[switch]$Flag",
+      "rule_ids": [
+        "SCR-012"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "[switch]$IncludeE2E = $true",
+      "use_instead": "[switch]$SkipE2E",
+      "rule_ids": [
+        "SCR-013"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "-SomeSwitch $true in CI or docs",
+      "use_instead": "-SomeSwitch or -SomeSwitch:$false",
+      "rule_ids": [
+        "SCR-014"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "Prose-matching template replacement",
+      "use_instead": "{{TOKEN}} substitution plus fail on unresolved tokens",
+      "rule_ids": [
+        "SCR-026"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "Exact-sentence validator assertions",
+      "use_instead": "manifest rules: heading, field, token, pattern",
+      "rule_ids": [
+        "SCR-025",
+        "SCR-046"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "Allowlist pinned to a line number",
+      "use_instead": "path plus pattern plus justification",
+      "rule_ids": [
+        "SCR-028"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "Duplicate path lists or regexes across scripts",
+      "use_instead": "single manifest or common.ps1",
+      "rule_ids": [
+        "SCR-024",
+        "SCR-031",
+        "SCR-032",
+        "SCR-033"
+      ],
+      "standard_reference": "Appendix"
+    },
+    {
+      "forbidden": "Absolute local paths in committed docs",
+      "use_instead": "repo-relative links",
+      "rule_ids": [
+        "SCR-011",
+        "SCR-059"
+      ],
+      "standard_reference": "Appendix"
+    }
+  ]
+}

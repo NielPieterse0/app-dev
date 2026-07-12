@@ -706,7 +706,7 @@ git commit -m "docs: define capacitor native finalization workflow"
 
 Ensure `scripts/test-workspace.ps1` creates a disposable generated app under `projects/__verify-react-vite-capacitor`, then checks for:
 - `AGENTS.md`
-- `PLAN.md`
+- `plan.md`
 - `package.json`
 - `.env.example`
 - `src/lib/env.ts`

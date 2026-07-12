@@ -1,14 +1,17 @@
 # React Vite Capacitor App Instructions
 
+This file defines the durable app contract for this project.
+
+Keep feature-specific requirements, scenarios, risks, tasks, workflow receipts, and completion criteria in `specs/NNN-<slug>/`.
+
 Follow the root `app-dev/AGENTS.md` standards.
-Use `standards/codex-capabilities.md` for Codex skill and plugin routing.
-Use this project's `PLAN.md` for architecture, module, risk, and verification decisions.
 
 ## Active Specification
 
-- Start with `specs/001-initial/spec.md`.
-- Create later feature specs under `specs/NNN-<slug>/`.
-- Keep `PLAN.md`, `tasks.md`, and `workflow-receipts.md` aligned to the active spec before implementation starts.
+- Active spec: `specs/001-initial/spec.md` until a later spec becomes active.
+- Start new work by creating or updating a numbered spec with `/specify`.
+- The first feature spec should live under `specs/001-initial/`.
+- Later feature specs live under `specs/NNN-<slug>/`.
 
 ## App Type
 
@@ -16,47 +19,26 @@ Default cross-platform app: React + Vite + React Router + Capacitor.
 
 ## App Identity
 
-- Default users: Developers creating generated cross-platform business apps from this template.
-- Default jobs: Start a runnable React/Vite/Capacitor app, add vertical modules, and verify the app with local scripts.
-- Template modules: App shell, navigation shell, page header, list/detail layouts, form layout, data table layout, state primitives, and template reference surfaces.
-- Platforms: desktop web, mobile web, Android, and iOS unless a generated app narrows the target set.
-- Native requirements: Capacitor shell only; generated apps add platform folders and native APIs when the product requires them. Do not keep `android/` or `ios/` under this shared template.
+- Users: developers creating generated cross-platform business apps from this template.
+- Core jobs: start a runnable React/Vite/Capacitor app and extend it with product-specific modules.
+- Platforms: desktop web, mobile web, Android, and iOS unless a later spec narrows the target set.
+- Repository model: generated apps remain tracked in the root `app-dev` repository unless a later recorded decision splits them out.
 
-## Required Before Feature Work
+## Durable Constraints
 
-- Complete `specs/001-initial/spec.md` before feature work.
-- Update `PLAN.md` for architecture-sensitive or multi-module work.
-- Update `specs/001-initial/tasks.md` before material implementation.
-- Review the starter `AppShell`, `NavigationShell`, and base route structure.
-- Keep module boundaries explicit: import other modules only through `@/modules/<module>`, and treat deep imports into another module's internals as lint failures.
-- Initialize Tailwind and shadcn/ui when the first real UI surface needs component styling; use optional shadcn capability only if available.
-- Add `.env.example` for required public environment variables.
-- Use publishable Supabase browser keys only; never add service-role or secret keys to Vite env.
-- Add native platform folders only inside a generated app after the active spec confirms the need.
-- Treat the template README checklist as the completion baseline for later tasks in this plan.
+- Cross-module imports use the target module public surface only: `@/modules/<module>`.
+- Do not place app dependencies at the workspace root; keep them inside this project.
+- Do not store secrets, private keys, service-role keys, or `.env` files in the repository.
+- Document required public environment variables in `.env.example`.
+- Use publishable browser keys only in frontend-exposed configuration.
 
-## Capability Routing
+## Platform Constraints
 
-- Use `cross-platform-app-workflow` as the required local app-dev skill.
-- Use the local wrapper workflows when triggered: `ui-change-workflow`, `data-change-workflow`, `mobile-validation-workflow`, and `release-readiness-workflow`.
-- Optional external capabilities may help with frontend UI, rendered QA, Supabase, shadcn/ui, security, mobile emulator checks, and deployment.
-- Do not assume optional global skills/plugins are installed. Continue with local standards when they are unavailable.
-- Prefer Browser/IAB for rendered UI checks when available; use Playwright as fallback and record why.
-- Product-specific auth policies and RLS rules belong in generated app migrations after the app data model is defined.
+- Native requirements: Capacitor shell only until a later spec requires native folders or device APIs.
+- Add native platform folders and native APIs only after an active spec explicitly requires them.
 
-## Verification
+## Verification Baseline
 
-After installing dependencies inside this project, run available scripts through `../../scripts/verify-app.ps1 -ProjectPath .`.
-
-## Done When
-
-- Active specification and task artifacts are current for the feature being built.
-- `workflow-receipts.md` is current for any UI, data, mobile, or release-readiness work.
-- `PLAN.md` is current for architecture, data model, auth, routing, deployment, migration, or multi-module work.
-- `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` passes before completion.
-- `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence` passes before completion.
-- Available checks pass through `../../scripts/verify-app.ps1 -ProjectPath .`.
-- The React template lint config still enforces `@/modules/<module>` as the only public cross-module import surface.
-- Missing scripts are reported instead of invented.
-- UI changes include rendered desktop and mobile checks.
-- Handoff notes record deviations, skipped checks, and unresolved decisions.
+- Run the app's available verification commands through `../../scripts/verify-app.ps1 -ProjectPath .`.
+- If a required script is missing, report the missing script instead of inventing commands.
+- UI changes require rendered verification on the relevant supported surfaces.

@@ -46,7 +46,8 @@ Reference surfaces included in the template:
 
 - `FormLayoutExample` shows the supported React Hook Form + Zod + shadcn `Form` pattern.
 - `DataTableLayout` shows the supported TanStack Table + shadcn `Table` pattern.
-- `SettingsLayout` is wired into nested settings routes for general, notifications, and a protected example section.
+- `SettingsLayout` is wired into nested disposable example settings routes for general, notifications, and a protected example section.
+- `src/modules/auth` and `src/modules/settings` are example scaffolding, not durable product requirements. Generated apps should rename, replace, or delete them once real auth and settings flows are defined.
 
 ## Module boundaries
 
@@ -71,11 +72,12 @@ Reference surfaces included in the template:
 - Do not expose `service_role`, secret, or backend-only Supabase keys in browser env.
 - Use `/settings/protected` as the loader-guarded route example after wiring a real auth flow.
 - Enable Row Level Security on exposed schemas such as `public` before shipping app data access.
+- `supabase/README.md` and `supabase/migrations/001_template_foundation.sql` seed the generated app with a tracked Supabase scaffold instead of leaving migrations implicit.
 - Keep product-specific auth flows, roles, and RLS policies in generated app migrations after the data model is defined.
 
 ## CI workflow
 
-Generated apps inherit `.github/workflows/verify.yml`, which runs install, dependency review on pull requests, secret scanning, Playwright browser setup, and the full `typecheck`, `lint`, `test`, `build`, and `e2e` script set.
+Generated apps do not inherit executable workflow files. Use `templates/common/ci/verify.reference.yml` as the reference snippet when a generated app later needs its own CI workflow.
 
 ## Native platforms
 
