@@ -35,14 +35,17 @@ Update the `## Release Readiness Workflow Receipt` section in `workflow-receipts
 - local workflow used
 - external skill used or unavailable
 - files and surfaces reviewed
-- verification performed
+- implementation evidence
+- verification commands
+- verification result
 - outstanding gaps
 - decision and closure
 
 ## Verification Contract
 
 - Run `../../scripts/check-spec-artifacts.ps1 -ProjectPath .` before handoff.
-- Run `../../scripts/verify-app.ps1 -ProjectPath .`.
+- Run `../../scripts/validate-workflow-receipts.ps1 -ProjectPath . -RequireVerificationEvidence`.
+- Run `../../scripts/verify-app.ps1 -ProjectPath .` when the completion claim depends on the current app verification state.
 - Record exact commands run and exact blockers.
 - Do not mark the receipt complete if required verification evidence is missing.
 

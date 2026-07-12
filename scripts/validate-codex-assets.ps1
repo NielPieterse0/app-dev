@@ -602,7 +602,7 @@ function Test-WorkflowWrapperAssets {
     "## Completion Report",
     "## Next Command"
   )
-  foreach ($command in @("specify", "plan", "tasks", "analyze", "implement", "converge", "verify")) {
+  foreach ($command in @("specify", "plan", "tasks", "analyze", "implement", "converge", "verify", "release-readiness")) {
     $relativePath = ".agents/commands/$command.md"
     $content = Get-Content -LiteralPath (Resolve-WorkspacePath $relativePath) -Raw
     foreach ($heading in $requiredHeadings) {
@@ -620,6 +620,7 @@ function Test-WorkflowWrapperAssets {
     "implement" = @("workflow-receipts.md", "Resolve Applicable Standard Rules", "Apply Applicable Standards Checklist", "Applicable Standards Checklist", "standards/registry/*.rules.json", "get-applicable-standard-rules.ps1", "validator-required", "critical", "blocked", "task id and status", 'initialized by `/tasks`')
     "converge" = @("## User Input", "## Required Reads", "## Required Writes", "Review And Refresh Analysis Models", "get-applicable-standard-rules.ps1", "append-only", "Phase N: Convergence")
     "verify" = @("## User Input", "## Required Reads", "## Required Writes", "Run Governed Verification Commands", "Run Rendered Verification", "Produce Verification Report", "converged implementation state", "workflow-receipts.md")
+    "release-readiness" = @("## User Input", "## Required Reads", "## Required Writes", "Confirm Release-Readiness Obligation", "Review Applicable Rules And Wrapper Expectations", "Re-Run Governed Closure Checks", "Produce Release-Readiness Report", "workflow-receipts.md", "unresolved-gap reporting", "completion claim")
   }
   foreach ($entry in $commandNeedles.GetEnumerator()) {
     $relativePath = ".agents/commands/$($entry.Key).md"
